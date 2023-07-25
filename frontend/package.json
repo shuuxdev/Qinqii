@@ -1,0 +1,72 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "proxy": "https://localhost:7084",
+  "dependencies": {
+    "@emoji-mart/data": "^1.1.2",
+    "@emoji-mart/react": "^1.1.1",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@microsoft/signalr": "^7.0.5",
+    "@mui/material": "^5.13.7",
+    "@reduxjs/toolkit": "^1.9.5",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.4.0",
+    "cookie-parser": "^1.4.6",
+    "emoji-mart": "^5.5.2",
+    "emoji-picker-react": "^4.4.9",
+    "framer-motion": "^10.12.23",
+    "jwt-decode": "^3.1.2",
+    "react": "^18.2.0",
+    "react-cookie": "^4.1.1",
+    "react-dom": "^18.2.0",
+    "react-icons": "^4.7.1",
+    "react-redux": "^8.0.7",
+    "react-router-dom": "^6.11.2",
+    "react-scripts": "5.0.1",
+    "redux": "^4.2.1",
+    "redux-devtools-extension": "^2.13.9",
+    "redux-thunk": "^2.4.2",
+    "styled-components": "^6.0.4",
+    "tailwind-merge": "^1.13.2",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "buildWebpack": "webpack --mode production --watch --output-path ../wwwroot/dist ",
+    "build": "cross-env BUILD_PATH='../wwwroot/dist' react-scripts build",
+    "test": "react-scripts test",
+    "start": "react-scripts start",
+    "eject": "react-scripts eject",
+    "startCon": "concurrently \"npm run start:react\" \"npm run start:dotnet\"",
+    "start:react": "npm start",
+    "start:dotnet": "cd .. && dotnet watch run"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.0.2",
+    "autoprefixer": "^10.4.13",
+    "postcss": "^8.4.19",
+    "tailwindcss": "^3.2.4",
+    "webpack-cli": "^5.1.2"
+  }
+}
