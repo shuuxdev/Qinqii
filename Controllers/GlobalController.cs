@@ -19,7 +19,6 @@ public class GlobalController : ControllerBase
     public async Task<IActionResult> SendReaction(
         [FromBody] SendReactionDTO reaction)
     {
-        var a = 5;
         var user_id = HttpContext.GetUserId();
         var dto = await _postService.SendReact(reaction, user_id);
         return Ok(dto);
