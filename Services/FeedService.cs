@@ -28,7 +28,7 @@ public class FeedService
         Dictionary<int, ReactionDTO> reactionDictionary = new Dictionary<int, ReactionDTO>();
         using var connection = _ctx.CreateConnection();
         var param = new DynamicParameters();
-         await connection.QueryAsync<PostDTO, AttachmentDTO, CommentDTO, ReactionDTO , PostDTO>(sql: "[dbo].[GET_Posts]",  
+         await connection.QueryAsync<PostDTO, AttachmentDTO, CommentDTO, ReactionDTO , PostDTO>(sql: "[POST].[GetAll]",  
 (PostDTO post, AttachmentDTO attachment, CommentDTO comment, ReactionDTO reaction) =>
 {
             

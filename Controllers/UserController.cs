@@ -56,7 +56,7 @@ namespace Qinqii.Controllers
         {
             int user_id = HttpContext.GetUserId();
             var u = await user.GetFriendRequests(user_id);
-            return new JsonResult(u);
+            return Ok(u);
         }
         [HttpPatch("update-friend-status")]
         public async Task<IActionResult> UpdateFriendStatus(FriendStatusAction friendStatus)

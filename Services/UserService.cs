@@ -18,7 +18,7 @@ namespace Qinqii.Service
                 using var connection = _ctx.CreateConnection();
                 var param = new DynamicParameters();
                 param.Add("@user_id", id, dbType: System.Data.DbType.Int32);
-                var u = await connection.QuerySingleAsync<UserProfile>("[dbo].[GET_Profile]",
+                var u = await connection.QuerySingleAsync<UserProfile>("[ACCOUNT].[Profile]",
                     commandType: System.Data.CommandType.StoredProcedure, param: param);
                 connection.Dispose();
                 return u;
@@ -28,7 +28,7 @@ namespace Qinqii.Service
             using var connection = _ctx.CreateConnection();
                 var param = new DynamicParameters();
                 param.Add("@user_id", id, dbType: System.Data.DbType.Int32);
-                IEnumerable<Friend> user = await connection.QueryAsync<Friend>("[dbo].[GET_Friends]", commandType: System.Data.CommandType.StoredProcedure, param: param);
+                IEnumerable<Friend> user = await connection.QueryAsync<Friend>("[ACCOUNT].[Friends]", commandType: System.Data.CommandType.StoredProcedure, param: param);
 
                 return user;
         }
@@ -38,8 +38,10 @@ namespace Qinqii.Service
                using var connection = _ctx.CreateConnection();
                 var param = new DynamicParameters();
                 param.Add("@user_id", id, dbType: System.Data.DbType.Int32);
-                IEnumerable<Friend> user = await connection.QueryAsync<Friend>("[dbo].[GET_FriendRequests]",
-                    commandType: System.Data.CommandType.StoredProcedure, param: param);
+                IEnumerable<Friend> user = await connection.QueryAsync<Friend>("[ACCOUNT].[FriendRequests]",
+                    commandType: System.Data.CommandType.StoredProcedure, 
+                    param: param);
+                if (user == null) user = new List<Friend>();
                 return user;
         }
         public async Task<int> UpdateFriendStatus(FriendStatusAction friendStatus)

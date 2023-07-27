@@ -28,7 +28,7 @@ namespace Qinqii.Service
             using var connection = _ctx.CreateConnection();
                 var param = new DynamicParameters();
                 param.Add("@user_id", user_id, dbType: System.Data.DbType.Int32);
-                string connectionId = await connection.QuerySingleAsync<string>("[dbo].[GET_ConnectionId]", commandType: System.Data.CommandType.StoredProcedure, param: param);
+                string connectionId = await connection.QuerySingleAsync<string>("[ACCOUNT].[Connection]", commandType: System.Data.CommandType.StoredProcedure, param: param);
                 return connectionId;
         }
     }

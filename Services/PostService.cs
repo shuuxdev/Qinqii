@@ -45,7 +45,7 @@ public class PostService
         }
 
         var results = await connection.QueryMultipleAsync(
-            "[dbo].[EDIT_Comment]",
+            "[COMMENT].[Edit]",
             commandType: CommandType.StoredProcedure, param: param);
 
         var c = await results.ReadSingleAsync<CommentDTO>();
@@ -85,7 +85,7 @@ public class PostService
 
 
         var results = await connection.QueryMultipleAsync(
-            "[dbo].[CREATE_Comment]",
+            "[COMMENT].[Create]",
             commandType: CommandType.StoredProcedure, param: param);
 
         var c = await results.ReadSingleAsync<CommentDTO>();
@@ -100,7 +100,7 @@ public class PostService
         var param = new DynamicParameters();
         param.Add("@comment_id", comment_id, DbType.Int32);
         param.Add("@user_id", user_id, DbType.Int32);
-        await connection.ExecuteAsync("[dbo].[DELETE_Comment]",
+        await connection.ExecuteAsync("[COMMENT].[Delete]",
             commandType: CommandType.StoredProcedure, param: param);
     }
 
@@ -128,7 +128,7 @@ public class PostService
             param.Add("@tvp", dt.AsTableValuedParameter());
         }
 
-        await connection.ExecuteAsync("[dbo].[EDIT_Post]",
+        await connection.ExecuteAsync("[POST].[Edit]",
             commandType: CommandType.StoredProcedure, param: param);
     }
 
@@ -138,7 +138,7 @@ public class PostService
         var param = new DynamicParameters();
         param.Add("@post_id", post_id, DbType.Int32);
         param.Add("@user_id", user_id, DbType.Int32);
-        await connection.ExecuteAsync("[dbo].[DELETE_Post]",
+        await connection.ExecuteAsync("[POST].[Delete]",
             commandType: CommandType.StoredProcedure, param: param);
     }
 
@@ -163,7 +163,7 @@ public class PostService
         param.Add(@"with_attachments", with_attachments, DbType.Boolean);
         param.Add("@user_id", post.author, DbType.Int32);
         param.Add("@content", post.content, DbType.String);
-        var u = await connection.ExecuteAsync("[dbo].[CREATE_Post]",
+        var u = await connection.ExecuteAsync("[POST].[Create]",
             commandType: CommandType.StoredProcedure, param: param);
     }
 
@@ -177,7 +177,7 @@ public class PostService
         param.Add("@user_id", user_id, DbType.Int32);
         param.Add("@emoji", reaction.emoji, DbType.String);
         var dto = await connection.QuerySingleAsync<ReactionDTO>(
-            "[dbo].[SEND_Reaction]",
+            "[REACTION].[Create]",
             commandType: CommandType.StoredProcedure, param: param);
         return dto;
     }
@@ -190,7 +190,7 @@ public class PostService
         param.Add("@user_id", user_id, DbType.Int32);
         param.Add("@reaction_id", id, DbType.Int32);
         var cnt = await connection.ExecuteAsync(
-            "[dbo].[UNDO_Reaction]",
+            "[REACTION].[Delete]",
             commandType: CommandType.StoredProcedure, param: param);
         if (cnt != 1) throw new InvalidOperationException();
     }

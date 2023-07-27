@@ -22,7 +22,7 @@ namespace Qinqii.Service
                 param.Add("@username", username, dbType: System.Data.DbType.String);
                 param.Add("@password", password, dbType: System.Data.DbType.String);
             
-                int user_id = await connection.QuerySingleAsync<int>("[dbo].[Login]", commandType: System.Data.CommandType.StoredProcedure, param: param);
+                int user_id = await connection.QuerySingleAsync<int>("[ACCOUNT].[Login]", commandType: System.Data.CommandType.StoredProcedure, param: param);
                 return user_id;
 
         }
