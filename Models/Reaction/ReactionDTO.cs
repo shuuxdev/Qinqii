@@ -18,7 +18,7 @@ public class ReactionDTO
     public int reaction_id { get; set; }
     public int reactor_id { get; set; }
     public string reactor_name { get; set; }
-
+    public string reactor_avatar { get; set; }
     public string emoji { get; set; }
     public string created_at { get; set; }
 }

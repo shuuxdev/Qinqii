@@ -1,3 +1,5 @@
+import { createSlice } from "@reduxjs/toolkit";
+
 export const OPEN_CREATE_POST_DIALOG = 'OPEN_CREATE_POST_DIALOG';
 export const CLOSE_CREATE_POST_DIALOG = 'CLOSE_CREATE_POST_DIALOG';
 const SHOW_NOTIFICATION = 'SHOW_NOTIFICATION';
@@ -47,4 +49,5 @@ const Reducer = (state = def, action) => {
             return state;
     }
 };
+
 export default Reducer;

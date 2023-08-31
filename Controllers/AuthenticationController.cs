@@ -19,12 +19,15 @@ namespace Qinqii.Controllers
         private readonly UserService userService;
         private readonly AuthService authService;
         private readonly IConfiguration config;
+        private readonly IHostEnvironment _env;
 
-        public AuthenticationController(AuthService _authService, UserService _userService, IConfiguration _config)
+        public AuthenticationController(AuthService _authService, UserService
+         _userService, IConfiguration _config, IHostEnvironment env)
         {
             this.authService = _authService;
             this.userService = _userService;
             this.config = _config;
+            _env = env;
         }
 
         [HttpPost("login")]
@@ -63,7 +66,14 @@ namespace Qinqii.Controllers
                 int user_id = await authService.Login(u.username, u.password);
                 if (user_id == 0) return Unauthorized();
                 var token = JwtToken.Generate(config, user_id);
-                Response.Cookies.Append(AdditionalClaimTypes.Token, token);
+                CookieOptions option = new CookieOptions();
+                if (_env.IsDevelopment())
+                {
+                    option.Secure = true;
+                    option.SameSite = SameSiteMode.None;
+                }
+                Response.Cookies.Append(AdditionalClaimTypes.Token, token,option);
+                
                 return Ok();
             }
             catch (InvalidOperationException e)

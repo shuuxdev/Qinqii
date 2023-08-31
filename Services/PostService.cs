@@ -7,6 +7,7 @@ using Qinqii.Models.Attachment;
 using Qinqii.Models.Comment;
 using Qinqii.Models.Post;
 using Qinqii.Models.Reaction;
+using Qinqii.Utilities;
 
 namespace Qinqii.Service;
 
@@ -80,7 +81,7 @@ public class PostService
         param.Add(@"with_attachments", with_attachments, DbType.Boolean);
         param.Add("@user_id", user_id, DbType.Int32);
         param.Add("@content", comment.content, DbType.String);
-        param.Add("@parent_comment_id", comment.parent_comment_id,
+        param.Add("@parent_id", comment.parent_id,
             DbType.Int32);
 
 
@@ -142,8 +143,10 @@ public class PostService
             commandType: CommandType.StoredProcedure, param: param);
     }
 
-    public async Task CreatePost(CreatePostDTO post)
+    public async Task CreatePost(CreatePostDTO post,CancellationToken token)
     {
+      
+        await Task.Delay(1500);
         var with_attachments = post.attachments != null;
         using var connection = _ctx.CreateConnection();
         var param = new DynamicParameters();
@@ -163,8 +166,11 @@ public class PostService
         param.Add(@"with_attachments", with_attachments, DbType.Boolean);
         param.Add("@user_id", post.author, DbType.Int32);
         param.Add("@content", post.content, DbType.String);
-        var u = await connection.ExecuteAsync("[POST].[Create]",
-            commandType: CommandType.StoredProcedure, param: param);
+        var cmd = new CommandDefinition(commandType: CommandType
+                .StoredProcedure, commandText: "[POST].[Create]",
+            parameters: param, cancellationToken:token);
+        var u = await connection.ExecuteAsync(cmd);
+        
     }
 
     public async Task<ReactionDTO> SendReact(SendReactionDTO reaction,

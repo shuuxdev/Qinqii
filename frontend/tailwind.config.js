@@ -11,7 +11,7 @@ for (const key in Color) {
     colorSaveList.push(`border-b-[${Color[key]}]`);
     colorSaveList.push(`border-t-[${Color[key]}]`);
 }
-const safeClass = ['qinqii-thin-shadow'];
+const safeClass = ['qinqii-thin-shadow, transparent-indicator'];
 module.exports = {
     content: ['./src/**/*.{js,jsx,ts,tsx}'],
     safelist: [...colorSaveList, ...safeClass],

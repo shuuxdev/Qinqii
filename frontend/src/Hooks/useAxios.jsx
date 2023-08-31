@@ -35,8 +35,12 @@ export const useAxios = () => {
             return Promise.reject(failedResponse);
         }
     );
+
     const GET_Feed = async () => await securedApi.get('/feed');
-    const GET_UserProfile = async () => await securedApi.get('/user/profile');
+    const GET_Stories = async () => await securedApi.get('/stories');
+    const GET_Story = async (id) => await securedApi.get(`/story?id=${id}`);
+    const GET_MyProfile = async () => await securedApi.get(`/user/profile`);
+    const GET_UserProfile = async (user_id) => await securedApi.get(`/user/profile?id=${user_id}`);
     const GET_Messages = async () => await securedApi.get('/chat/messages');
     const GET_ConnectionId = async () =>
         (await securedApi.get('/user/connection')).data;
@@ -65,6 +69,9 @@ export const useAxios = () => {
         POST_SendMessage,
         GET_AllChat,
         GET_Chat,
+        GET_Stories,
+        GET_Story,
+        GET_MyProfile
     };
     return api;
 };

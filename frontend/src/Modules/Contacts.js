@@ -1,15 +1,26 @@
-export const fetchContactsAction = (contacts) => ({
-    type: FETCH_CONTACTS,
-    payload: contacts,
-});
+const { createSlice } = require("@reduxjs/toolkit");
+
+
 export const FETCH_CONTACTS = 'FETCH_CONTACTS';
 
-const Reducer = (state = [], action) => {
-    switch (action.type) {
-        case FETCH_CONTACTS:
-            return action.payload;
-        default:
-            return state;
+
+const contactSlice = createSlice({
+    initialState: [],
+    name: 'contacts',
+    reducers: {
+        updateOnlineStatus: (state, action) => {
+             state.forEach((contact) => {
+                if(contact.recipient_id == action.payload.user_id)
+                {
+                    contact.status = action.payload.status;
+                }
+            })
+        },
+        fetchContacts: (state, action) => {
+            return action.payload
+        }
     }
-};
-export default Reducer;
+})
+
+export const {updateOnlineStatus, fetchContacts} = contactSlice.actions;
+export default contactSlice.reducer;

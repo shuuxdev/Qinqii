@@ -1,17 +1,20 @@
+import { createSlice } from '@reduxjs/toolkit'
 import { PATCH_FriendStatus } from '../Helper/Axios.js'
 
-const friendRequestsReducer = (state = [], action) => {
-  switch (action.type) {
-    case FETCH_FRIEND_REQUESTS:
+
+
+const friendRequestSlice = createSlice({
+  name: 'friendRequests',
+  initialState: [],
+  reducers: {
+    fetchFriendRequests: (state, action) => {
       return action.payload
-    case ACCEPT:
-      return [...state.filter((item) => item.id != action.payload.id)]
-    case REJECT:
-      return [...state.filter((item) => item.id != action.payload.id)]
-    default:
-      return state
+    },
+    updateFriendStatus: (state, action) => {
+        return [...state.filter((item) => item.id != action.payload.id)]
+    }
   }
-}
+})
 
 export const REJECT = 'REJECTED'
 export const ACCEPT = 'ACCEPTED'
@@ -21,13 +24,11 @@ export const fetchFriendRequestsAction = (arg) => ({ type: FETCH_FRIEND_REQUESTS
 
 export const updateFriendStatusAsync = (friendStatus) => async (dispatch, getState) => {
   const response = await PATCH_FriendStatus(friendStatus)
+  const updateFriendStatus = friendRequestSlice.actions.updateFriendStatus;
   if (response.status === 200) {
-    if (friendStatus.action === ACCEPT) dispatch(acceptAction(friendStatus.id))
-    else if (friendStatus.action === REJECT) dispatch(rejectAction(friendStatus.id))
+     dispatch(updateFriendStatus(friendStatus.id))
   }
 }
 
-export const acceptAction = (id) => ({ type: ACCEPT, payload: { id } })
-export const rejectAction = (id) => ({ type: REJECT, payload: { id } })
-
-export default friendRequestsReducer
+export const { fetchFriendRequests } = friendRequestSlice.actions
+export default friendRequestSlice.reducer

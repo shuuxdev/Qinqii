@@ -12,6 +12,28 @@ const securedApi = axios.create({
     withCredentials: true,
 });
 
+const ResponseType = { 
+    StatusCode: 'StatusCode',
+    Data: 'Data'
+}
+const handleApiCall = async (api, responseType)  => {
+
+    try {
+        const res = await api;
+        if(responseType == ResponseType.Data)
+        {
+            return [res.data, null]
+        }
+        else {
+            return [res.status, null]
+        }
+    }
+    catch (err)
+    {
+        return [null, err]
+    }
+}
+
 const beforeSendingRequest = (request) => {
     let token = cookies.get('Token');
     request.headers.Authorization = `Bearer ${token}`;
@@ -54,17 +76,23 @@ export const PATCH_FriendStatus = async ({ id, action }) =>
 export const GET_Chat = async () => (await securedApi.get('/chat')).data;
 
 export const SEND_React = async ({ entity_id, entity_type, emoji }) =>
-    await securedApi
-        .patch('/react', { entity_id, entity_type, emoji })
-        .then((res) => [res.data, null])
-        .catch((err) => [null, err]);
+    await handleApiCall(securedApi
+        .patch('/react', { entity_id, entity_type, emoji }), ResponseType.Data)
+        
+export const UNDO_REACT = async (reaction_id) =>
+    await handleApiCall(securedApi
+        .delete(`/undo-react?id=${reaction_id}`),ResponseType.StatusCode)
+        
 
 export const DELETE_Post = async (post_id) =>
-    await securedApi
-        .delete(`/post/delete?id=${post_id}`)
-        .then((res) => [res.status, null])
-        .catch((err) => [null, err]);
+    await handleApiCall(securedApi
+        .delete(`/post/delete?id=${post_id}`), ResponseType.StatusCode)
+        
 
+export const GET_Story = async (story_id) =>
+        await handleApiCall(securedApi
+            .get(`/story?id=${story_id}`), ResponseType.Data)
+            
 export const POST_CreateNewPost = async ({ content, attachments }) => {
     let files = [...attachments];
     const formData = new FormData();
@@ -85,7 +113,7 @@ export const EDIT_Post = async ({ comment_id, content, attachments }) => {
     for (let i = 0; i < files.length; ++i) {
         formData.append('attachments', files[i]);
     }
-    return await securedApi.post('/comment/edit', formData, {
+    return await securedApi.post('/comment/edit', formData, { 
         headers: { 'Content-Type': 'multipart/form-data' },
     });
 };
@@ -107,18 +135,17 @@ export const UPLOAD_Attachments = async (attachments) => {
     for (let i = 0; i < attachments.length; ++i) {
         formData.append('images', attachments[i]);
     }
-    return await securedApi
-        .post('/upload/image', formData, {
+    return await handleApiCall(securedApi
+        .post('/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
-        })
-        .then((res) => [res.data, null])
-        .catch((err) => [[], err]);
+        }), ResponseType.Data);
 };
-export const CREATE_Comment = async ({ post_id, content, attachments }) => {
+export const CREATE_Comment = async ({ post_id, content, attachments,parent_id }) => {
     let files = [...attachments];
     const formData = new FormData();
     formData.append('content', content);
     formData.append('post_id', post_id);
+    formData.append('parent_id', parent_id);
     for (let i = 0; i < files.length; ++i) {
         formData.append('attachments', files[i]);
     }

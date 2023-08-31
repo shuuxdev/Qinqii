@@ -19,24 +19,26 @@ public class MediaUploadController : ControllerBase
         _uploadService = uploadService;
     }
 
-    [HttpPost("image")]
+    [HttpPost]
     public async Task<IActionResult> UploadImage(
-        [FromForm] IFormFileCollection images)
+        [FromForm] IFormFileCollection attachments)
     {
         List<AttachmentTVP> list = new();
-        foreach (var image in images)
+        foreach (var attachment in attachments)
         {
             var name = Guid.NewGuid().ToString();
-            var prefix = Path.GetExtension(image.FileName);
+            var prefix = Path.GetExtension(attachment.FileName);
             var url = name + prefix;
-            if (image.ContentType.ToLower().StartsWith("image"))
+            var fileType = attachment.ContentType.ToLower(); 
+            if (fileType.StartsWith("image"))
                 list.Add(new AttachmentTVP() { type = "IMAGE", url = url });
-
+            if (fileType.StartsWith("video"))
+                list.Add(new AttachmentTVP() { type = "VIDEO", url = url });
             using var fileStream =
                 new FileStream(Path.Combine(_env.WebRootPath,
                         $"assets/{url}"),
                     FileMode.CreateNew);
-            await image.CopyToAsync(fileStream);
+            await attachment.CopyToAsync(fileStream);
         }
 
         if (list.IsNullOrEmpty()) throw new InvalidDataException();

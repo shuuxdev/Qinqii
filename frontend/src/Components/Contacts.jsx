@@ -7,6 +7,9 @@ import Color from '../Enums/Color';
 import { closeChat, fetchMessageAsync, openChat } from "../Modules/Chats.js";
 import { Avatar, Header, Text } from './CommonComponent.jsx';
 import Loading from "./Loading.jsx";
+import { useEffect } from "react";
+import { updateOnlineStatus } from "../Modules/Contacts.js";
+import connection from "../Helper/SignalR.js";
 
 
 const test = {
@@ -62,6 +65,13 @@ const EmptyContactList = () => {
 export function ContactList() {
 
     const contacts = useSelector(state => state.contacts)
+    const dispatch = useDispatch()
+    useEffect(() => {
+        connection.on('updateOnlineStatus', (user_id, status) => {
+            dispatch(updateOnlineStatus({ user_id, status }))
+        })
+
+    }, [])
     return (
         <div className={`flex flex-col`}>
             <Header title="CONTACTS" count={5}></Header>

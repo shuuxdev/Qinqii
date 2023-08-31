@@ -1,104 +1,194 @@
+import { createSlice } from '@reduxjs/toolkit';
+import { ENTITY } from '../Enums/Entity.js';
 import { Severity } from '../Enums/FetchState.js';
 import {
     CREATE_Comment,
     DELETE_Comment,
     DELETE_Post,
     EDIT_Comment,
+    GET_Posts,
     POST_CreateNewPost,
     SEND_React,
+    UNDO_REACT,
     UPLOAD_Attachments,
 } from '../Helper/Axios.js';
-import fetchDataThunk from '../Thunks/fetchDataThunk.js';
 import {
-    CLOSE_CREATE_POST_DIALOG,
     CloseDialog,
     ShowNotification,
 } from './UI.js';
 
 export const FETCH_POSTS = 'FETCH_POSTS';
 
-const DELETE_POST = 'DELETE_POST';
-const ADD_COMMENT = 'ADD_COMMENT';
-const REMOVE_COMMENT = 'REMOVE_COMMENT';
-const UPDATE_COMMENT = 'UPDATE_COMMENT';
-const AddNewCommentAction = (comment) => ({
-    type: ADD_COMMENT,
-    payload: comment,
-});
-const RemoveCommentAction = ({ comment_id, post_id }) => ({
-    type: REMOVE_COMMENT,
-    payload: { comment_id, post_id },
-});
-const UpdateCommentAction = (comment) => ({
-    type: UPDATE_COMMENT,
-    payload: comment,
-});
-const Reducer = (state = [], action) => {
-    switch (action.type) {
-        case FETCH_POSTS:
-            return action.payload;
-        case ADD_COMMENT:
-            return [
-                ...state.map((post) => {
-                    if (post.id == action.payload.post_id) {
-                        post.comments = [...post.comments, action.payload];
-                    }
-                    return post;
-                }),
-            ];
-        case REMOVE_COMMENT:
-            return [
-                ...state.map((post) => {
-                    if (post.id == action.payload.post_id) {
-                        post.comments = [
-                            ...post.comments.filter(
-                                (comment) =>
-                                    comment.id != action.payload.comment_id
-                            ),
-                        ];
-                    }
-                    return post;
-                }),
-            ];
-        case UPDATE_COMMENT:
-            return [
-                ...state.map((post) => {
-                    if (post.id == action.payload.post_id) {
-                        post.comments = [
-                            ...post.comments.map((comment) => {
-                                if (comment.id == action.payload.id)
-                                    comment = action.payload;
-                                return comment;
-                            }),
-                        ];
-                    }
-                    return post;
-                }),
-            ];
 
-        default:
-            return state;
+
+
+const postSlice = createSlice({
+     name: 'posts',
+     initialState: [],
+     reducers:{
+            fetchPosts: (state, action) => {
+                return action.payload;
+            },
+            addComment: (state, action) => {
+                    state.map((post) => {
+                        if (post.id == action.payload.post_id) {
+                            post.comments = [...post.comments, action.payload];
+                        }
+                        return post;
+                    })
+            },
+            removeComment: (state, action) => {
+                state.map((post) => {
+                        if (post.id == action.payload.post_id) {
+                            post.comments = [
+                                ...post.comments.filter(
+                                    (comment) =>
+                                        comment.id != action.payload.comment_id
+                                ),
+                            ];
+                        }
+                        return post;
+                    })
+               
+            },
+            updateComment: (state, action) => {
+                state.map((post) => {
+                        if (post.id == action.payload.post_id) {
+                            post.comments = [
+                                ...post.comments.map((comment) => {
+                                    if (comment.id == action.payload.id)
+                                        comment = action.payload;
+                                    return comment;
+                                }),
+                            ];
+                        }
+                        return post;
+                    })
+                
+            },
+            updatePost: (state, action) => {
+                state.map((post) => {
+                        if (post.id == action.payload.id) {
+                            post.reactions = action.payload.reactions;
+                        }
+                        return post;
+                    })
+                
+            }
+     }
+})
+const findParentComment = (comment, parent_id) => {
+    if (!comment) return null;
+
+    if (comment.id == parent_id) {
+        return comment;
     }
-};
-export const undoReactTo = (reaction_id) => {};
-export const reactToPostThunk =
-    (post_id, sendReactionDTO) => async (dispatch) => {
-        const [reaction, err] = await SEND_React(sendReactionDTO);
-        if (!err) {
-            dispatch(FETCH_POSTS);
+    if (!comment.childrens) return null;
+    for (let i = 0; i < comment.childrens.length; i++) {
+        let ans = findParentComment(comment.childrens[i], parent_id)
+        if (ans) {
+            return ans;
+        };
+    }
+    return null;
+}
+
+const toNestedComments =(comments) => {
+    let dict = {} // dictionary
+    let sorted = [...comments];
+    if (comments.length > 0) {
+        sorted.sort((a, b) => a.id - b.id);
+        sorted.forEach((comment) => {
+            comment = { ...comment, childrens: [] };
+            let parent = null;
+            Object.keys(dict).some((key) => {
+                parent = findParentComment(dict[key], comment.parent_id);
+                if (parent) return true;
+                //break the loop when parent is found
+            })
+
+            if (parent == null) {
+                // comment is root
+                dict[comment.id] = comment
+            }
+            else {
+                // comment is child
+                parent.childrens.push(comment);
+            }
+
+        })
+    }
+    return Object.values(dict) ?? [];
+}
+
+const getCascadeComments = (comment) => {
+    let cascadeComments = [];
+    if (comment.childrens.length > 0) {
+        comment.childrens.forEach((child) => {
+            cascadeComments = [
+                ...cascadeComments,
+                child,
+                ...getCascadeComments(child),
+            ];
+        });
+    }
+    return cascadeComments;
+}
+export const fetchPostsThunk = () => async (dispatch) => {
+    const response = await GET_Posts(FETCH_POSTS);
+    // response.data.forEach((post) => {
+    //     post.comments = toNestedComments(post.comments);
+    // })
+    // console.log(response.data[0]);
+    if(response.status === 200)
+    dispatch(fetchPosts(response.data));
+}
+export const undoReactThunk =
+    (entity, reaction_id) => async (dispatch, getState) => {
+        const [statusCode, err] = await UNDO_REACT(reaction_id);
+        if (!err && statusCode === 200) {
+            if (entity.type == ENTITY.POST) {
+                const p = getState().posts.find(post => post.id == entity.id);
+                const post = {...p, reactions: p.reactions.filter(reaction => reaction.id != reaction_id)}
+                dispatch(updatePost(post));
+            }
+            if (entity.type == ENTITY.COMMENT) {
+                const post = getState().posts.find(
+                    (post) => post.id == entity.post_id
+                ); //entity.id is comment.id
+                console.log(post);
+                if (post != null) {
+                    const comment = {...post.comments.find(
+                        (comment) => comment.id == entity.id
+                    )};
+                    comment.reactions = comment.reactions.filter(
+                        (reaction) => reaction.id != reaction_id
+                    );
+                    dispatch(updateComment(comment));
+                }
+            }
         }
     };
+export const reactToPostThunk = (post, sendReactionDTO) => async (dispatch) => {
+    let [reaction, err] = await SEND_React(sendReactionDTO);
+    if (!err) {
+        let _post = {...post};
+        _post.reactions = [..._post.reactions, reaction]
+        dispatch(updatePost(_post));
+    }
+};
 export const reactToCommentThunk =
     (comment, sendReactionDTO) => async (dispatch) => {
         const [reaction, err] = await SEND_React(sendReactionDTO);
         if (!err) {
-            comment.reactions.push(reaction);
-            dispatch(UpdateCommentAction(comment));
+            let _comment = {...comment};
+            _comment.reactions = [..._comment.reactions, reaction]
+            dispatch(updateComment(_comment));
         }
     };
 export const deletePostThunk = (post_id) => async (dispatch) => {
     const [statusCode, err] = await DELETE_Post(post_id);
-    dispatch(fetchDataThunk(FETCH_POSTS));
+    dispatch(fetchPostsThunk());
     if (statusCode === 200)
         dispatch(
             ShowNotification({
@@ -129,10 +219,13 @@ export const uploadAttachmentsThunk = (files) => async (dispatch) => {
 };
 export const commentThunk = (comment) => async (dispatch) => {
     let response = await CREATE_Comment(comment);
+    console.log(response.data)
     let _comment = response.data;
     //for finding which post to udpate in reducer
     _comment.post_id = comment.post_id;
-    if (response.status === 200) dispatch(AddNewCommentAction(_comment));
+    _comment.parent_id = comment.parent_id;
+    console.log(_comment);
+    if (response.status === 200) dispatch(addComment(_comment));
     else
         dispatch(
             ShowNotification({
@@ -142,8 +235,8 @@ export const commentThunk = (comment) => async (dispatch) => {
             })
         );
 };
-export const deleteCommentThunk = (comment_id, post_id) => async (dispatch) => {
-    const [statusCode, err] = await DELETE_Comment(comment_id);
+export const deleteCommentThunk = (comment, post) => async (dispatch) => {
+    const [statusCode, err] = await DELETE_Comment(comment.id);
     if (err) {
         dispatch(
             ShowNotification({
@@ -159,7 +252,10 @@ export const deleteCommentThunk = (comment_id, post_id) => async (dispatch) => {
                 severity: Severity.SUCCESS,
             })
         );
-        dispatch(RemoveCommentAction({ comment_id, post_id }));
+        console.log(getCascadeComments(comment));
+        [comment,...getCascadeComments(comment)].forEach((c) => {
+            dispatch(removeComment({ comment_id: c.id,post_id:  post.id }));
+        })
     }
 };
 export const editCommentThunk = (comment) => async (dispatch) => {
@@ -173,7 +269,7 @@ export const editCommentThunk = (comment) => async (dispatch) => {
         );
         return;
     } else {
-        dispatch(UpdateCommentAction(newComment));
+        dispatch(updateComment(newComment));
         dispatch(
             ShowNotification({
                 content: 'Chỉnh sửa bình luận thành công !',
@@ -186,6 +282,7 @@ export const editCommentThunk = (comment) => async (dispatch) => {
 export const createNewPostThunk = (post) => async (dispatch, getState) => {
     var res = (await POST_CreateNewPost(post)).status;
     dispatch(CloseDialog());
+    dispatch(fetchPostsThunk())
     if (res === 200) {
         dispatch(
             ShowNotification({
@@ -202,4 +299,5 @@ export const createNewPostThunk = (post) => async (dispatch, getState) => {
         );
 };
 
-export default Reducer;
+export const { fetchPosts, addComment, removeComment, updateComment, updatePost } = postSlice.actions;
+export default postSlice.reducer;

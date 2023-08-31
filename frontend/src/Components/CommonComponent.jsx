@@ -1,222 +1,16 @@
-import { TextareaAutosize } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { BsCameraFill, BsEmojiLaughingFill } from 'react-icons/bs';
+import { createContext, useContext, useState } from 'react';
 import { FiAtSign } from "react-icons/fi";
-import { IoMdClose, IoMdSend } from "react-icons/io";
-import { useDispatch} from "react-redux";
+import { IoMdClose } from "react-icons/io";
 import { twMerge } from "tailwind-merge";
 import Color from '../Enums/Color';
-import { commentThunk, editCommentThunk, uploadAttachmentsThunk } from "../Modules/Posts.js";
 
 
 
 const DropdownContext = createContext();
-export const CreateComment = ({ post, initValue, initAttachments = [] }) => {
-
-    const dispatch = useDispatch();
-    const [files, setFiles] = useState(initAttachments)
-    const fileRef = useRef();
-    const contentRef = useRef(null);
-    const RemoveFileFromUploadFiles = (file_id) => {
-        let _files = Array.from([...files]);
-        setFiles(
-            _files.filter(
-                (file) => _files.indexOf(file) != file_id
-            ),
-        );
-    };
-    useEffect(() => {
-        contentRef.current.value = initValue ?? '';
-    }, [])
-    const OpenUpload = () => {
-        fileRef.current.click();
-    }
-    const HandleUpload = () => {
-        const _files = fileRef.current.files;
-        setFiles([...files, ..._files]);
-    }
-    const Comment = () => {
-
-        const data = { content: contentRef.current.value, post_id: post.id, attachments: files }
-        dispatch(commentThunk(data));
-        setFiles([]);
-        fileRef.current.value = "";
-        contentRef.current.value = "";
-    }
-
-    return (
-
-        <div className="rounded-[15px] w-full overflow-hidden grow bg-[#F0F2F5]">
-            <TextareaAutosize
-                ref={contentRef}
-                maxRows={3}
-                minRows={1}
-                className='resize-none rounded-[10px] p-[12px] bg-transparent outline-none border-none  w-full text-[14px] font-light'
-                placeholder="Bình Luận"
-            />
-            <div className="flex flex-col p-[10px]">
-                <div className="flex gap-[10px] flex-wrap">
-
-                    {
-
-                        files.map((file, i) => {
-                            if (file.link) {
-                                return (
-                                    <div className="max-w-[150px]">
-                                        <UploadImage src={file.link} cb={() => RemoveFileFromUploadFiles(i)} />
-                                    </div>
-                                )
-
-                            }
-                            return (
-                                <div className="max-w-[150px]">
-                                    <UploadImage src={URL.createObjectURL(file)} cb={() => RemoveFileFromUploadFiles(i)} />
-                                </div>
-                            )
-                        })
-
-                    }
-
-                </div>
-                <div className="flex justify-between w-full p-[12px] items-center">
-                    <div className="flex gap-[10px]">
-                        <BsEmojiLaughingFill size={18} />
-                        <BsCameraFill onClick={OpenUpload} size={18} />
-                    </div>
-                    <div onClick={Comment}>
-                        <IoMdSend size={22} />
-                    </div>
-                </div>
-                <input onChange={HandleUpload} ref={fileRef} type="file" multiple className="hidden" />
-
-            </div>
-
-        </div>
-    )
-
-}
-
-export const EditComment = ({ isOpen, comment, initValue, initAttachments = [], onCancel }) => {
-
-    const Cancel = () => {
-
-        onCancel();
-    }
-
-    const dispatch = useDispatch();
-    const [preAttachments, setPreAttachments] = useState(initAttachments);
-    const [newAttachments, setNewAttachments] = useState([]);
-    const fileRef = useRef();
-    const contentRef = useRef();
-    const removeList = useRef([]);
-    const RemoveNewAttachments = (index) => {
-        setNewAttachments(
-            newAttachments.filter(
-                (attachment) => newAttachments.indexOf(attachment) != index
-            ),
-        );
-    };
-    const RemovePreAttachments = (_attachment) => {
-        removeList.current.push(_attachment)
-        setPreAttachments(
-            preAttachments.filter(
-                (attachment) => attachment.id != _attachment.id
-            ),
-        );
-    };
-    useEffect(() => {
-
-        contentRef.current.value = initValue ?? '';
-        setPreAttachments(initAttachments);
-    }, [initAttachments, initValue])
-    const OpenUpload = () => {
-        fileRef.current.click();
-    }
-    const HandleUpload = () => {
-        const _files = fileRef.current.files;
-        setNewAttachments([..._files]);
-    }
-    const Reset = () => {
-        setNewAttachments([]);
-        setPreAttachments([]);
-        fileRef.current.value = "";
-        contentRef.current.value = "";
-    }
-    const Comment = async () => {
-        const GetAttType = (att_type) => att_type === 0 ? "IMAGE" : "VIDEO"
-        let insertList = []
-        let _removeList = removeList.current.map((attachment) => {
-            return { attachment_id: attachment.id, action: "DELETE" }
-        })
-        if (newAttachments.length > 0) {
-            let [results, err] = await dispatch(uploadAttachmentsThunk(newAttachments));
-            if (!err) {
-                insertList = results.map((attachment) => ({ attachment_type: GetAttType(attachment.type), attachment_link: attachment.link, action: "INSERT" }))
-            }
-        }
 
 
-        const _comment = { content: contentRef.current.value, comment_id: comment.id, attachments: [...insertList, ..._removeList] }
-        dispatch(editCommentThunk(_comment));
-        Reset();
-        Cancel();
-    }
-    return (
-        <div style={{ display: isOpen ? 'initial' : 'none' }} className="rounded-[15px] w-full overflow-hidden grow bg-[#F0F2F5]">
-            <TextareaAutosize
-                ref={contentRef}
 
-                maxRows={3}
-                minRows={1}
-                className='resize-none rounded-[10px] p-[12px] bg-transparent outline-none border-none  w-full text-[14px] font-light'
-                placeholder="Bình Luận"
-            />
-            <div className="flex flex-col p-[10px]">
-                <div className="flex gap-[10px] flex-wrap">
-
-                    {
-                        preAttachments.map(att => {
-                            return (
-                                <div className="max-w-[150px]">
-                                    <UploadImage key={att.id} src={att.link} cb={() => RemovePreAttachments(att)} />
-                                </div>
-                            )
-                        })
-                    }
-                    {
-                        newAttachments.map((att, i) => {
-                            return (
-                                <div className="max-w-[150px]">
-                                    <UploadImage src={URL.createObjectURL(att)} cb={() => RemoveNewAttachments(i)} />
-                                </div>
-                            )
-                        })
-
-                    }
-
-                </div>
-                <div className="flex justify-between w-full p-[12px] items-center">
-                    <div className="flex gap-[10px]">
-                        <BsEmojiLaughingFill size={18} />
-                        <BsCameraFill onClick={OpenUpload} size={18} />
-                    </div>
-                    <div onClick={Comment}>
-                        <IoMdSend size={22} />
-                    </div>
-                </div>
-                <input onChange={HandleUpload} ref={fileRef} type="file" multiple className="hidden" />
-
-            </div>
-            <div onClick={Cancel} className="px-[10px]">
-                <Text color={Color.Primary}>Cancel</Text>
-            </div>
-        </div>
-
-
-    )
-
-}
 
 export const DropdownItem = ({ children, cb }) => {
     const { handleItemClick } = useContext(DropdownContext); // this one is default handler for dropdown item
@@ -291,10 +85,10 @@ export const UploadImage = ({ src, cb: Remove }) => {
     );
 };
 
-export function Avatar({ sz, src }) {
+export function Avatar({ sz, src, border }) {
     return (
-        <div className="overflow-hidden rounded-[50%]" style={{
-            height: sz ? sz : 43, width: sz ? sz : 43
+        <div className={`overflow-hidden rounded-[50%] `} style={{
+            height: sz ? sz : 43, width: sz ? sz : 43, border: border
         }}>
             {
                 src.includes("http") ?
@@ -306,10 +100,10 @@ export function Avatar({ sz, src }) {
 
     )
 }
-export function Text({ children, color, fontSize, className }) {
+export const Text = ({ style, children, color, fontSize, className }) => {
     const c = twMerge(`text-[${color ?? Color.Text}] text-[${(fontSize ?? 16)}px] font-normal`, className);
     return (
-        (<span style={{ fontFamily: "Nunito" }} className={c}>
+        (<span style={{ wordBreak: 'break-word', fontFamily: "Nunito", ...style }} className={c}>
             {children}
         </span>)
 
@@ -354,6 +148,18 @@ export function QinqiiPostImage({ src }) {
     )
 
 }
+export const QinqiiPostVideo = ({ src, ...videoProps }) => {
+    return (
+        <div className="overflow-hidden rounded-[10px] w-full h-full aspect-video">
+            {
+                src.includes("http") ?
+                    <video {...videoProps} src={src} className="w-full  object-cover h-full"></video>
+                    :
+                    <video {...videoProps} src={`/assets/${src}`} className="w-full object-cover h-full"></video>
+            }
+        </div>
+    )
+}
 export function QinqiiImage({ src, className }) {
     return (
         <div className="rounded-[10px] overflow-hidden">
@@ -364,6 +170,19 @@ export function QinqiiImage({ src, className }) {
                     <img src={`/assets/${src}`} className={className}></img>
             }
         </div>
+    )
+
+}
+export function QinqiiCustomImage({ src, className }) {
+    return (
+        < >
+            {
+                src.includes("http") ?
+                    <img src={src} className={className}></img>
+                    :
+                    <img src={`/assets/${src}`} className={className}></img>
+            }
+        </>
     )
 
 }
@@ -378,5 +197,15 @@ export const WebFavicon = () => {
                 <Text bold fontSize={21}> Qinqii</Text>
             </div>
         </div>
+    )
+}
+export const ActiveDot = () => {
+    return (
+        <div className="rounded-full bg-green-300 h-[7px] w-[7px]"></div>
+    )
+}
+export const InActiveDot = () => {
+    return (
+        <div className="rounded-full bg-gray-300 h-[7px] w-[7px]"></div>
     )
 }

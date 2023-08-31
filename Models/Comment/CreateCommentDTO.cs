@@ -17,6 +17,6 @@ public class CreateCommentDTO
     public IFormFileCollection? attachments { get; set; }
     public int post_id { get; set; }
     public string content { get; set; }
-    public int? parent_comment_id { get; set; } = null;
+    public int? parent_id { get; set; }
 
 }

@@ -1,7 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Color from '../Enums/Color';
-import { Avatar, Button, UploadImage } from './CommonComponent.jsx';
+import { Avatar, Button, QinqiiImage, UploadImage } from './CommonComponent.jsx';
 import {
     Alert,
     Dialog,
@@ -26,6 +26,46 @@ const DialogBody = ({ children }) => {
     return <div className='p-[20px] flex-col gap-[20px]'>{children}</div>;
 };
 
+
+const handleVideoUpload = async (file) => {
+    const videoObjectURL = URL.createObjectURL(file);
+
+    const videoElement = document.createElement('video');
+    videoElement.src = videoObjectURL;
+
+    let thumbnailObjectURL = ''; // Initialize thumbnailDataUrl here
+
+    await new Promise((resolve) => {
+        videoElement.onloadedmetadata = () => {
+            videoElement.currentTime = 1;
+
+            videoElement.onseeked = async () => {
+                const thumbnailCanvas = document.createElement('canvas');
+                const ctx = thumbnailCanvas.getContext('2d');
+
+                const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
+                const thumbnailWidth = 200;
+                const thumbnailHeight = thumbnailWidth / aspectRatio;
+
+                thumbnailCanvas.width = thumbnailWidth;
+                thumbnailCanvas.height = thumbnailHeight;
+
+                ctx.drawImage(videoElement, 0, 0, thumbnailWidth, thumbnailHeight);
+
+                thumbnailCanvas.toBlob((blob) => {
+                    thumbnailObjectURL = URL.createObjectURL(blob); // Convert Blob to Object URL
+                    URL.revokeObjectURL(videoObjectURL);
+                    resolve(thumbnailObjectURL);
+                }, 'image/jpeg');
+            };
+
+            videoElement.currentTime = 0;
+        };
+    });
+    console.log(thumbnailObjectURL)
+    return thumbnailObjectURL;
+
+}
 const Picker = React.forwardRef((props, textareaRef) => {
     const [isOpen, setOpen] = useState(false);
     const ToggleEmojiPicker = () => {
@@ -59,7 +99,7 @@ const Picker = React.forwardRef((props, textareaRef) => {
         </>
     );
 });
-const ImageUploader = ({ HandleUpload, OpenUpload, uploadButtonRef }) => {
+const Uploader = ({ HandleUpload, OpenUpload, uploadButtonRef }) => {
     return (
         <div>
             <input
@@ -82,6 +122,7 @@ const PostManager = () => {
     const textareaRef = useRef();
     const uploadButtonRef = useRef();
     const [uploadedFiles, setUploadedFiles] = useState([]);
+    const [images, setImages] = useState([]);
     const { name, avatar } = useSelector((state) => state.profile);
     const shouldDialogOpen = useSelector((state) => state.UI.create_post_open);
     const dispatch = useDispatch();
@@ -107,6 +148,31 @@ const PostManager = () => {
     const CreateNewPost = () => {
         dispatch(createNewPostThunk({ content: textareaRef.current.value, attachments: uploadedFiles }));
     }
+
+    useEffect(() => {
+        const renderAttachments = async () => {
+            const filesToRender = await Promise.all(Array.from(uploadedFiles).map(async (file, i) => {
+
+                if (file.type.includes("video")) {
+                    let url = await handleVideoUpload(file);
+                    return (
+                        <UploadImage
+                            cb={() => RemoveFileFromUploadFiles(i)}
+                            src={url}
+                        />
+                    )
+                }
+                return (
+                    <UploadImage
+                        cb={() => RemoveFileFromUploadFiles(i)}
+                        src={URL.createObjectURL(file)}
+                    />
+                )
+            }))
+            setImages(filesToRender);
+        }
+        renderAttachments();
+    }, [uploadedFiles])
     return (
         <Dialog
             maxWidth={700}
@@ -155,21 +221,14 @@ const PostManager = () => {
                     <div
                         className='max-h-[200px] w-full grid grid-cols-3 overflow-y-scroll gap-[10px]'
                     >
-                        {uploadedFiles.length > 0 && Array.from(uploadedFiles).map((file, i) => {
-                            return (
-                                <UploadImage
-                                    cb={() => RemoveFileFromUploadFiles(i)}
-                                    src={URL.createObjectURL(file)}
-                                />
-                            )
-                        })}
+                        {images}
                     </div>
                     <div className='border-[1px]  border-solid rounded-[10px] p-[15px]   border-[#DDDEE1]'>
                         <div className='relative flex justify-between '>
                             <div className='font-semibold'>Thêm vào post</div>
                             <div className='absolute right-0 flex gap-[15px]'>
                                 <Picker ref={textareaRef} />
-                                <ImageUploader
+                                <Uploader
                                     HandleUpload={HandleUpload}
                                     uploadButtonRef={uploadButtonRef}
                                     OpenUpload={OpenUpload}
@@ -187,6 +246,8 @@ const PostManager = () => {
         </Dialog>
     );
 };
+
+
 
 export function CreatePost() {
     const dispatch = useDispatch();

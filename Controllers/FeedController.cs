@@ -6,7 +6,6 @@ using Qinqii.Service;
 namespace Qinqii.Controllers;
 
 [Authorize]
-[Route("feed")]
 public class FeedController : ControllerBase
 {
     private readonly FeedService _feedService;
@@ -20,12 +19,19 @@ public class FeedController : ControllerBase
         _logger = logger;
         _env = env;
     }
+    [HttpGet("feed")]
 
-    [HttpGet]
     public async Task<IActionResult> GetFeed()
     {
         int user_id = HttpContext.GetUserId();
         var posts = await _feedService.GetAllPosts();
         return new JsonResult(posts);
+    }
+    [HttpGet("stories")]
+    public async Task<IActionResult> GetStories(CancellationToken token)
+    {
+        int user_id =  HttpContext.GetUserId();
+        var stories = await _feedService.GetStories(token);
+        return Ok(stories);
     }
 }

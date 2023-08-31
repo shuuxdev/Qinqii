@@ -17,8 +17,21 @@ public class FeedService
     {
         _ctx = ctx;
     }
-
     
+    public async Task<List<StoryThumbnailDTO>> GetStories(
+    CancellationToken token)
+    {
+         using var connection = _ctx.CreateConnection();
+
+        
+        var param = new DynamicParameters();
+        //param.Add("@user_id", user_id, DbType.Int32);
+        var reader = await connection.QueryMultipleAsync("[STORY].GetAll",
+            commandType: CommandType.StoredProcedure, param: param);
+
+        var stories = (await reader.ReadAsync<StoryThumbnailDTO>()).ToList();
+        return stories;
+    }
     public async Task<IEnumerable<PostDTO>> GetAllPosts()
     {
         // NOT EFFICENT, MIGHT FIX THIS IN THE FUTURE, TOO LAZY NOW

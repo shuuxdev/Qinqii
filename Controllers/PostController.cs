@@ -10,7 +10,6 @@ using Qinqii.Utilities;
 namespace Qinqii.Controllers;
 
 [Authorize]
-[ApiController]
 public class PostController : ControllerBase
 {
     private readonly PostService _postService;
@@ -69,13 +68,15 @@ public class PostController : ControllerBase
     }
 
     [HttpPost("post/create")]
-    public async Task<IActionResult> CreatePost([FromForm] CreatePostDTO post)
+    public async Task<IActionResult> CreatePost([FromForm] CreatePostDTO 
+    post, CancellationToken token)
     {
+       
         post.author = HttpContext.GetUserId();
         if (post.attachments != null && post.author != 0)
             post.attachment_links.AddRange(
                 await Server.UploadAsync(post.attachments, _env.WebRootPath));
-        await _postService.CreatePost(post);
+            await _postService.CreatePost(post, token);
 
         return Ok();
     }

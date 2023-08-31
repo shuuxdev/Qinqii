@@ -3,7 +3,7 @@ import { BsPlusSquare, BsSearch } from 'react-icons/bs';
 import { useSelector } from "react-redux";
 import Color from '../Enums/Color';
 import { Avatar, WebFavicon } from './CommonComponent.jsx';
-
+import { AiOutlineBell } from 'react-icons/ai'
 
 export function CreateGroup() {
     return (
@@ -41,9 +41,14 @@ const Navbar = () => {
         <div className={`bg-[${Color.White}] w-full`}>
             <div className="w-full max-w-[1300px] m-[0_auto] flex items-center justify-between ">
                 <WebFavicon></WebFavicon>
-                <div className={`p-[10px] w-[600px] flex gap-[10px]`}>
+                <div className={`p-[10px] w-[600px] flex items-center gap-[10px]`}>
                     <Searchbar></Searchbar>
-                    <CreateGroup></CreateGroup>
+                    <div className="relative">
+                        <div className="absolute text-white   bg-red-500 rounded-full">
+
+                        </div>
+                        <AiOutlineBell size={26}></AiOutlineBell>
+                    </div>
                     <Customization></Customization>
                 </div>
             </div>

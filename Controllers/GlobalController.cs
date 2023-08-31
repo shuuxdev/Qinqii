@@ -24,6 +24,8 @@ public class GlobalController : ControllerBase
         return Ok(dto);
     }
 
+
+
     [HttpDelete("undo-react")]
     public async Task<IActionResult> UndoReaction(
         int id)

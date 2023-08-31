@@ -37,7 +37,7 @@ namespace Qinqii.Service
             using var connection = _ctx.CreateConnection();
                 var param = new DynamicParameters();
                 param.Add("@conversation_id", conversation_id, dbType: System.Data.DbType.Int32);
-                var messages = (await connection.QueryAsync<Message>("[MESSAGE].[GetAll]", commandType: System.Data.CommandType.StoredProcedure, param: param));
+                var messages = (await connection.QueryAsync<Message>("[MESSAGE].[Get]", commandType: System.Data.CommandType.StoredProcedure, param: param));
                 return messages;
         }
     }

@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "jsx": "react",
+        "checkJs": false,
+        "skipLibCheck": false,
+        "skipDefaultLibCheck": false
+    },
+    "exclude": ["node_modules"]
+}

@@ -26,14 +26,19 @@ namespace Qinqii.Controllers
             this.signalr = signalr;
             user = userService;
         }
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [HttpGet("profile")]
-        public async Task<IActionResult> GetProfile()
-        {
 
-            int user_id = HttpContext.GetUserId();
-            var user_profile = await user.GetProfile(user_id);
-            return new JsonResult(user_profile);
+        public async Task<IActionResult> GetProfile(int id)
+        {
+            var user_profile = await user.GetProfile(id);
+            return Ok(user_profile);
+        }
+
+        [HttpGet("profile")]
+            public async Task<IActionResult> GetMyProfile()
+        {
+            var id = HttpContext.GetUserId();
+            var user_profile = await user.GetProfile(id);
+            return Ok(user_profile);
         }
 
         [HttpGet("connection")]
@@ -44,10 +49,29 @@ namespace Qinqii.Controllers
             return new JsonResult(u);
         }
         [HttpGet("friends")]
-        public async Task<IActionResult> GetUserFriends()
+        public async Task<IActionResult> GetUserFriends(int id)
         {
-            int user_id = HttpContext.GetUserId();
-            var u = await user.GetFriends(user_id);
+            var u = await user.GetFriends(id);
+            return new JsonResult(u);
+        }
+        [HttpGet("videos")]
+        public async Task<IActionResult> GetUserVideos(int id)
+        {
+            var u = await user.GetUserVideos(id);
+            return new JsonResult(u);
+        }
+        [HttpGet("images")]
+        public async Task<IActionResult> GetUserImages(int id)
+        {
+            
+            var u = await user.GetUserImages(id);
+            return new JsonResult(u);
+        }
+        [HttpGet("posts")]
+        public async Task<IActionResult> GetUserPosts(int id)
+        {
+            
+            var u = await user.GetUserPosts(id);
             return new JsonResult(u);
         }
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]

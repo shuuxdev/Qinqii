@@ -22,6 +22,7 @@ public class CommentDTO
     public string author_name { get; set; }
     public string author_avatar { get; set; }
     public string created_at { get; set; }
+    public int? parent_id { get; set; }
     public List<AttachmentDTO> attachments { get; set; }
     public List<ReactionDTO> reactions { get; set; }
 }

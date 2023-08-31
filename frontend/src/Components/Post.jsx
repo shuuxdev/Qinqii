@@ -1,20 +1,18 @@
-import React, { createContext, useEffect, useMemo, useRef, useState } from "react";
-import { BsCameraFill, BsEmojiLaughingFill, BsThreeDots } from 'react-icons/bs';
-import Color from '../Enums/Color';
-import { Avatar, CreateComment, DropdownItem, DropdownMenu, QinqiiPostImage, Text, UploadImage } from './CommonComponent.jsx';
-import { useDispatch, useSelector } from "react-redux";
-import fetchDataThunk from "../Thunks/fetchDataThunk.js";
-import { FETCH_POSTS, commentThunk, deletePostThunk } from "../Modules/Posts.js";
-import Loading from "./Loading.jsx";
-import { TextareaAutosize } from "@mui/material";
-import { IoMdSend } from "react-icons/io";
-import { Comment } from "./Comment.jsx";
-import { BiHeart, BiMessage, BiShareAlt } from 'react-icons/bi'
-import { TopReactions } from "./TopReactions.jsx";
-import { AiOutlineDelete } from "react-icons/ai";
-import { ShowNotification } from "../Modules/UI.js";
-import { Severity } from "../Enums/FetchState.js";
 import { AnimatePresence, motion } from "framer-motion";
+import React, { createContext, useEffect, useMemo, useState } from "react";
+import { AiOutlineDelete } from "react-icons/ai";
+import { BiHeart, BiMessage, BiShareAlt } from 'react-icons/bi';
+import { BsThreeDots } from 'react-icons/bs';
+import { useDispatch, useSelector } from "react-redux";
+import Color from '../Enums/Color';
+import { ENTITY } from "../Enums/Entity.js";
+import { deletePostThunk, fetchPostsThunk, reactToPostThunk, undoReactThunk } from "../Modules/Posts.js";
+import { Comment } from "./Comment.jsx";
+import { Avatar, DropdownItem, DropdownMenu, QinqiiPostImage, QinqiiPostVideo, Text } from './CommonComponent.jsx';
+import { CreateComment } from "./CreateComment.jsx";
+import Loading from "./Loading.jsx";
+import { TopReactions } from "./TopReactions.jsx";
+import { AttachmentType } from "../Enums/AttachmentType.js";
 const LazyEmojiPicker = React.lazy(() => import('@emoji-mart/react'))
 
 export const PostContainer = () => {
@@ -22,7 +20,7 @@ export const PostContainer = () => {
     const posts = useSelector(state => state.posts)
     const dispatch = useDispatch();
     useEffect(() => {
-        dispatch(fetchDataThunk(FETCH_POSTS));
+        dispatch(fetchPostsThunk());
     }, [])
 
     return (
@@ -36,7 +34,6 @@ export const PostContainer = () => {
 
     )
 }
-
 
 const DeleteOption = ({ post }) => {
 
@@ -62,21 +59,26 @@ const PostOptionsMenu = ({ post }) => {
     const [open, setOpen] = useState(false);
     const ToggleDropdown = () => setOpen(!open)
     const CloseDropdown = () => setOpen(false);
+    const user_id = useSelector(state => state.profile.user_id)
     const Trigger = () => (
         <div onClick={ToggleDropdown} className={`p-[10px]   self-end w-fit rounded-full cursor-pointer hover:bg-[${Color.Hover}]`}>
             <BsThreeDots size={22}></BsThreeDots>
         </div>)
     return (
         <DropdownMenu TriggerElement={Trigger} isOpen={open} handleItemClick={CloseDropdown}>
-            <DeleteOption post={post} />
+            {user_id == post.author_id && <DeleteOption post={post} />}
         </DropdownMenu>
     )
+
+
 }
-const Post = ({ post }) => {
+export const Post = ({ post }) => {
     const avatar = useSelector(state => state.profile.avatar)
-
-    //current comment id of  picker
-
+    const dispatch = useDispatch();
+    // use for top reactions
+    const UndoReaction = (reaction) => {
+        dispatch(undoReactThunk({ id: post.id, type: ENTITY.POST }, reaction.id));
+    }
     return (
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} >
@@ -102,7 +104,8 @@ const Post = ({ post }) => {
                     {
                         post.attachments.map(attachment => {
                             return (
-                                <QinqiiPostImage src={attachment.link} />
+                                attachment.type == AttachmentType.IMAGE ? <QinqiiPostImage src={attachment.link} />
+                                    : <QinqiiPostVideo src={attachment.link} controls ></QinqiiPostVideo>
                             )
                         })
                     }
@@ -110,22 +113,22 @@ const Post = ({ post }) => {
                 </div>
                 <div className="flex justify-between w-full">
                     <div className="flex">
-                        <TopReactions reactions={post.reactions} />
+                        <TopReactions UndoReaction={UndoReaction} reactions={post.reactions} />
                         {
                             post.reactions.length > 0 &&
-                            <Text className='text-[14px] h-fit self-end'>{post.reactions.length} people reacted to this post</Text>
+                            <Text className='text-[14px] h-fit self-end'>{post.reactions.length}   reactions was sent</Text>
                         }
                     </div>
 
                     <Text>{post.comments.length} bình luận</Text>
                 </div>
                 <div></div>
-                <Toolbar />
+                <Toolbar post={post} />
                 <div className="flex gap-[10px] items-start">
                     <div className="flex-shrink-0">
                         <Avatar src={avatar} />
                     </div>
-                    <CreateComment post={post} />
+                    <CreateComment post={post} initValue="" initAttachments={[]} isOpen={true} />
                 </div>
                 <CommentContainer post={post} />
 
@@ -139,16 +142,92 @@ export const CommentContainerContext = createContext();
 const CommentContainer = ({ post }) => {
     const [CCIDOfPicker, setCCIDOfPicker] = useState();
     const [CCIDOfOptionsMenu, setCCIDOfOptionsMenu] = useState();
+    const [CCIDOfEditComment, setCCIDOfEditComment] = useState();
+    const [CCIDOfReply, setCCIDOfReply] = useState();
+    const findParentComment = (comment, parent_id) => {
+        if (!comment) return null;
+
+        if (comment.id == parent_id) {
+            return comment;
+        }
+        if (!comment.childrens) return null;
+        for (let i = 0; i < comment.childrens.length; i++) {
+            let ans = findParentComment(comment.childrens[i], parent_id)
+            if (ans) {
+                return ans;
+            };
+        }
+        return null;
+    }
+    const comments = useMemo(() => {
+        let dict = {} // dictionary
+        let sorted = [...post.comments];
+        if (post.comments.length > 0) {
+            sorted.sort((a, b) => a.id - b.id);
+            sorted.forEach((comment) => {
+                comment = { ...comment, childrens: [] };
+                let parent = null;
+                Object.keys(dict).some((key) => {
+                    parent = findParentComment(dict[key], comment.parent_id);
+                    if (parent) return true;
+                    //break the loop when parent is found
+                })
+
+                if (parent == null) {
+                    // comment is root
+                    dict[comment.id] = comment
+                }
+                else {
+                    // comment is child
+                    parent.childrens.push(comment);
+                }
+
+            })
+        }
+        return Object.values(dict) ?? [];
+    }, [post.comments])
+
+    const findNestedLevelWrapper = (target) => {
+
+        let parent = null, level = null;
+        comments.forEach((c) => {
+            [parent, level] = findNestedLevel(c, 1, target, null);
+        })
+        return [parent, level];
+    }
+    const findNestedLevel = (comment, level, target, parent) => {
+        // console.log("current comment: ", comment);
+        // console.log("current parent: ", parent);
+        // console.log("current target: ", target);
+        // console.log("current level: ", level);
+        if (comment.id == target.id) return [parent, level]; //return parent and level of target comment
+        for (let i = 0; i < comment.childrens.length; i++) {
+            let [_parent, _level] = findNestedLevel(comment.childrens[i], level + 1, target, comment);
+
+            if (_level != null) //if target comment is found
+                return [_parent, _level]; //return parent and level of target comment
+        }
+        return [null, null];
+    }
+
+
     const contextValue = {
         CCIDOfPicker, setCCIDOfPicker,
-        CCIDOfOptionsMenu, setCCIDOfOptionsMenu
+        CCIDOfOptionsMenu, setCCIDOfOptionsMenu,
+        CCIDOfEditComment, setCCIDOfEditComment,
+        CCIDOfReply, setCCIDOfReply,
+        findNestedLevelWrapper,
+        findParentComment
     }
+
+
+
     return (
         <CommentContainerContext.Provider value={contextValue}>
 
             <div className="flex flex-col gap-[10px]">
                 {
-                    post.comments.map((comment, i) => (
+                    comments.map((comment, i) => (
                         <Comment comment={comment} index={i} post={post} />
                     ))
                 }
@@ -160,15 +239,24 @@ const CommentContainer = ({ post }) => {
 }
 
 
-const ReactToPost = () => {
+const ReactToPost = ({ post }) => {
     let timer;
-    const HandleClick = () => {
+    const dispatch = useDispatch();
+    const SendReaction = (emoji) => {
+        dispatch(
+            reactToPostThunk(post, {
+                entity_id: post.id,
+                entity_type: ENTITY.POST,
+                emoji: emoji.native,
+            })
+        );
         setShowEmoji(false);
     }
     const HandleMouseEnter = () => {
         timer = setTimeout(() => setShowEmoji(true), 500);
     }
     const HandleMouseLeave = () => {
+        setShowEmoji(false);
         clearTimeout(timer);
     }
     const hoverVariant = {
@@ -181,31 +269,34 @@ const ReactToPost = () => {
     }
     const [showEmoji, setShowEmoji] = useState(false);
     return (
-        <div className="flex-1 ">
-            {
-                showEmoji &&
-                <div >
-                    <div className="absolute z-20">
-                        <LazyEmojiPicker
-                            set="facebook"
-                            onEmojiSelect={HandleClick}
-                        ></LazyEmojiPicker>
+        <div onMouseEnter={HandleMouseEnter} onMouseLeave={HandleMouseLeave} className="flex-1 relative">
+            <AnimatePresence>
+                {
+                    showEmoji &&
+                    <div className="absolute z-[200] bottom-[100%]">
+                        <motion.div initial={{ y: '50px', opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}>
+                            <LazyEmojiPicker
+                                set="facebook"
+                                onEmojiSelect={SendReaction}
+                            ></LazyEmojiPicker>
+                        </motion.div>
                     </div>
-                </div>
-            }
-            <motion.div onMouseEnter={HandleMouseEnter} onMouseLeave={HandleMouseLeave} variants={hoverVariant}
-                initial="hidden"
-                whileHover="visible"
+
+                }
+            </AnimatePresence>
+
+            <div
                 className="h-full w-full flex items-center gap-[6px] cursor-pointer justify-center">
                 <BiHeart size={22} />
                 <Text>Like</Text>
-            </motion.div>
+            </div>
         </div>
 
     )
 }
 
-const Toolbar = () => {
+const Toolbar = ({ post }) => {
     const hoverVariant = {
         hidden: {
             background: 'white'
@@ -217,24 +308,21 @@ const Toolbar = () => {
     return (
         <div className="flex  border-[#F0F2F5] h-[50px]  qinqii-thin-shadow">
 
-            <ReactToPost />
+            <ReactToPost post={post} />
             <div className="flex-1 cursor-pointer">
-                <motion.div variants={hoverVariant}
-                    initial="hidden"
-                    whileHover="visible"
+                <motion.div
+
                     className="h-full w-full flex items-center gap-[6px] justify-center">
                     <BiMessage size={22} />
                     <Text>Comment</Text>
                 </motion.div>
             </div>
             <div className="flex-1 cursor-pointer">
-                <motion.div variants={hoverVariant}
-                    initial="hidden"
-                    whileHover="visible"
+                <div
                     className="h-full w-full flex items-center gap-[6px] justify-center">
                     <BiShareAlt size={22} />
                     <Text>Send</Text>
-                </motion.div>
+                </div>
             </div>
 
         </div>

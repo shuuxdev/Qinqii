@@ -16,11 +16,12 @@ import connection from "../Helper/SignalR.js"
 
 import Loading from "../Components/Loading.jsx"
 import { useAxios } from '../Hooks/useAxios.jsx'
-import { fetchContactsAction } from '../Modules/Contacts.js'
+import { fetchContacts, fetchContactsAction } from '../Modules/Contacts.js'
 import { fetchFriendRequestsAction } from '../Modules/FriendRequests.js'
 import { fetchProfileAction } from '../Modules/Profile.js'
 import { Snackbar } from "@mui/material"
-
+import { fetchStories } from "../Modules/Stories.js"
+import { Grid } from "antd"
 const LeftSection = () => {
     return (
         <div className={`font-['Alexandria'] m-0 p-0 bg-[${Color.Background}]  box-border  flex flex-col  lg:w-[300px] `}>
@@ -38,6 +39,7 @@ const ChatContainer = () => {
         connection.on('RecieveMessage', (message) => {
             dispatch(sendMessage(message))
         })
+
     }, [])
 
     return (
@@ -62,17 +64,18 @@ const RightSection = () => {
 
 
 const initApiCall = async (axios, dispatch) => {
-    const apiList = [axios.GET_UserProfile(), axios.GET_AllChat(), axios.GET_FriendRequests()]
-    const [profile, contacts, friend_requests] = await Promise.allSettled(apiList).then((responseList) =>
+    const apiList = [axios.GET_MyProfile(), axios.GET_AllChat(), axios.GET_FriendRequests(), axios.GET_Stories()]
+    const [profile, contacts, friend_requests, stories] = await Promise.allSettled(apiList).then((responseList) =>
         responseList.map((response) => {
             if (response.status == 'fulfilled') return response.value.data
         })
     )
-    let ok = profile && contacts && friend_requests;
+    let ok = profile && contacts && friend_requests && stories;
     if (ok) {
         dispatch(fetchFriendRequestsAction(friend_requests))
-        dispatch(fetchContactsAction(contacts))
+        dispatch(fetchContacts(contacts))
         dispatch(fetchProfileAction(profile))
+        dispatch(fetchStories(stories))
     }
 
     return ok;
@@ -93,9 +96,10 @@ const startConnection = () => {
         .catch((e) => console.log('SignalR error: ' + e))
 }
 const DefaultLayout = () => {
-
+    const screen = Grid.useBreakpoint();
     const dispatch = useDispatch()
     const axios = useAxios()
+
     const [allDataLoaded, setAllDataLoaded] = useState(false)
     const pageReady = async () => {
         setAllDataLoaded(await initApiCall(axios, dispatch))

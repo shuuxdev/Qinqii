@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.OpenApi.Models;
 using Qinqii.Middlewares;
 using Qinqii.Utilities;
+using Qinqii.Workers;
 
 internal class Program
 {
@@ -29,9 +30,11 @@ internal class Program
         builder.Services.AddScoped<FeedService>();
         builder.Services.AddScoped<SignalRService>();
         builder.Services.AddScoped<AuthService>();
+        builder.Services.AddScoped<StoryService>();
         builder.Services.AddScoped<PostService>();
         builder.Services.AddScoped<UploadService>();
         builder.Services.AddTransient<ErrorHandlingMiddleware>();
+        builder.Services.AddHostedService<StoryUpdatingWorker>();
         builder.Services.AddHttpLogging((option) =>
         {
             option.LoggingFields = HttpLoggingFields.All;
@@ -90,19 +93,16 @@ internal class Program
                         if (path == "/chatHub" && !string.IsNullOrEmpty(token))
                             c.Token = token;
 
-                        // Debug.WriteLine($"Token {c.HttpContext.GetUserId()}");
                         return Task.CompletedTask;
                     },
                     OnChallenge = (c) =>
                     {
                         Debug.WriteLine("On Challenge");
-                        // Debug.WriteLine($"Token {c.HttpContext.GetUserId()}");
                         return Task.CompletedTask;
                     },
                     OnForbidden = (c) =>
                     {
                         Debug.WriteLine("On Forbidden");
-                        // Debug.WriteLine($"Token {c.HttpContext.GetUserId()}");
                         return Task.CompletedTask;
                     }
                 };
@@ -132,7 +132,7 @@ internal class Program
 
         // app.UseHttpLogging();
         app.UseHttpsRedirection();
-        app.UseMiddleware<ErrorHandlingMiddleware>();
+        //app.UseMiddleware<ErrorHandlingMiddleware>();
         app.UseStaticFiles();
         app.UseWebroot(builder, @"dist");
         app.UseRouting();

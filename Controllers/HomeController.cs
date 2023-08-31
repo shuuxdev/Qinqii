@@ -9,5 +9,10 @@ public class HomeController : Controller
         //default page
         return View();
     }
+    [HttpGet("testing")]
+    public IActionResult Testing()
+    {
+        throw new ConnectionNotFoundException();
+    }
     
 }
