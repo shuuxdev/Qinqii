@@ -6,7 +6,7 @@ const { createSlice } = require("@reduxjs/toolkit");
 const modalSlice = createSlice({
     name: 'modals',
     initialState: {
-        modalType: ModalType.MEDIA,
+        modalType: null,
         modalProps: {}
     },
     reducers: {

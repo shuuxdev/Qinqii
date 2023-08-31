@@ -1,0 +1,28 @@
+.notification {
+    overflow-y:hidden;
+    padding: 3px;
+    background: #fff;
+    // background: #f0f2f5;
+    width: 400px;
+    &_item {
+        padding: 10px;
+        border-top: 1px solid #f5f5f5;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: full;
+        border-radius: 5px;
+        cursor: pointer;
+        &:hover {
+            background-color: #f5f5f5;
+        }
+    }
+}
+.notification_header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    background: #fff;
+}
+

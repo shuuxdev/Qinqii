@@ -12,14 +12,14 @@ export const MediaViewerModal = ({ handleClose, open }) => {
 
 const ViewerPane = () => {
     return (
-        <div className="viewer-pane">
-
+        <div className="viewer-pane ">
+            viewer
         </div>
     )
 }
 const DetailPane = () => {
     return (
-        <div className="detail-pane">
+        <div className="detail-pane ">
             pane
         </div>
     )

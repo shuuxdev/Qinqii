@@ -32,6 +32,7 @@ import StoryViewer from './Components/StoryViewer.jsx';
 import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit';
 import { Modals } from './Components/Modals/Modals.jsx';
 import modalReducer from './Modules/Modals.js';
+import notificationReducer from './Modules/Notifications.js';
 init({ data });
 const rootReducer = combineReducers({
     identity: identityReducer,
@@ -45,6 +46,7 @@ const rootReducer = combineReducers({
     stories: storiesReducer,
     storiesUI: storiesUIReducer,
     modals: modalReducer,
+    notifications: notificationReducer,
     [profileApiSlice.reducerPath]: profileApiSlice.reducer
 
 });
