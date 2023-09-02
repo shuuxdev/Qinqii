@@ -22,7 +22,7 @@ public static class Server
             tvp.Add(new AttachmentTVP { url = name + suffix, type = "IMAGE" });
             if(fileType.StartsWith("video"))
                 tvp.Add(new AttachmentTVP { url = name + suffix, type = "VIDEO" });
-
+            //testing here
             await using var fileStream =
                 new FileStream(Path.Combine(webRootPath, $"assets/{name}{suffix}"), FileMode.CreateNew);
             await att.CopyToAsync(fileStream);
