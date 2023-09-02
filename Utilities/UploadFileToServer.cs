@@ -25,6 +25,7 @@ public static class Server
             await using var fileStream =
                 new FileStream(Path.Combine(webRootPath, $"assets/{name}{suffix}"), FileMode.CreateNew);
             await att.CopyToAsync(fileStream);
+            //whoops some ass
         }
 
         return tvp;
