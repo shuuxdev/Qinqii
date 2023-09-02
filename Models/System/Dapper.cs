@@ -11,7 +11,7 @@ namespace Qinqii.Models {
         public DapperContext(IConfiguration configuration)
         {
             Configuration = configuration;
-            cs = configuration.GetConnectionString("QinqiiAzure");
+            cs = configuration.GetConnectionString("Qinqii");
         }
         public IDbConnection CreateConnection()
         {

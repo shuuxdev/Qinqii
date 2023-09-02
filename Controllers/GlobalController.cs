@@ -9,10 +9,12 @@ namespace Qinqii.Controllers;
 public class GlobalController : ControllerBase
 {
     private readonly PostService _postService;
+    private readonly NotificationService _notificationService;
 
-    public GlobalController(PostService postService)
+    public GlobalController(PostService postService, NotificationService notificationService)
     {
         _postService = postService;
+        _notificationService = notificationService;
     }
 
     [HttpPatch("react")]
@@ -21,6 +23,7 @@ public class GlobalController : ControllerBase
     {
         var user_id = HttpContext.GetUserId();
         var dto = await _postService.SendReact(reaction, user_id);
+        
         return Ok(dto);
     }
 

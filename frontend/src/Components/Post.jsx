@@ -50,9 +50,7 @@ const DeleteOption = ({ post }) => {
         </DropdownItem>
     )
 }
-const EditOption = ({ cb: EditPost }) => {
 
-}
 
 const PostOptionsMenu = ({ post }) => {
 
@@ -244,7 +242,7 @@ const ReactToPost = ({ post }) => {
     const dispatch = useDispatch();
     const SendReaction = (emoji) => {
         dispatch(
-            reactToPostThunk(post, {
+            reactToPostThunk({ ...post }, {
                 entity_id: post.id,
                 entity_type: ENTITY.POST,
                 emoji: emoji.native,

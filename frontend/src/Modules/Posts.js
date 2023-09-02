@@ -169,21 +169,19 @@ export const undoReactThunk =
             }
         }
     };
-export const reactToPostThunk = (post, sendReactionDTO) => async (dispatch) => {
-    let [reaction, err] = await SEND_React(sendReactionDTO);
+export const reactToPostThunk = (post, reaction) => async (dispatch) => {
+    let [reaction, err] = await SEND_React(reaction);
     if (!err) {
-        let _post = {...post};
-        _post.reactions = [..._post.reactions, reaction]
-        dispatch(updatePost(_post));
+        post.reactions = [...post.reactions, reaction]
+        dispatch(updatePost(post));
     }
 };
 export const reactToCommentThunk =
     (comment, sendReactionDTO) => async (dispatch) => {
         const [reaction, err] = await SEND_React(sendReactionDTO);
         if (!err) {
-            let _comment = {...comment};
-            _comment.reactions = [..._comment.reactions, reaction]
-            dispatch(updateComment(_comment));
+            comment.reactions = [...comment.reactions, reaction]
+            dispatch(updateComment(comment));
         }
     };
 export const deletePostThunk = (post_id) => async (dispatch) => {

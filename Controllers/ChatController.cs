@@ -18,10 +18,10 @@ namespace Qinqii.Controllers;
 public class ChatController : ControllerBase
 {
     private readonly MessageService msg;
-    private readonly IHubContext<ChatHub> hubContext;
+    private readonly IHubContext<QinqiiHub> hubContext;
     private readonly SignalRService signalr;
 
-    public ChatController(MessageService _msg, IHubContext<ChatHub> _hubContext, SignalRService _signalr)
+    public ChatController(MessageService _msg, IHubContext<QinqiiHub> _hubContext, SignalRService _signalr)
     {
         msg = _msg;
         hubContext = _hubContext;

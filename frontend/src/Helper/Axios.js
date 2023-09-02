@@ -75,9 +75,9 @@ export const PATCH_FriendStatus = async ({ id, action }) =>
     await securedApi.patch('/user/update-friend-status', { id, action });
 export const GET_Chat = async () => (await securedApi.get('/chat')).data;
 
-export const SEND_React = async ({ entity_id, entity_type, emoji }) =>
+export const SEND_React = async (payload) =>
     await handleApiCall(securedApi
-        .patch('/react', { entity_id, entity_type, emoji }), ResponseType.Data)
+        .patch('/react', payload), ResponseType.Data)
         
 export const UNDO_REACT = async (reaction_id) =>
     await handleApiCall(securedApi

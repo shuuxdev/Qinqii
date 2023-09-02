@@ -28,11 +28,13 @@ internal class Program
         builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<MessageService>();
         builder.Services.AddScoped<FeedService>();
+        builder.Services.AddScoped<NotificationService>();
         builder.Services.AddScoped<SignalRService>();
         builder.Services.AddScoped<AuthService>();
         builder.Services.AddScoped<StoryService>();
         builder.Services.AddScoped<PostService>();
         builder.Services.AddScoped<UploadService>();
+        builder.Services.AddSingleton<ConnectionManager>();
         builder.Services.AddTransient<ErrorHandlingMiddleware>();
         builder.Services.AddHostedService<StoryUpdatingWorker>();
         builder.Services.AddHttpLogging((option) =>
@@ -172,7 +174,7 @@ internal class Program
             new { swagger = new IgnoreRouteConstraint("/swagger") }
         );
 
-        app.MapHub<ChatHub>("/chatHub");
+        app.MapHub<QinqiiHub>("/chatHub");
         app.Run();
     }
 }

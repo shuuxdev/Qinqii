@@ -37,7 +37,7 @@ export const Like = ({ comment, index }) => {
         setCCIDOfPicker(0); // turn off all picker in the comment section
 
         dispatch(
-            reactToCommentThunk(comment, {
+            reactToCommentThunk({ ...comment }, {
                 entity_id: comment.id,
                 entity_type: ENTITY.COMMENT,
                 emoji: emoji.native,

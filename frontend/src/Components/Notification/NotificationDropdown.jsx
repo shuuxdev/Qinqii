@@ -4,17 +4,19 @@ import { AiOutlineBell } from 'react-icons/ai';
 import { twMerge } from "tailwind-merge";
 import '../../SCSS/Notification.scss';
 import { NotificationItem } from "./NotificationItem.jsx";
-import { useSelector } from "react-redux";
-
+import { useDispatch, useSelector } from "react-redux";
+import connection from '../../Helper/SignalR.js'
+import { addNotification } from "../../Modules/Notifications.js";
 export const NotificationDropdownContext = createContext();
+
+
 export const NotificationDropdown = () => {
     const [notification, setNotification] = useState(false);
     const bellIcon = useRef(null);
     const [position, setPosition] = useState({ right: 0, top: 0, width: 0 });
     const notifications = useSelector(state => state.notifications);
     const [CCIDOfNotification, setCCIDOfNotification] = useState(null);
-
-
+    const dispatch = useDispatch();
     const ctxValue = {
         CCIDOfNotification, setCCIDOfNotification
     }
@@ -54,6 +56,7 @@ export const NotificationDropdown = () => {
         window.onresize = setupDropdownPosition;
 
     }, [])
+
     useEffect(() => {
         setupDropdownPosition();
     }, [notification])
