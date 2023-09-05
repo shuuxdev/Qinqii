@@ -3,10 +3,11 @@ import React, { createContext, useEffect, useRef, useState } from "react";
 import { AiOutlineBell } from 'react-icons/ai';
 import { twMerge } from "tailwind-merge";
 import '../../SCSS/Notification.scss';
-import { NotificationItem } from "./NotificationItem.jsx";
+import { CommentNotificationItem, FriendRequestNotificationItem, LikeCommentNotificationItem, LikePostNotificationItem, NotificationItem } from "./NotificationItem.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import connection from '../../Helper/SignalR.js'
 import { addNotification } from "../../Modules/Notifications.js";
+import { NotificationType } from "../../Enums/NotificationType.js";
 export const NotificationDropdownContext = createContext();
 
 
@@ -51,6 +52,20 @@ export const NotificationDropdown = () => {
             setPosition({ top: 100, right, width });
         }
     }
+    const renderNotification = (notification) => {
+        switch (notification.type) {
+            case NotificationType.FRIEND_REQUEST:
+                return <FriendRequestNotificationItem key={notification.id} data={notification}></FriendRequestNotificationItem>
+            case NotificationType.COMMENT:
+                return <CommentNotificationItem key={notification.id} data={notification}></CommentNotificationItem>
+            case NotificationType.LIKE_COMMENT:
+                return <LikeCommentNotificationItem key={notification.id} data={notification}></LikeCommentNotificationItem>
+            case NotificationType.LIKE_POST:
+                return <LikePostNotificationItem key={notification.id} data={notification}></LikePostNotificationItem>
+            default:
+                return <div></div>
+        }
+    }
 
     useEffect(() => {
         window.onresize = setupDropdownPosition;
@@ -77,7 +92,7 @@ export const NotificationDropdown = () => {
                                 {
                                     notifications.length > 0 ?
                                         notifications.map((notification, index) => (
-                                            <NotificationItem key={index} data={notification}></NotificationItem>
+                                            renderNotification(notification)
                                         ))
                                         : <EmptyNotification />
                                 }
@@ -86,7 +101,12 @@ export const NotificationDropdown = () => {
                     </div>
                 }
             </AnimatePresence>
-            <div ref={bellIcon} onClick={Toggle}>
+            <div ref={bellIcon} onClick={Toggle} className="relative ">
+                <div className="absolute top-[-0.2em] left-[-0.2em]">
+                    <div className="rounded-full bg-red-500 w-[15px] h-[15px] flex justify-center items-center">
+                        <div className="text-[0.5em] font-bold text-white">{notifications.length}</div>
+                    </div>
+                </div>
                 <AiOutlineBell size={26}></AiOutlineBell>
             </div>
         </NotificationDropdownContext.Provider>
@@ -100,3 +120,4 @@ const EmptyNotification = () => {
         </div>
     )
 }
+

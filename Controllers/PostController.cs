@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Qinqii.DTOs.Request.Comment;
+using Qinqii.DTOs.Request.Notification;
+using Qinqii.Extensions;
 using Qinqii.Models;
-using Qinqii.Models.Comment;
-using Qinqii.Models.Post;
-using Qinqii.Models.Reaction;
+using Qinqii.Models.Interfaces;
+using Qinqii.Models.Parameters;
 using Qinqii.Service;
 using Qinqii.Utilities;
 
@@ -15,65 +18,37 @@ public class PostController : ControllerBase
     private readonly PostService _postService;
     private readonly ILogger<PostController> _logger;
     private readonly IWebHostEnvironment _env;
-
+    private readonly NotificationService _notificationService;
+    private readonly IHubContext<QinqiiHub> _hubContext;
     public PostController(PostService postService,
-        ILogger<PostController> logger, IWebHostEnvironment env)
+        ILogger<PostController> logger, IWebHostEnvironment env,
+        NotificationService notificationService,
+        IHubContext<QinqiiHub> hubContext)
     {
         _postService = postService;
         _logger = logger;
         _env = env;
+        _notificationService = notificationService;
+        _hubContext = hubContext;
     }
 
-    [HttpPost("comment/create")]
-    public async Task<IActionResult> CreateComment(
-        [FromForm] CreateCommentDTO comment)
-    {
-        var user_id = HttpContext.GetUserId();
-        if (user_id != 0 && comment.attachments != null)
-            comment.attachment_links.AddRange(
-                await Server.UploadAsync(comment.attachments,
-                    _env.WebRootPath));
-        var c = await _postService.CreateComment(comment, user_id);
-        return Ok(c);
-    }
-
-    [HttpPatch("comment/edit")]
-    public async Task<IActionResult> EditComment([FromBody] EditCommentDTO
-        comment)
-    {
-        // sửa [FromBody] sang [FromForm]
-        // ở phần insert: cần lưu ảnh, tệp lên server trước khi lưu vào database
-        var user_id = HttpContext.GetUserId();
-        var c = await _postService.EditComment(comment, user_id);
-
-        return Ok(c);
-    }
-
-    [HttpDelete("comment/delete")]
-    public async Task<IActionResult> DeleteComment(int id)
-    {
-        var user_id = HttpContext.GetUserId();
-        await _postService.DeleteComment(id, user_id);
-        return Ok();
-    }
+   
 
     [HttpPatch("post/edit")]
-    public async Task<IActionResult> EditPost([FromBody] EditPostDTO post)
+    public async Task<IActionResult> EditPost([FromBody] EditPostRequest post)
     {
         // sửa [FromBody] sang [FromForm]
         // ở phần insert: cần lưu ảnh, tệp lên server trước khi lưu vào database
-        var user_id = HttpContext.GetUserId();
-        await _postService.EditPost(post, user_id);
+        
+        await _postService.EditPost(post);
         return Ok();
     }
-
+    
     [HttpPost("post/create")]
-    public async Task<IActionResult> CreatePost([FromForm] CreatePostDTO 
+    public async Task<IActionResult> CreatePost([FromForm] CreatePostRequest 
     post, CancellationToken token)
     {
-       
-        post.author = HttpContext.GetUserId();
-        if (post.attachments != null && post.author != 0)
+        if (post.attachments != null)
             post.attachment_links.AddRange(
                 await Server.UploadAsync(post.attachments, _env.WebRootPath));
             await _postService.CreatePost(post, token);
@@ -82,10 +57,9 @@ public class PostController : ControllerBase
     }
 
     [HttpDelete("post/delete")]
-    public async Task<IActionResult> DeletePost(int id)
+    public async Task<IActionResult> DeletePost(DeletePostRequest post)
     {
-        var user_id = HttpContext.GetUserId();
-        await _postService.DeletePost(id, user_id);
+        await _postService.DeletePost(post);
         return Ok();
     }
 }

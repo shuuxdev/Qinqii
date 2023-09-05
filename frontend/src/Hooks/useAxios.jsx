@@ -42,8 +42,7 @@ export const useAxios = () => {
     const GET_MyProfile = async () => await securedApi.get(`/user/profile`);
     const GET_UserProfile = async (user_id) => await securedApi.get(`/user/profile?id=${user_id}`);
     const GET_Messages = async () => await securedApi.get('/chat/messages');
-    const GET_ConnectionId = async () =>
-        (await securedApi.get('/user/connection')).data;
+    const GET_Notifications = async () => await securedApi.get('/notification/all');
     const GET_FriendRequests = async () =>
         await securedApi.get('/user/friend-requests');
     const GET_Friends = async () => await securedApi.get('/user/friends');
@@ -63,7 +62,6 @@ export const useAxios = () => {
         GET_FriendRequests,
         GET_Messages,
         GET_UserProfile,
-        GET_ConnectionId,
         GET_Friends,
         POST_Login,
         POST_SendMessage,
@@ -71,7 +69,8 @@ export const useAxios = () => {
         GET_Chat,
         GET_Stories,
         GET_Story,
-        GET_MyProfile
+        GET_MyProfile,
+        GET_Notifications
     };
     return api;
 };

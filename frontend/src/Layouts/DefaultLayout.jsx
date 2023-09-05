@@ -22,6 +22,7 @@ import { fetchProfileAction } from '../Modules/Profile.js'
 import { Snackbar } from "@mui/material"
 import { fetchStories } from "../Modules/Stories.js"
 import { Grid } from "antd"
+import { addNotification, fetchNotifications } from "../Modules/Notifications.js"
 const LeftSection = () => {
     return (
         <div className={`font-['Alexandria'] m-0 p-0 bg-[${Color.Background}]  box-border  flex flex-col  lg:w-[300px] `}>
@@ -64,18 +65,19 @@ const RightSection = () => {
 
 
 const initApiCall = async (axios, dispatch) => {
-    const apiList = [axios.GET_MyProfile(), axios.GET_AllChat(), axios.GET_FriendRequests(), axios.GET_Stories()]
-    const [profile, contacts, friend_requests, stories] = await Promise.allSettled(apiList).then((responseList) =>
+    const apiList = [axios.GET_MyProfile(), axios.GET_AllChat(), axios.GET_FriendRequests(), axios.GET_Stories(), axios.GET_Notifications()]
+    const [profile, contacts, friend_requests, stories, notifications] = await Promise.allSettled(apiList).then((responseList) =>
         responseList.map((response) => {
             if (response.status == 'fulfilled') return response.value.data
         })
     )
-    let ok = profile && contacts && friend_requests && stories;
+    let ok = profile && contacts && friend_requests && stories && notifications;
     if (ok) {
         dispatch(fetchFriendRequestsAction(friend_requests))
         dispatch(fetchContacts(contacts))
         dispatch(fetchProfileAction(profile))
         dispatch(fetchStories(stories))
+        dispatch(fetchNotifications(notifications))
     }
 
     return ok;
@@ -100,12 +102,17 @@ const DefaultLayout = () => {
     const dispatch = useDispatch()
     const axios = useAxios()
 
+
     const [allDataLoaded, setAllDataLoaded] = useState(false)
     const pageReady = async () => {
         setAllDataLoaded(await initApiCall(axios, dispatch))
     }
     useEffect(() => {
         pageReady();
+        connection.on("ReceiveNotification", (notification) => {
+            console.log(notification)
+            dispatch(addNotification(notification))
+        })
     }, [])
     useEffect(() => {
         // only start connection when user is authenticated

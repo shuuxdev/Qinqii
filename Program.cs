@@ -11,8 +11,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using Microsoft.AspNetCore.HttpLogging;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.OpenApi.Models;
 using Qinqii.Middlewares;
+using Qinqii.ModelBinders;
 using Qinqii.Utilities;
 using Qinqii.Workers;
 
@@ -23,7 +28,21 @@ internal class Program
         var builder = WebApplication.CreateBuilder(args);
         // Add services to the container.
         builder.Services.AddSignalR();
-        builder.Services.AddControllersWithViews();
+        
+    
+        builder.Services.AddControllersWithViews().AddJsonOptions((option) =>
+        {
+            option.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
+        
+        builder.Services.PostConfigure<MvcOptions>(options =>
+        {
+            var inputFormatters = options.InputFormatters;
+            var readerFactory = builder.Services.BuildServiceProvider().GetRequiredService<IHttpRequestStreamReaderFactory>();
+
+            var binderProvider = new UserIdModelBinderProvider(inputFormatters, readerFactory);
+            options.ModelBinderProviders.Insert(0, binderProvider);
+        });
         builder.Services.AddScoped<DapperContext>();
         builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<MessageService>();
@@ -34,6 +53,7 @@ internal class Program
         builder.Services.AddScoped<StoryService>();
         builder.Services.AddScoped<PostService>();
         builder.Services.AddScoped<UploadService>();
+        builder.Services.AddScoped<CommentService>();
         builder.Services.AddSingleton<ConnectionManager>();
         builder.Services.AddTransient<ErrorHandlingMiddleware>();
         builder.Services.AddHostedService<StoryUpdatingWorker>();

@@ -52,8 +52,7 @@ export const GET_Posts = async (user_id) => await securedApi.get('/feed');
 
 export const GET_UserProfile = async (user_id) =>
     await securedApi.get('/user/profile');
-export const GET_ConnectionId = async (user_id) =>
-    (await securedApi.get('/user/connection')).data;
+
 export const GET_Messages = async (conversation_id) =>
     await securedApi.get(`/chat?id=${conversation_id}`);
 export const GET_Friends = async (user_id) =>

@@ -23,7 +23,6 @@ public class FeedController : ControllerBase
 
     public async Task<IActionResult> GetFeed()
     {
-        int user_id = HttpContext.GetUserId();
         var posts = await _feedService.GetAllPosts();
         return new JsonResult(posts);
     }

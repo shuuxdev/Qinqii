@@ -1,5 +1,6 @@
 
 using Microsoft.AspNetCore.Mvc;
+using Qinqii.DTOs.Request.Story;
 using Qinqii.Service;
 
 namespace Qinqii.Controllers;
@@ -12,9 +13,9 @@ public class StoryController : ControllerBase
     {
         this._storyService = _storyService;
     }
-    public async Task<IActionResult> GetStory(int id)
+    public async Task<IActionResult> GetStory(GetStoryRequest request)
     {
-        var story = await _storyService.GetStory(id);
+        var story = await _storyService.GetStory(request);
         return Ok(story);
     }
     /*[HttpPatch]

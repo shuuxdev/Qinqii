@@ -18,8 +18,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.5.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ModelBinders\" />
-    <Folder Include="Models\Common\" />
-    <Folder Include="Models\Feed\" />
+    <Folder Include="DTOs\Response\User\" />
   </ItemGroup>
 </Project>
