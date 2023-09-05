@@ -1,7 +1,7 @@
 namespace Qinqii.Enums;
 
-public enum EntityType
+public static class EntityType
 {
-    Post,
-    Comment
+    public const string POST = "POST";
+    public const string COMMENT = "COMMENT";
 }

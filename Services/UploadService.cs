@@ -1,9 +1,9 @@
 using System.Data;
 using System.Net.Mail;
 using Dapper;
+using Qinqii.DTOs.Request.Attachment;
 using Qinqii.Models;
-using Qinqii.Models.Attachment;
-using Qinqii.Models.Post;
+using Qinqii.Utilities;
 
 namespace Qinqii.Service;
 
@@ -16,18 +16,14 @@ public class UploadService
         _ctx = ctx;
     }
 
-    public async Task<IEnumerable<AttachmentDTO>> UploadAttachment
-        (List<AttachmentTVP> attachments)
+    public async Task<IEnumerable<Attachment>> UploadAttachment
+        (CreateAttachmentRequest request)
     {
         using var connection = _ctx.CreateConnection();
         var param = new DynamicParameters();
-        using var dt = new DataTable();
-        dt.Columns.Add("url");
-        dt.Columns.Add("type");
-        attachments.ForEach((att) => { dt.Rows.Add(att.url, att.type); });
-        param.Add("@tvp", dt.AsTableValuedParameter());
+        param.Add("@tvp", request.attachments.ToTableValuedParameters());
 
-        var list = await connection.QueryAsync<AttachmentDTO>(
+        var list = await connection.QueryAsync<Attachment>(
             "[dbo].[INSERT_Attachments]",
             commandType: CommandType.StoredProcedure, param: param);
         return list;

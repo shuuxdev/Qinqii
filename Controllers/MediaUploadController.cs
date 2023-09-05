@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Qinqii.Models.Attachment;
-using Qinqii.Models.Post;
+using Qinqii.DTOs.Request.Attachment;
+using Qinqii.Models;
 using Qinqii.Service;
 
 namespace Qinqii.Controllers;
@@ -23,7 +23,7 @@ public class MediaUploadController : ControllerBase
     public async Task<IActionResult> UploadImage(
         [FromForm] IFormFileCollection attachments)
     {
-        List<AttachmentTVP> list = new();
+        List<AttachmentInsertTVP> list = new();
         foreach (var attachment in attachments)
         {
             var name = Guid.NewGuid().ToString();
@@ -31,9 +31,9 @@ public class MediaUploadController : ControllerBase
             var url = name + prefix;
             var fileType = attachment.ContentType.ToLower(); 
             if (fileType.StartsWith("image"))
-                list.Add(new AttachmentTVP() { type = "IMAGE", url = url });
+                list.Add(new AttachmentInsertTVP() { type = "IMAGE", url = url });
             if (fileType.StartsWith("video"))
-                list.Add(new AttachmentTVP() { type = "VIDEO", url = url });
+                list.Add(new AttachmentInsertTVP() { type = "VIDEO", url = url });
             using var fileStream =
                 new FileStream(Path.Combine(_env.WebRootPath,
                         $"assets/{url}"),
@@ -43,7 +43,8 @@ public class MediaUploadController : ControllerBase
 
         if (list.IsNullOrEmpty()) throw new InvalidDataException();
 
-        var insertedAttachments = await _uploadService.UploadAttachment(list);
+        var insertedAttachments = await _uploadService.UploadAttachment(new 
+        CreateAttachmentRequest(){attachments = list});
         return Ok(insertedAttachments);
     }
 }

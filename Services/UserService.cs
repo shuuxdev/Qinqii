@@ -4,8 +4,6 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Qinqii.Enums;
 using Qinqii.Models;
-using Qinqii.Models.Attachment;
-using Qinqii.Models.Post;
 
 namespace Qinqii.Service
 {
@@ -49,41 +47,41 @@ namespace Qinqii.Service
                 if (user == null) user = new List<FriendRequest>();
                 return user;
         }
-        public async Task<int> UpdateFriendStatus(FriendStatusAction friendStatus)
+        public async Task<int> UpdateFriendStatus(EditFriendStatusRequest editFriendStatus)
         {            using var connection = _ctx.CreateConnection();
 
                 var param = new DynamicParameters();
-                param.Add("@action", friendStatus.action, dbType: System.Data.DbType.String);
-                param.Add("@id", friendStatus.id, dbType: System.Data.DbType.Int32);
+                param.Add("@action", editFriendStatus.action, dbType: System.Data.DbType.String);
+                param.Add("@id", editFriendStatus.id, dbType: System.Data.DbType.Int32);
                 int row_affected = await connection.ExecuteAsync("[dbo].[UPDATE_Friendship]", commandType: System.Data.CommandType.StoredProcedure, param: param);
                 return row_affected;
         }
-        public async Task<IEnumerable<PostDTO>> GetUserPosts(int id)
+        public async Task<IEnumerable<Post>> GetUserPosts(int id)
         {            using var connection = _ctx.CreateConnection();
 
             var param = new DynamicParameters();
             param.Add("@user_id", id, dbType: System.Data.DbType.Int32);
             var reader = await connection.QueryMultipleAsync("[ACCOUNT].GetPosts", commandType: System.Data.CommandType.StoredProcedure, param: param);
 
-            var attachments =             await reader.ReadAsync<AttachmentDTO>();
-            var posts = await reader.ReadAsync<PostDTO>();
+            var attachments =             await reader.ReadAsync<Attachment>();
+            var posts = await reader.ReadAsync<Post>();
             posts.ToList().ForEach(post => post.attachments.AddRange
-            (attachments.Where(att => att.attachment_of == EntityType.Post 
+            (attachments.Where(att => att.entity_type == EntityType.POST 
             && att.entity_id == post.post_id)));
             return posts;
         }
-        public async Task<IEnumerable<AttachmentDTO>> GetUserVideos(int id)
+        public async Task<IEnumerable<Attachment>> GetUserVideos(int id)
         {            using var connection = _ctx.CreateConnection();
 
             var param = new DynamicParameters();
             param.Add("@user_id", id, dbType: System.Data.DbType.Int32);
             var reader = await connection.QueryMultipleAsync("[ACCOUNT].GetVideos", commandType: System.Data.CommandType.StoredProcedure, param: param);
             
-            var attachments =             await reader.ReadAsync<AttachmentDTO>();
+            var attachments =             await reader.ReadAsync<Attachment>();
             return attachments;
 
         }
-        public async Task<IEnumerable<AttachmentDTO>> GetUserImages(int id)
+        public async Task<IEnumerable<Attachment>> GetUserImages(int id)
         {            using var connection = _ctx.CreateConnection();
 
             var param = new DynamicParameters();
@@ -91,7 +89,7 @@ namespace Qinqii.Service
             var reader = await connection.QueryMultipleAsync("[ACCOUNT].GetImages", commandType: System.Data.CommandType.StoredProcedure, param: param);
             
             
-            var attachments =             await reader.ReadAsync<AttachmentDTO>();
+            var attachments =             await reader.ReadAsync<Attachment>();
          
             return attachments;
         }

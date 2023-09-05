@@ -11,34 +11,37 @@ using Qinqii.Ultilities;
 using System.Net.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Qinqii.DTOs.Request.Contact;
+using Qinqii.DTOs.Request.Message;
 
 namespace Qinqii.Controllers;
 [ApiController]
 [Route("chat")]
 public class ChatController : ControllerBase
 {
-    private readonly MessageService msg;
+    private readonly MessageService _messageService;
     private readonly IHubContext<QinqiiHub> hubContext;
     private readonly SignalRService signalr;
 
-    public ChatController(MessageService _msg, IHubContext<QinqiiHub> _hubContext, SignalRService _signalr)
+    public ChatController(MessageService messageService, IHubContext<QinqiiHub> _hubContext, SignalRService _signalr)
     {
-        msg = _msg;
+        _messageService = messageService;
         hubContext = _hubContext;
         signalr = _signalr;
     }
-
+    
     [Authorize]
     [HttpPost("message")]
-    public async Task<IActionResult> SendMessage([FromBody] Message message)
+    public async Task<IActionResult> CreateMessage([FromBody] 
+    CreateMessageRequest message)
     {
-        var msg_id = await msg.SendMessage(message);
-        message.message_id = msg_id;
-        message.sent_at = DateTime.Now;
-        string recipient_connection_id = await signalr.GetConnection(message.recipient_id);
-        string sender_connection_id = await signalr.GetConnection(message.sender_id);
-        await hubContext.Clients.Client(sender_connection_id).SendAsync("RecieveMessage", message);
-        await hubContext.Clients.Client(recipient_connection_id).SendAsync("RecieveMessage", message);
+        var msg = await _messageService.CreateMessage(message);
+        await hubContext.Clients.User(message.sender_id.ToString()).SendAsync
+        ("RecieveMessage", 
+        message);
+        await hubContext.Clients.User(message.recipient_id.ToString()).SendAsync
+        ("RecieveMessage", 
+        message);
         return Ok();
     }
 
@@ -46,16 +49,20 @@ public class ChatController : ControllerBase
     [HttpGet("all")]
     public async Task<IActionResult> LoadAllConversations()
     {
-        int user_id = HttpContext.GetUserId();
-        var conversations = await msg.GetContacts(user_id);
-        return new JsonResult(conversations);
+        var request = new GetContactsRequest()
+        {
+            user_id = HttpContext.GetUserId()
+        };
+        var conversations = await _messageService.GetContacts(request);
+        return Ok(conversations);
     }
 
     [Authorize]
     [HttpGet]
-    public async Task<IActionResult> LoadConversation(int id)
+    public async Task<IActionResult> LoadConversation(GetMessagesRequest 
+    request)
     {
-        var messages = await msg.GetMessages(id);
+        var messages = await _messageService.GetMessages(request);
         return new JsonResult(messages);
     }
 

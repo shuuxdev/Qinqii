@@ -2,7 +2,7 @@ namespace Qinqii.Enums;
 
 public enum AttachmentType
 {
-    Image,
-    File,
-    Video
+    IMAGE,
+    FILE,
+    VIDEO
 }

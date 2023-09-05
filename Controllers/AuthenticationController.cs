@@ -31,7 +31,7 @@ namespace Qinqii.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] UserLogin u)
+        public async Task<IActionResult> Login([FromBody] UserLoginRequest u)
         {
             int user_id = await authService.Login(u.username, u.password);
             if (user_id == 0) return Unauthorized();
@@ -59,7 +59,7 @@ namespace Qinqii.Controllers
         }
 
         [HttpPost("login_jwt")]
-        public async Task<IActionResult> LoginJwt([FromBody] UserLogin u)
+        public async Task<IActionResult> LoginJwt([FromBody] UserLoginRequest u)
         {
             try
             {

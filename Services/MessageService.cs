@@ -2,7 +2,11 @@ using System.Data;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Data.SqlClient;
+using Qinqii.DTOs.Request.Contact;
+using Qinqii.DTOs.Request.Message;
 using Qinqii.Models;
+using Qinqii.Utilities;
+
 namespace Qinqii.Service
 {
     public class MessageService
@@ -12,33 +16,29 @@ namespace Qinqii.Service
         {
             _ctx = ctx;
         }
-        public async Task<int> SendMessage(Message message)
+        public async Task<Message> CreateMessage(CreateMessageRequest message)
         {
               using var connection = _ctx.CreateConnection();
-                var param = new DynamicParameters();
-                param.Add("@message_text", message.message_text, dbType: System.Data.DbType.String);
-                param.Add("@conversation_id", message.conversation_id, dbType: System.Data.DbType.String);
-                param.Add("@sender_id", message.sender_id, dbType: System.Data.DbType.Int32);
-                var msg = await connection.ExecuteScalarAsync<int>("[MESSAGE].[Create]", commandType: System.Data.CommandType.StoredProcedure, param: param);
-                
+              var param = message.ToParameters();
+                var msg = await connection.QuerySingleAsync<Message>("[MESSAGE].[Create]", commandType: System.Data.CommandType.StoredProcedure, param: param);
                 return msg;
         }
-        public async Task<IEnumerable<Conversation>> GetContacts(int user_id)
+        public async Task<IEnumerable<Conversation>> GetContacts
+        (GetContactsRequest contact)
         {
             using var connection = _ctx.CreateConnection();
-                var param = new DynamicParameters();
-                param.Add("@user_id", user_id, dbType: System.Data.DbType.Int32);
+            var param = contact.ToParameters();
                 var conversations = (await connection.QueryAsync<Conversation>("[ACCOUNT].[Contacts]", commandType: System.Data.CommandType.StoredProcedure, param: param));
                 return conversations;
 
         }
-        public async Task<IEnumerable<Message>> GetMessages(int conversation_id)
+        public async Task<IEnumerable<Message>> GetMessages
+        (GetMessagesRequest request)
         {
             using var connection = _ctx.CreateConnection();
-                var param = new DynamicParameters();
-                param.Add("@conversation_id", conversation_id, dbType: System.Data.DbType.Int32);
-                var messages = (await connection.QueryAsync<Message>("[MESSAGE].[Get]", commandType: System.Data.CommandType.StoredProcedure, param: param));
-                return messages;
+            var param = request.ToParameters();
+            var messages = (await connection.QueryAsync<Message>("[MESSAGE].[Get]", commandType: System.Data.CommandType.StoredProcedure, param: param));
+            return messages;
         }
     }
 }

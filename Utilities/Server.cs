@@ -1,0 +1,27 @@
+using Qinqii.Models;
+
+namespace Qinqii.Utilities;
+
+public static class Server
+{
+    public static async Task<List<AttachmentInsertTVP>> UploadAsync(IFormFileCollection formCollection, string webRootPath)
+    {
+        List<AttachmentInsertTVP> tvp = new List<AttachmentInsertTVP>(); 
+        foreach (IFormFile att in formCollection)
+        {
+            var suffix = Path.GetExtension(att.FileName);
+            var name = Guid.NewGuid().ToString();
+            var fileType = att.ContentType.ToLower(); 
+            if(fileType.StartsWith("image"))
+                tvp.Add(new AttachmentInsertTVP { url = name + suffix, type = "IMAGE" });
+            if(fileType.StartsWith("video"))
+                tvp.Add(new AttachmentInsertTVP { url = name + suffix, type = "VIDEO" });
+            await using var fileStream =
+                new FileStream(Path.Combine(webRootPath, $"assets/{name}{suffix}"), FileMode.CreateNew);
+            await att.CopyToAsync(fileStream);
+            //whoops some ass
+        }
+
+        return tvp;
+    }
+}

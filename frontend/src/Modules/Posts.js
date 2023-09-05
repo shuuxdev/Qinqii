@@ -169,8 +169,8 @@ export const undoReactThunk =
             }
         }
     };
-export const reactToPostThunk = (post, reaction) => async (dispatch) => {
-    let [reaction, err] = await SEND_React(reaction);
+export const reactToPostThunk = (post, ra) => async (dispatch) => {
+    let [reaction, err] = await SEND_React(ra);
     if (!err) {
         post.reactions = [...post.reactions, reaction]
         dispatch(updatePost(post));

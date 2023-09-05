@@ -40,14 +40,6 @@ namespace Qinqii.Controllers
             var user_profile = await user.GetProfile(id);
             return Ok(user_profile);
         }
-
-        [HttpGet("connection")]
-        public async Task<IActionResult> GetUserConnectionId()
-        {
-            var user_id = HttpContext.GetUserId();
-            var u = await signalr.GetConnection((user_id));
-            return new JsonResult(u);
-        }
         [HttpGet("friends")]
         public async Task<IActionResult> GetUserFriends(int id)
         {
@@ -83,10 +75,10 @@ namespace Qinqii.Controllers
             return Ok(u);
         }
         [HttpPatch("update-friend-status")]
-        public async Task<IActionResult> UpdateFriendStatus(FriendStatusAction friendStatus)
+        public async Task<IActionResult> UpdateFriendStatus(EditFriendStatusRequest editFriendStatus)
         {
             int user_id = HttpContext.GetUserId();
-            var u = await user.UpdateFriendStatus(friendStatus);
+            var u = await user.UpdateFriendStatus(editFriendStatus);
             return new JsonResult(u);
         }
     }
