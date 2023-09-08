@@ -33,49 +33,13 @@ import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit';
 import { Modals } from './Components/Modals/Modals.jsx';
 import modalReducer from './Modules/Modals.js';
 import notificationReducer from './Modules/Notifications.js';
-init({ data });
-const rootReducer = combineReducers({
-    identity: identityReducer,
-    chats: chatReducer,
-    contacts: contactsReducer,
-    profile: profileReducer,
-    friendRequests: friendRequestsReducer,
-    UI: UIReducer,
-    posts: postReducer,
-    call: callReducer,
-    stories: storiesReducer,
-    storiesUI: storiesUIReducer,
-    modals: modalReducer,
-    notifications: notificationReducer,
-    [profileApiSlice.reducerPath]: profileApiSlice.reducer
+import { PeoplePage } from './Pages/PeoplePage.jsx';
+import { AnimatePresence } from 'framer-motion';
+import App from './App.js';
 
-});
-// const store = createStore(
-//     rootReducer,
-//     composeWithDevTools(applyMiddleware(thunkMiddleware))
-    
-// );
-const store = configureStore({
-    reducer: rootReducer,
-    middleware: (getDefaultMiddleware) => 
-        getDefaultMiddleware().concat(profileApiSlice.middleware).concat(thunkMiddleware)
-    
-})
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
-    <BrowserRouter>
-        <Provider store={store}>
-            <Routes>
-                <Route path='/login' element={<LoginPage />}></Route>
-                <Route path='/' element={<DefaultLayout />}>
-                    <Route path='/user/:id' element={<Profile />}></Route>
-                    <Route index element={<HomePage />}></Route>
-                </Route>
-                <Route path='/story/:id' element={<StoryViewer />}></Route>
-            </Routes>
-            <Modals/>
-        </Provider>
-    </BrowserRouter>
+    <App/>
 );

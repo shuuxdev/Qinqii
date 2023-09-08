@@ -53,16 +53,8 @@ public class CommentController : ControllerBase
             new CommentIdParameter(c.comment_id.ToString()),
             new ContentParameter(comment.content)
         };
-        var notiRequest = new CreateNotificationRequest()
-        {
-            user_id = authorId,
-            actor_id = comment.user_id,
-            notification_type = NotificationType.COMMENT,
-            notification_params = parameters
-        };
-        var notification = await _notificationService.CreateNotification
-            (notiRequest);
-        await _hubContext.SendNotificationToOneUser(notification);
+        
+        await _notificationService.Notify(authorId, user_id,NotificationType.COMMENT, parameters);
         return Ok(c);
     }
 

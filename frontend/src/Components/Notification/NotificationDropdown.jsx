@@ -3,7 +3,7 @@ import React, { createContext, useEffect, useRef, useState } from "react";
 import { AiOutlineBell } from 'react-icons/ai';
 import { twMerge } from "tailwind-merge";
 import '../../SCSS/Notification.scss';
-import { CommentNotificationItem, FriendRequestNotificationItem, LikeCommentNotificationItem, LikePostNotificationItem, NotificationItem } from "./NotificationItem.jsx";
+import { CommentNotificationItem, FriendRequestAcceptedNotificationItem, FriendRequestNotificationItem, LikeCommentNotificationItem, LikePostNotificationItem, NotificationItem } from "./NotificationItem.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import connection from '../../Helper/SignalR.js'
 import { addNotification } from "../../Modules/Notifications.js";
@@ -62,6 +62,8 @@ export const NotificationDropdown = () => {
                 return <LikeCommentNotificationItem key={notification.id} data={notification}></LikeCommentNotificationItem>
             case NotificationType.LIKE_POST:
                 return <LikePostNotificationItem key={notification.id} data={notification}></LikePostNotificationItem>
+            case NotificationType.FRIEND_ACCEPT:
+                return <FriendRequestAcceptedNotificationItem key={notification.id} data={notification} />
             default:
                 return <div></div>
         }
@@ -102,11 +104,16 @@ export const NotificationDropdown = () => {
                 }
             </AnimatePresence>
             <div ref={bellIcon} onClick={Toggle} className="relative ">
-                <div className="absolute top-[-0.2em] left-[-0.2em]">
-                    <div className="rounded-full bg-red-500 w-[15px] h-[15px] flex justify-center items-center">
-                        <div className="text-[0.5em] font-bold text-white">{notifications.length}</div>
+
+                {
+                    notifications.length > 0 &&
+                    <div className="absolute top-[-0.2em] left-[-0.2em]">
+                        <div className="rounded-full bg-red-500 w-[15px] h-[15px] flex justify-center items-center">
+                            <div className="text-[0.5em] font-bold text-white">{notifications.length}</div>
+                        </div>
                     </div>
-                </div>
+                }
+
                 <AiOutlineBell size={26}></AiOutlineBell>
             </div>
         </NotificationDropdownContext.Provider>

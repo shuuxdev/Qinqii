@@ -19,12 +19,25 @@ namespace Qinqii.Models
             _user = user;
             _connectionManager = connectionManager;
         }
-
         
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task SendIceCandidate(string candidate)
+        {
+            await Clients.Others.SendAsync("ReceiveIceCandidate",  candidate);
+        }
+        public async Task SendOffer(string sdp)
+        {
+            await Clients.Others.SendAsync("ReceiveOffer",  sdp);
+        }
+        public async Task SendAnswer(string sdp) 
+        {
+            await Clients.Others.SendAsync("ReceiveAnswer",  sdp);
+        }
+        
+        
+      //  [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public override async Task OnConnectedAsync()
         {
-            string connection_id = Context.ConnectionId;
+            /*string connection_id = Context.ConnectionId;
             string device = Context.GetHttpContext().Request.Headers.UserAgent;
             string ip_address = Context.GetHttpContext().Connection.RemoteIpAddress.ToString();
             string user_id = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -41,6 +54,7 @@ namespace Qinqii.Models
             });
             await Clients.Others.SendAsync("updateOnlineStatus", user_id,
                 "ONLINE");
+                */
 
             //int row_inserted = await _user.MapConnectionIdToUser(userConnectionInfo);
             await base.OnConnectedAsync();
@@ -48,10 +62,12 @@ namespace Qinqii.Models
         }
         public override async Task OnDisconnectedAsync(Exception ex)
         {
+            /*
             string user_id = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             _connectionManager.TryRemoveUserConnection(Int32.Parse(user_id));
             Clients.Others.SendAsync("updateOnlineStatus", user_id, "OFFLINE");
+            */
 
             await base.OnDisconnectedAsync(ex);
         }

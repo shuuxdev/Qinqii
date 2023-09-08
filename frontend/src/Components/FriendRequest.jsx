@@ -4,7 +4,7 @@ import Color from '../Enums/Color';
 import { ACCEPT, REJECT, updateFriendStatusAsync } from "../Modules/FriendRequests.js";
 import { Avatar, Button, Header, Text } from './CommonComponent.jsx';
 
-export const Request = ({ request: { name, sent_at, avatar, request_sender_id, id } }) => {
+export const Request = ({ request: { name, sent_at, avatar, user_id, id } }) => {
     const dispatch = useDispatch();
     return (
         <div className={`flex flex-col items-center justify-center rounded-[10px] mb-2  p-[20px] bg-[${Color.White}] `}>
@@ -18,11 +18,11 @@ export const Request = ({ request: { name, sent_at, avatar, request_sender_id, i
             </div>
             <div className="flex w-full flex-row items-center justify-between">
                 <div>
-                    <Button onClick={() => dispatch(updateFriendStatusAsync({ id, action: ACCEPT }))}>
+                    <Button onClick={() => dispatch(updateFriendStatusAsync({ id, status: ACCEPT }))}>
                         Accept
                     </Button>
                 </div>
-                <Button outline onClick={() => dispatch(updateFriendStatusAsync({ id, action: REJECT }))}>
+                <Button outline onClick={() => dispatch(updateFriendStatusAsync({ id, status: REJECT }))}>
                     Decline
                 </Button>
             </div>

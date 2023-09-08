@@ -61,6 +61,12 @@ export const LikePostNotificationItem = ({ data }) => {
     <div className="text-xs text-gray-500">{data.timestamp}</div>
   </NotificationItem>
 }
+export const FriendRequestAcceptedNotificationItem = ({ data }) => {
+  return <NotificationItem data={data}>
+    <span className="text-sm font-semibold">{data.actor_name} đã chấp nhận lời mời kết bạn của bạn</span>
+    <div className="text-xs text-gray-500">{data.timestamp}</div>
+  </NotificationItem>
+}
 export const LikeCommentNotificationItem = ({ data }) => {
   return <NotificationItem data={data}>
     <span className="text-sm font-semibold">{data.actor_name} đã thả cảm xúc về bình luận của bạn </span>

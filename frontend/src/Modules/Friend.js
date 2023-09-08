@@ -7,8 +7,10 @@ const friendSlice = createSlice({
         fetchFriends: (state, action) => {
             return action.payload;
         }
-    }
+    },
+    
 })
+
 
 
 export const {fetchFriends} = friendSlice.actions;

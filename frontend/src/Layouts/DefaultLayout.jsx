@@ -17,7 +17,7 @@ import connection from "../Helper/SignalR.js"
 import Loading from "../Components/Loading.jsx"
 import { useAxios } from '../Hooks/useAxios.jsx'
 import { fetchContacts, fetchContactsAction } from '../Modules/Contacts.js'
-import { fetchFriendRequestsAction } from '../Modules/FriendRequests.js'
+import { addFriendRequest, fetchFriendRequests, fetchFriendRequestsAction } from '../Modules/FriendRequests.js'
 import { fetchProfileAction } from '../Modules/Profile.js'
 import { Snackbar } from "@mui/material"
 import { fetchStories } from "../Modules/Stories.js"
@@ -73,11 +73,12 @@ const initApiCall = async (axios, dispatch) => {
     )
     let ok = profile && contacts && friend_requests && stories && notifications;
     if (ok) {
-        dispatch(fetchFriendRequestsAction(friend_requests))
+        dispatch(fetchFriendRequests(friend_requests))
         dispatch(fetchContacts(contacts))
         dispatch(fetchProfileAction(profile))
         dispatch(fetchStories(stories))
         dispatch(fetchNotifications(notifications))
+
     }
 
     return ok;
@@ -112,6 +113,10 @@ const DefaultLayout = () => {
         connection.on("ReceiveNotification", (notification) => {
             console.log(notification)
             dispatch(addNotification(notification))
+        })
+        connection.on("ReceiveFriendRequest", (friend) => {
+            console.log(friend)
+            dispatch(addFriendRequest(friend))
         })
     }, [])
     useEffect(() => {

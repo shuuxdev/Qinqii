@@ -1,19 +1,20 @@
 
 
 using System.Data;
+using System.Formats.Asn1;
 using System.Runtime.InteropServices;
 using Dapper;
 using Microsoft.AspNetCore.SignalR;
 using Qinqii.DTOs.Request.Notification;
 using Qinqii.Extensions;
 using Qinqii.Models;
+using Qinqii.Models.Interfaces;
 using Qinqii.Utilities;
 
 public class NotificationService
 {
     private readonly IHubContext<QinqiiHub> _hubContext;
     private readonly DapperContext _ctx;
-
     private readonly ConnectionManager _connectionManager;
     public NotificationService(IHubContext<QinqiiHub> hubContext, DapperContext ctx, ConnectionManager connectionManager)
     {
@@ -62,5 +63,17 @@ public class NotificationService
         var param = request.ToParameters();
         await connection.ExecuteAsync("[NOTIFICATION].Delete", param, commandType: CommandType.StoredProcedure);
     }
+    public async Task Notify(int receiver_id, int sender_id, string notification_type,  List<INotificationParameter> parameters = null)
+    {
+        var notificationPayload = new CreateNotificationRequest()
+        {
+            notification_params = parameters ?? new List<INotificationParameter>(),
+            notification_type = notification_type ,
+            user_id = receiver_id,
+            actor_id = sender_id
+        };
+        var notification = await CreateNotification(notificationPayload);
+        await _hubContext.SendNotificationToOneUser(notification);
+    }    
 }
 

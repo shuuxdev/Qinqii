@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { PATCH_FriendStatus } from '../Helper/Axios.js'
+import { PATCH_FriendStatus, POST_SendFriendRequest } from '../Helper/Axios.js'
 
 
 
@@ -11,7 +11,10 @@ const friendRequestSlice = createSlice({
       return action.payload
     },
     updateFriendStatus: (state, action) => {
-        return [...state.filter((item) => item.id != action.payload.id)]
+        return [...state.filter((item) => item.id != action.payload)]
+    },
+    addFriendRequest: (state, action) => {
+        state.push(action.payload)
     }
   }
 })
@@ -20,7 +23,10 @@ export const REJECT = 'REJECTED'
 export const ACCEPT = 'ACCEPTED'
 export const FETCH_FRIEND_REQUESTS = 'FETCH_FRIEND_REQUESTS'
 
-export const fetchFriendRequestsAction = (arg) => ({ type: FETCH_FRIEND_REQUESTS, payload: arg })
+
+export const sendFriendRequestThunk = (friendStatus) => async (dispatch, getState) => {
+  await POST_SendFriendRequest(friendStatus)
+}
 
 export const updateFriendStatusAsync = (friendStatus) => async (dispatch, getState) => {
   const response = await PATCH_FriendStatus(friendStatus)
@@ -30,5 +36,5 @@ export const updateFriendStatusAsync = (friendStatus) => async (dispatch, getSta
   }
 }
 
-export const { fetchFriendRequests } = friendRequestSlice.actions
+export const { fetchFriendRequests, addFriendRequest } = friendRequestSlice.actions
 export default friendRequestSlice.reducer

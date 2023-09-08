@@ -4,6 +4,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Qinqii.Enums;
 using Qinqii.Models;
+using Qinqii.Utilities;
 
 namespace Qinqii.Service
 {
@@ -14,6 +15,15 @@ namespace Qinqii.Service
         public UserService(DapperContext ctx)
         {
             _ctx = ctx;
+        }
+        public async Task<User> GetUser(int id)
+        {
+            using var connection = _ctx.CreateConnection();
+            var param = new DynamicParameters();
+            param.Add("@user_id", id, dbType: System.Data.DbType.Int32);
+            var u = await connection.QuerySingleAsync<User>("[ACCOUNT].[User]",
+                commandType: System.Data.CommandType.StoredProcedure, param: param);
+            return u;
         }
         public async Task<UserProfile> GetProfile(int id)
         {
@@ -47,14 +57,12 @@ namespace Qinqii.Service
                 if (user == null) user = new List<FriendRequest>();
                 return user;
         }
-        public async Task<int> UpdateFriendStatus(EditFriendStatusRequest editFriendStatus)
+        public async Task UpdateFriendStatus(EditFriendStatusRequest editFriendStatus)
         {            using var connection = _ctx.CreateConnection();
 
-                var param = new DynamicParameters();
-                param.Add("@action", editFriendStatus.action, dbType: System.Data.DbType.String);
-                param.Add("@id", editFriendStatus.id, dbType: System.Data.DbType.Int32);
-                int row_affected = await connection.ExecuteAsync("[dbo].[UPDATE_Friendship]", commandType: System.Data.CommandType.StoredProcedure, param: param);
-                return row_affected;
+            var param = editFriendStatus.ToParameters();
+                int row = await connection.ExecuteAsync("[ACCOUNT].[UpdateFriendStatus]", commandType: System.Data.CommandType.StoredProcedure, param: param);
+                if(row != 1) throw new InvalidOperationException("Cannot update friend status");
         }
         public async Task<IEnumerable<Post>> GetUserPosts(int id)
         {            using var connection = _ctx.CreateConnection();
@@ -77,7 +85,7 @@ namespace Qinqii.Service
             param.Add("@user_id", id, dbType: System.Data.DbType.Int32);
             var reader = await connection.QueryMultipleAsync("[ACCOUNT].GetVideos", commandType: System.Data.CommandType.StoredProcedure, param: param);
             
-            var attachments =             await reader.ReadAsync<Attachment>();
+            var attachments  =await reader.ReadAsync<Attachment>();
             return attachments;
 
         }

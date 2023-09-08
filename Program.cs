@@ -53,6 +53,7 @@ internal class Program
         builder.Services.AddScoped<StoryService>();
         builder.Services.AddScoped<PostService>();
         builder.Services.AddScoped<UploadService>();
+        builder.Services.AddScoped<FriendService>();
         builder.Services.AddScoped<CommentService>();
         builder.Services.AddSingleton<ConnectionManager>();
         builder.Services.AddTransient<ErrorHandlingMiddleware>();

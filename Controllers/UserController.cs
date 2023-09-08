@@ -40,12 +40,7 @@ namespace Qinqii.Controllers
             var user_profile = await user.GetProfile(id);
             return Ok(user_profile);
         }
-        [HttpGet("friends")]
-        public async Task<IActionResult> GetUserFriends(int id)
-        {
-            var u = await user.GetFriends(id);
-            return new JsonResult(u);
-        }
+        
         [HttpGet("videos")]
         public async Task<IActionResult> GetUserVideos(int id)
         {
@@ -66,20 +61,6 @@ namespace Qinqii.Controllers
             var u = await user.GetUserPosts(id);
             return new JsonResult(u);
         }
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [HttpGet("friend-requests")]
-        public async Task<IActionResult> GetUserIncomingFriendRequests()
-        {
-            int user_id = HttpContext.GetUserId();
-            var u = await user.GetFriendRequests(user_id);
-            return Ok(u);
-        }
-        [HttpPatch("update-friend-status")]
-        public async Task<IActionResult> UpdateFriendStatus(EditFriendStatusRequest editFriendStatus)
-        {
-            int user_id = HttpContext.GetUserId();
-            var u = await user.UpdateFriendStatus(editFriendStatus);
-            return new JsonResult(u);
-        }
+
     }
 }

@@ -9,7 +9,8 @@ namespace Qinqii.Utilities;
 public static class QinqiiSqlHelper
 {
     
-    public static DynamicParameters ToParameters<T>(this T obj)
+    public static DynamicParameters 
+        ToParameters<T>(this T obj)
     {
         var param = new DynamicParameters();
         var properties = obj.GetType().GetProperties();

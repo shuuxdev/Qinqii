@@ -70,8 +70,10 @@ export const POST_SendMessage = async (message_info) =>
         ...message_info,
     });
 export const GET_AllChat = async () => await securedApi.get('/chat/all');
-export const PATCH_FriendStatus = async ({ id, action }) =>
-    await securedApi.patch('/user/update-friend-status', { id, action });
+export const PATCH_FriendStatus = async ({ id, status }) =>
+    await securedApi.patch('/user/update-friend-status', { id, status });
+export const POST_SendFriendRequest = async ({ friend_id }) =>
+    await securedApi.post('/user/send-friend-request', {  friend_id});
 export const GET_Chat = async () => (await securedApi.get('/chat')).data;
 
 export const SEND_React = async (payload) =>

@@ -10,6 +10,7 @@ import { Text } from './CommonComponent.jsx';
 import { MdGroups } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useGetPeopleYouMayKnowQuery } from "../Modules/Profile.js";
 
 
 const Tab = {
@@ -22,7 +23,8 @@ const Tab = {
 }
 const Item = ({ icon, content, selected, onClick }) => {
 
-
+    const { data, isSuccess } = useGetPeopleYouMayKnowQuery({ pageSize: 5, page: 1 });
+    console.log(data);
 
     return <div onClick={onClick} className={"flex p-[0px_40px] " + (selected ? ` text-[${Color.Primary}] bg-[${Color.Selected}] border-l-[2px] border-solid border-[${Color.Primary}]` : '')}>
         <div className={`flex items-center w-full border-b-[1px] border-solid border-[${Color.BorderGray}] p-[20px_0px]`}>
@@ -51,7 +53,7 @@ export function Sidebar() {
         <div className={`flex-col rounded-[10px] mt-3 p-[20px_0px] bg-[${Color.White}] flex w-auto bg-[${Color.White}]`}>
             <Item onClick={() => RedirectTo(`/`, Tab.Home)} selected={activeTab == Tab.Home} icon={<BsHouseDoor size={24} />} content="Home"></Item>
             <Item onClick={() => RedirectTo(`/user/${userId}`, Tab.Profile)} selected={activeTab == Tab.Profile} icon={<CgProfile size={24} />} content="Profile"></Item>
-            <Item onClick={() => setActiveTab(Tab.People)} selected={activeTab == Tab.People} icon={<MdGroups size={24}></MdGroups>} content="People"></Item>
+            <Item onClick={() => RedirectTo(`/people`, Tab.People)} selected={activeTab == Tab.People} icon={<MdGroups size={24}></MdGroups>} content="People"></Item>
             <Item onClick={() => setActiveTab(Tab.Images)} selected={activeTab == Tab.Images} icon={<BsCardImage size={24} />} content="Photos"></Item>
             <Item onClick={() => setActiveTab(Tab.Setting)} selected={activeTab == Tab.Setting} icon={<FiSettings size={24} />} content="Settings"></Item>
         </div>)

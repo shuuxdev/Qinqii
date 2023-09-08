@@ -2,7 +2,7 @@
 import { faker } from '@faker-js/faker'
 import { FaBirthdayCake, FaFemale, FaGraduationCap, FaHeart, FaMale } from 'react-icons/fa'
 import { useSelector } from 'react-redux'
-import { useGetFriendsQuery, useGetImagesQuery, useGetPostsQuery, useGetProfile, useGetProfileQuery, useGetVideosQuery } from '../Modules/Profile.js'
+import { useGetFriendsQuery, useGetImagesQuery, useGetPeopleYouMayKnowQuery, useGetPostsQuery, useGetProfile, useGetProfileQuery, useGetVideosQuery } from '../Modules/Profile.js'
 import { useParams } from 'react-router-dom'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { QinqiiCustomImage, QinqiiImage } from '../Components/CommonComponent.jsx'
@@ -188,6 +188,7 @@ const PostsTab = () => {
 const FriendsTab = () => {
   const param = useParams();
   const { data: friends, isSuccess } = useGetFriendsQuery(param.id)
+
   return (<>
     {
       isSuccess &&
