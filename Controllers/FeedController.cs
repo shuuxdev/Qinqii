@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Qinqii.Models;
 using Qinqii.Service;
 
@@ -24,7 +25,13 @@ public class FeedController : ControllerBase
     public async Task<IActionResult> GetFeed()
     {
         var posts = await _feedService.GetAllPosts();
-        return new JsonResult(posts);
+        var serializedData = JsonConvert.SerializeObject(posts);
+        return new ContentResult
+        {
+            Content = serializedData,
+            ContentType = "application/json",
+            StatusCode = 200
+        };
     }
     [HttpGet("stories")]
     public async Task<IActionResult> GetStories(CancellationToken token)

@@ -1,18 +1,24 @@
-import { AnimatePresence, motion } from "framer-motion";
-import React, { createContext, useEffect, useMemo, useState } from "react";
-import { AiOutlineDelete } from "react-icons/ai";
+import { AnimatePresence, motion } from 'framer-motion';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { AiOutlineDelete } from 'react-icons/ai';
 import { BiHeart, BiMessage, BiShareAlt } from 'react-icons/bi';
 import { BsThreeDots } from 'react-icons/bs';
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from 'react-redux';
 import Color from '../Enums/Color';
-import { ENTITY } from "../Enums/Entity.js";
-import { deletePostThunk, fetchPostsThunk, reactToPostThunk, undoReactThunk } from "../Modules/Posts.js";
-import { Comment } from "./Comment.jsx";
-import { Avatar, DropdownItem, DropdownMenu, QinqiiPostImage, QinqiiPostVideo, Text } from './CommonComponent.jsx';
-import { CreateComment } from "./CreateComment.jsx";
-import Loading from "./Loading.jsx";
-import { TopReactions } from "./TopReactions.jsx";
-import { AttachmentType } from "../Enums/AttachmentType.js";
+import { ENTITY } from '../Enums/Entity.js';
+
+import { Comment } from './Comment.jsx';
+import { Avatar, DropdownItem, DropdownMenu, Text } from './CommonComponent.jsx';
+import { CreateComment } from './CreateComment.jsx';
+import Loading from './Loading.jsx';
+import { TopReactions } from './TopReactions.jsx';
+import { showModal } from '../Modules/Modals';
+import { ModalType } from '../Enums/Modal';
+import { ImageGrid } from './ImageGrid';
+import { deletePostThunk,  reactToPostThunk } from '../Thunks/Posts.js';
+import { addComment, fetchPostsThunk, removeComment, updateComment, updatePost } from '../Modules/Posts.js';
+
+
 const LazyEmojiPicker = React.lazy(() => import('@emoji-mart/react'))
 
 export const PostContainer = () => {
@@ -26,8 +32,8 @@ export const PostContainer = () => {
     return (
         <div >
             {
-                posts.length == 0 ? <Loading></Loading> : posts.map(post => (
-                    <Post post={post} />
+                posts.length === 0 ? <Loading></Loading> : posts.map(post => (
+                    <Post post={post} action={{addComment,  removeComment, updateComment, updatePost}}/>
                 ))
             }
         </div>
@@ -38,7 +44,6 @@ export const PostContainer = () => {
 const DeleteOption = ({ post }) => {
 
     const dispatch = useDispatch();
-
     const DeletePost = () => {
         dispatch(deletePostThunk(post.id))
     }
@@ -70,68 +75,58 @@ const PostOptionsMenu = ({ post }) => {
 
 
 }
-export const Post = ({ post }) => {
+export const PostActionContext = createContext()
+export const Post = ({ post, action }) => {
     const avatar = useSelector(state => state.profile.avatar)
-    const dispatch = useDispatch();
-    // use for top reactions
-    const UndoReaction = (reaction) => {
-        dispatch(undoReactThunk({ id: post.id, type: ENTITY.POST }, reaction.id));
-    }
-    return (
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} >
-            <div className={`flex flex-col gap-[20px] my-[10px] rounded-[10px] bg-[${Color.White}] p-[20px]`}>
-                <div className="flex justify-between items-center">
-                    <div className="flex gap-[10px]">
-                        <Avatar src={post.author_avatar}></Avatar>
-                        <div className="flex flex-col">
-                            <Text bold>Shuu Leo</Text>
-                            <Text> 12 hours ago</Text>
+
+    return (
+        <PostActionContext.Provider value={{...action}}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} >
+                <div className={`flex flex-col gap-[20px] my-[10px] rounded-[10px] bg-[${Color.White}] p-[20px]`}>
+                    <div className="flex justify-between items-center">
+                        <div className="flex gap-[10px]">
+                            <Avatar src={post.author_avatar}></Avatar>
+                            <div className="flex flex-col">
+                                <Text bold>Shuu Leo</Text>
+                                <Text> 12 hours ago</Text>
+                            </div>
+                        </div>
+                        <div>
+                            <PostOptionsMenu post={post} />
                         </div>
                     </div>
                     <div>
-                        <PostOptionsMenu post={post} />
+                        <Text color="black">
+                            {post.content}
+                        </Text>
                     </div>
-                </div>
-                <div>
-                    <Text color="black">
-                        {post.content}
-                    </Text>
-                </div>
-                <div className="w-full ">
-                    {
-                        post.attachments.map(attachment => {
-                            return (
-                                attachment.type == AttachmentType.IMAGE ? <QinqiiPostImage src={attachment.link} />
-                                    : <QinqiiPostVideo src={attachment.link} controls ></QinqiiPostVideo>
-                            )
-                        })
-                    }
+                    <ImageGrid attachments={post.attachments}/>
+                    <div className="flex justify-between w-full">
+                        <div className="flex">
+                            <TopReactions entity_type={ENTITY.POST} action={updatePost} entity={post} reactions={post.reactions} />
+                            {
+                                post.reactions.length > 0 &&
+                                <Text className='text-[14px] h-fit self-end'>{post.reactions.length}   reactions was sent</Text>
+                            }
+                        </div>
+
+                        <Text>{post.comments.length} bình luận</Text>
+                    </div>
+                    <div></div>
+                    <Toolbar post={post} />
+                    <div className="flex gap-[10px] items-start">
+                        <div className="flex-shrink-0">
+                            <Avatar src={avatar} />
+                        </div>
+                        <CreateComment post={post} initValue="" initAttachments={[]} isOpen={true} />
+                    </div>
+                    <CommentContainer post={post} />
 
                 </div>
-                <div className="flex justify-between w-full">
-                    <div className="flex">
-                        <TopReactions UndoReaction={UndoReaction} reactions={post.reactions} />
-                        {
-                            post.reactions.length > 0 &&
-                            <Text className='text-[14px] h-fit self-end'>{post.reactions.length}   reactions was sent</Text>
-                        }
-                    </div>
+            </motion.div>
+        </PostActionContext.Provider>
 
-                    <Text>{post.comments.length} bình luận</Text>
-                </div>
-                <div></div>
-                <Toolbar post={post} />
-                <div className="flex gap-[10px] items-start">
-                    <div className="flex-shrink-0">
-                        <Avatar src={avatar} />
-                    </div>
-                    <CreateComment post={post} initValue="" initAttachments={[]} isOpen={true} />
-                </div>
-                <CommentContainer post={post} />
-
-            </div>
-        </motion.div>
 
     )
 }
@@ -145,7 +140,7 @@ const CommentContainer = ({ post }) => {
     const findParentComment = (comment, parent_id) => {
         if (!comment) return null;
 
-        if (comment.id == parent_id) {
+        if (comment.id === parent_id) {
             return comment;
         }
         if (!comment.childrens) return null;
@@ -194,11 +189,11 @@ const CommentContainer = ({ post }) => {
         return [parent, level];
     }
     const findNestedLevel = (comment, level, target, parent) => {
-        // console.log("current comment: ", comment);
-        // console.log("current parent: ", parent);
-        // console.log("current target: ", target);
-        // console.log("current level: ", level);
-        if (comment.id == target.id) return [parent, level]; //return parent and level of target comment
+        // 
+        // 
+        // 
+        // 
+        if (comment.id === target.id) return [parent, level]; //return parent and level of target comment
         for (let i = 0; i < comment.childrens.length; i++) {
             let [_parent, _level] = findNestedLevel(comment.childrens[i], level + 1, target, comment);
 
@@ -240,13 +235,14 @@ const CommentContainer = ({ post }) => {
 const ReactToPost = ({ post }) => {
     let timer;
     const dispatch = useDispatch();
+    const {updatePost} = useContext(PostActionContext)
     const SendReaction = (emoji) => {
         dispatch(
             reactToPostThunk({ ...post }, {
                 entity_id: post.id,
                 entity_type: ENTITY.POST,
                 emoji: emoji.native,
-            })
+            },updatePost)
         );
         setShowEmoji(false);
     }
@@ -295,6 +291,7 @@ const ReactToPost = ({ post }) => {
 }
 
 const Toolbar = ({ post }) => {
+    const dispatch = useDispatch()
     const hoverVariant = {
         hidden: {
             background: 'white'
@@ -315,7 +312,7 @@ const Toolbar = ({ post }) => {
                     <Text>Comment</Text>
                 </motion.div>
             </div>
-            <div className="flex-1 cursor-pointer">
+            <div className="flex-1 cursor-pointer" onClick={() => dispatch(showModal({modalType: ModalType.SHARE}))}>
                 <div
                     className="h-full w-full flex items-center gap-[6px] justify-center">
                     <BiShareAlt size={22} />

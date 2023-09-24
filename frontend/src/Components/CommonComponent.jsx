@@ -4,6 +4,9 @@ import { FiAtSign } from "react-icons/fi";
 import { IoMdClose } from "react-icons/io";
 import { twMerge } from "tailwind-merge";
 import Color from '../Enums/Color';
+import { useDispatch } from 'react-redux';
+import { showModal } from '../Modules/Modals';
+import { ModalType } from '../Enums/Modal';
 
 
 
@@ -135,9 +138,10 @@ export function Header({ title, count }) {
     )
 }
 
-export function QinqiiPostImage({ src }) {
+export function QinqiiPostImage({ src, onClick }) {
+
     return (
-        <div className="overflow-hidden rounded-[10px] w-full h-full aspect-video">
+        <div  onClick={onClick} className="overflow-hidden rounded-[10px] w-full h-full aspect-video">
             {
                 src.includes("http") ?
                     <img src={src} className="w-full  object-cover h-full"></img>
@@ -148,9 +152,9 @@ export function QinqiiPostImage({ src }) {
     )
 
 }
-export const QinqiiPostVideo = ({ src, ...videoProps }) => {
+export const QinqiiPostVideo = ({ src, onClick, ...videoProps }) => {
     return (
-        <div className="overflow-hidden rounded-[10px] w-full h-full aspect-video">
+        <div  onClick={onClick} className="overflow-hidden rounded-[10px] w-full h-full aspect-video">
             {
                 src.includes("http") ?
                     <video {...videoProps} src={src} className="w-full  object-cover h-full"></video>
@@ -175,16 +179,28 @@ export function QinqiiImage({ src, className }) {
 }
 export function QinqiiCustomImage({ src, className }) {
     return (
-        < >
+        <>
             {
                 src.includes("http") ?
-                    <img src={src} className={className}></img>
+                <img src={src} className={className}></img>
                     :
-                    <img src={`/assets/${src}`} className={className}></img>
+                <img src={`/assets/${src}`} className={className}></img>
             }
         </>
     )
 
+}
+export const QinqiiCustomVideo = ({src,  ...videoProps}) => {
+    return (
+        <>
+            {
+                src.includes("http") ?
+                    <video {...videoProps} src={src}></video>
+                    :
+                    <video {...videoProps} src={`/assets/${src}`}></video>
+            }
+        </>
+    )
 }
 export const WebFavicon = () => {
     return (

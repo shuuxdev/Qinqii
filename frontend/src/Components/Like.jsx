@@ -4,11 +4,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ENTITY } from '../Enums/Entity.js';
 import {
     reactToCommentThunk
-} from '../Modules/Posts.js';
+} from '../Thunks/Posts.js';
 import {
     Text
 } from './CommonComponent.jsx';
-import { CommentContainerContext } from './Post.jsx';
+import { CommentContainerContext, PostActionContext } from './Post.jsx';
 const LazyEmojiPicker = React.lazy(() => import('@emoji-mart/react'));
 export const Like = ({ comment, index }) => {
     const likeButtonRef = useRef();
@@ -16,6 +16,7 @@ export const Like = ({ comment, index }) => {
     const { CCIDOfPicker, setCCIDOfPicker } = useContext(
         CommentContainerContext
     );
+    const {updateComment} = useContext(PostActionContext)
     let timer;
     const user_id = useSelector((state) => state.profile.user_id);
     const MarkAsLiked = () => {
@@ -41,7 +42,7 @@ export const Like = ({ comment, index }) => {
                 entity_id: comment.id,
                 entity_type: ENTITY.COMMENT,
                 emoji: emoji.native,
-            })
+            },updateComment)
         );
     };
     const zIndex = 100 - index;

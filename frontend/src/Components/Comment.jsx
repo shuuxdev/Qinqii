@@ -8,7 +8,7 @@ import { ENTITY } from '../Enums/Entity.js';
 import {
     deleteCommentThunk,
     undoReactThunk
-} from '../Modules/Posts.js';
+} from '../Thunks/Posts.js';
 import {
     Avatar,
     DropdownItem,
@@ -18,7 +18,7 @@ import {
 } from './CommonComponent.jsx';
 import { EditComment } from './EditComment.jsx';
 import { Like } from './Like.jsx';
-import { CommentContainerContext } from './Post.jsx';
+import { CommentContainerContext, PostActionContext } from './Post.jsx';
 import { Reply } from './Reply.jsx';
 import { ReplyComment } from './ReplyComment.jsx';
 import { TopReactions } from './TopReactions.jsx';
@@ -26,8 +26,9 @@ const LazyEmojiPicker = React.lazy(() => import('@emoji-mart/react'));
 
 const DeleteOption = ({ comment, post }) => {
     const dispatch = useDispatch();
+    const {removeComment} = useContext(PostActionContext);
     const DeleteComment = () => {
-        dispatch(deleteCommentThunk(comment, post));
+        dispatch(deleteCommentThunk(comment, post, removeComment));
     };
     return (
         <DropdownItem cb={DeleteComment}>
@@ -57,6 +58,7 @@ export const Comment = ({ comment, post, index }) => {
         CommentContainerContext
     );
     const [showReply, setShowReply] = useState(false);
+    const {updateComment, updatePost} = useContext(PostActionContext)
     const ShowReply = () => {
         setCCIDOfReply(comment.id);
     }
@@ -92,7 +94,9 @@ export const Comment = ({ comment, post, index }) => {
         </div>
     );
     const UndoReaction = (reaction) => {
-        dispatch(undoReactThunk({ post_id: post.id, id: comment.id, type: ENTITY.COMMENT }, reaction.id))
+        const payload = {entity: { post_id: post.id, id: comment.id, type: ENTITY.COMMENT }, reaction_id: reaction.id}
+        const action = {updatePost};
+        dispatch(undoReactThunk(payload, action))
     }
 
     return (
@@ -140,7 +144,7 @@ export const Comment = ({ comment, post, index }) => {
 
                                     </div>
                                     <div className='absolute right-0 bottom-0 translate-x-[100%] '>
-                                        <TopReactions UndoReaction={UndoReaction} reactions={comment.reactions} />
+                                        <TopReactions entity_type={ENTITY.COMMENT} action={updateComment} entity={comment} UndoReaction={UndoReaction} reactions={comment.reactions} />
                                     </div>
 
                                 </div>

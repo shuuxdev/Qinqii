@@ -1,6 +1,11 @@
+using Microsoft.AspNetCore.Mvc;
+using Qinqii.Models.Attributes;
+
 namespace Qinqii.DTOs.Request.Message;
 
 public class GetMessagesRequest
 {
-    public int conversation_id { get; set; }
+    [ParameterName("conversation_id")]
+    
+    public int id { get; set; }
 }

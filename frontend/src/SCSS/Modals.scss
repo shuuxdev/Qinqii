@@ -1,6 +1,107 @@
-.viewer-pane {
-    color: red;
+@import "utilities";
+
+
+.media-viewer-modal {
+
+    width: 100% !important;
+    max-width: 100%;
+    top: 0;
+    margin: 0 !important;
+    .ant-modal-content {
+        height: 100%;
+        padding: 0 !important;
+
+    }
+    .ant-modal-body {
+        background: black;
+        padding: 30px !important;
+        height: 100vh !important;
+        overflow-y: hidden;
+        display:flex;
+        flex-direction: row;
+        @include max-media(md)
+        {
+            flex-direction: column-reverse;
+        }
+        gap:30px;
+
+    }
+
+    .viewer-pane {
+        height: 100%;
+        flex: 1;
+    }
+    .media-viewer-carousel {
+        display:flex;
+        flex-direction: column;
+        align-items: center;
+        @include max-media(md)
+        {
+            flex-direction: row;
+        }
+        .wrapper-with-fixed-height {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            .list {
+                transition: transform 0.3s ease-out;
+                flex-direction: column;
+                display: flex;
+                @include max-media(md){
+                    flex-direction: row;
+                }
+
+                .item {
+                    box-sizing: content-box;
+                    padding: 20px;
+                    height: 100px;
+                    width: 100px;
+                    img {
+
+                        border-radius: 5px;
+                    }
+                }
+                .item:not(:last-child) {
+                    @include max-media(md){
+                        border-right: 1px solid white;
+                    }
+                    @include min-media(md)
+                    {
+                        border-bottom: 1px solid white;
+                    }
+                }
+            }
+        }
+
+    }
 }
-.detail-pane {
-    color: red;
+
+$call-modal-height: 600px;
+.call-modal {
+
+    .client {
+        width: clamp(200px, 100%, 300px);
+    }
+    .remote {
+        height: $call-modal-height;
+        .video-overlay {
+            background: rgba(0, 0, 0, 0.94);
+            height: 100%;
+        }
+        .test {
+            gap: clamp(5px, 5vw, 15px);
+        }
+    }
+}
+.story-upload-modal {
+
+
+}
+.avatar-upload-modal {
+    .ant-modal-body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 }

@@ -1,104 +1,23 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { forwardRef, Suspense, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Color from '../Enums/Color';
-import { Avatar, Button, QinqiiImage, UploadImage } from './CommonComponent.jsx';
-import {
-    Alert,
-    Dialog,
-    DialogActions,
-    DialogTitle,
-    Snackbar,
-} from '@mui/material';
+import { Avatar, Button, UploadImage } from './CommonComponent.jsx';
+import { Alert, Dialog, DialogActions, DialogTitle, Snackbar } from '@mui/material';
 import { CloseDialog, HideNotification, OpenDialog } from '../Modules/UI.js';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
-import { IoMdClose } from 'react-icons/io';
-import {
-    BsEmojiSunglassesFill,
-    BsImages,
-    BsThreeDots,
-} from 'react-icons/bs';
-import { Suspense } from 'react';
+import { BsEmojiSunglassesFill, BsImages, BsThreeDots } from 'react-icons/bs';
 import Loading from '../Components/Loading.jsx';
-import { createNewPostThunk } from '../Modules/Posts.js';
-const LazyEmojiPicker = React.lazy(() => import('@emoji-mart/react'))
+import { createNewPostThunk } from '../Thunks/Posts.js';
+import { getVideoFirstFrame } from '../Helper/GetVideoFirstFrame';
+import { twMerge } from 'tailwind-merge';
+import { QinqiiEmojiPicker } from './QinqiiEmojiPicker';
+
 
 const DialogBody = ({ children }) => {
     return <div className='p-[20px] flex-col gap-[20px]'>{children}</div>;
 };
 
 
-const handleVideoUpload = async (file) => {
-    const videoObjectURL = URL.createObjectURL(file);
-
-    const videoElement = document.createElement('video');
-    videoElement.src = videoObjectURL;
-
-    let thumbnailObjectURL = ''; // Initialize thumbnailDataUrl here
-
-    await new Promise((resolve) => {
-        videoElement.onloadedmetadata = () => {
-            videoElement.currentTime = 1;
-
-            videoElement.onseeked = async () => {
-                const thumbnailCanvas = document.createElement('canvas');
-                const ctx = thumbnailCanvas.getContext('2d');
-
-                const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
-                const thumbnailWidth = 200;
-                const thumbnailHeight = thumbnailWidth / aspectRatio;
-
-                thumbnailCanvas.width = thumbnailWidth;
-                thumbnailCanvas.height = thumbnailHeight;
-
-                ctx.drawImage(videoElement, 0, 0, thumbnailWidth, thumbnailHeight);
-
-                thumbnailCanvas.toBlob((blob) => {
-                    thumbnailObjectURL = URL.createObjectURL(blob); // Convert Blob to Object URL
-                    URL.revokeObjectURL(videoObjectURL);
-                    resolve(thumbnailObjectURL);
-                }, 'image/jpeg');
-            };
-
-            videoElement.currentTime = 0;
-        };
-    });
-    console.log(thumbnailObjectURL)
-    return thumbnailObjectURL;
-
-}
-const Picker = React.forwardRef((props, textareaRef) => {
-    const [isOpen, setOpen] = useState(false);
-    const ToggleEmojiPicker = () => {
-        setOpen(!isOpen);
-    };
-    const InsertEmoji = (emoji) => {
-        console.log(emoji)
-        const start = textareaRef.current.selectionStart;
-        const end = textareaRef.current.selectionEnd;
-        const val = textareaRef.current.value;
-        const textarea = textareaRef.current;
-        textareaRef.current.value = val.slice(0, start) + emoji.native + val.slice(end);
-        textareaRef.current.selectionStart = start + emoji.native.length;
-        textareaRef.current.selectionEnd = end + emoji.native.length
-
-    }
-    return (
-        <>
-            <div style={{ display: isOpen ? 'initial' : 'none' }} className='relative top-[-100px] left-0'>
-                <LazyEmojiPicker
-                    set="facebook"
-                    onEmojiSelect={InsertEmoji}
-                ></LazyEmojiPicker>
-            </div>
-            <BsEmojiSunglassesFill
-                className='cursor-pointer'
-                onClick={ToggleEmojiPicker}
-                color={`${Color.Primary}`}
-                size={24}
-            ></BsEmojiSunglassesFill>
-        </>
-    );
-});
 const Uploader = ({ HandleUpload, OpenUpload, uploadButtonRef }) => {
     return (
         <div>
@@ -119,12 +38,15 @@ const Uploader = ({ HandleUpload, OpenUpload, uploadButtonRef }) => {
     );
 };
 const PostManager = () => {
-    const textareaRef = useRef();
+
     const uploadButtonRef = useRef();
     const [uploadedFiles, setUploadedFiles] = useState([]);
     const [images, setImages] = useState([]);
     const { name, avatar } = useSelector((state) => state.profile);
     const shouldDialogOpen = useSelector((state) => state.UI.create_post_open);
+    const focusBorder = twMerge("border-blue-500 border-[2px] p-[10px] border-solid rounded-[5px]")
+    const textareaRef = useRef();
+    const [showPicker, setShowPicker] = useState(false);
     const dispatch = useDispatch();
     const Close = () => {
         dispatch(CloseDialog());
@@ -154,7 +76,7 @@ const PostManager = () => {
             const filesToRender = await Promise.all(Array.from(uploadedFiles).map(async (file, i) => {
 
                 if (file.type.includes("video")) {
-                    let url = await handleVideoUpload(file);
+                    let url = await getVideoFirstFrame(file);
                     return (
                         <UploadImage
                             cb={() => RemoveFileFromUploadFiles(i)}
@@ -187,12 +109,7 @@ const PostManager = () => {
             onClose={Close}
         >
             <DialogTitle className='relative'>
-                <div className='py-[10px] border-b-[2px]  border-solid  border-slate-200 w-full'>
-                    <div className=" font-['Alexandria']">
-                        {' '}
-                        Tạo bài viết mới
-                    </div>
-                </div>
+                <ModalHeader/>
                 <div
                     className='absolute right-[20px] top-[20px]'
                     onClick={Close}
@@ -203,31 +120,26 @@ const PostManager = () => {
             <DialogBody>
                 <Suspense fallback={<div className='flex justify-center items-center w-full h-full'><Loading /></div>}>
 
-                    <div className='flex  gap-[10px] '>
-                        <Avatar src={avatar}></Avatar>
-                        <div className='flex flex-col'>
-                            <div>{name}</div>
-                            <div>Only me</div>
-                        </div>
-                    </div>
-                    <div className='my-[10px]'>
-                        <textarea
-                            ref={textareaRef}
-                            rows={4}
-                            placeholder='Úm ba la xì bum'
-                            className='rounded-[10px] resize-none w-full p-[10px] text-[19px]'
-                        />
-                    </div>
-                    <div
-                        className='max-h-[200px] w-full grid grid-cols-3 overflow-y-scroll gap-[10px]'
-                    >
-                        {images}
+                   <Header/>
+                    <div className={focusBorder}>
+                        <Textarea ref={textareaRef}/>
+                       <AttachmentPreview images={images}/>
                     </div>
                     <div className='border-[1px]  border-solid rounded-[10px] p-[15px]   border-[#DDDEE1]'>
                         <div className='relative flex justify-between '>
                             <div className='font-semibold'>Thêm vào post</div>
                             <div className='absolute right-0 flex gap-[15px]'>
-                                <Picker ref={textareaRef} />
+                                {
+                                    showPicker &&
+                                    <QinqiiEmojiPicker ref={textareaRef}/>
+                                }
+                                    <BsEmojiSunglassesFill
+
+                                        className='cursor-pointer'
+                                        onClick={() => setShowPicker(!showPicker)}
+                                        color={`${Color.Primary}`}
+                                        size={24}
+                                    ></BsEmojiSunglassesFill>
                                 <Uploader
                                     HandleUpload={HandleUpload}
                                     uploadButtonRef={uploadButtonRef}
@@ -287,4 +199,46 @@ export function CreatePost() {
             </Snackbar>
         </div>
     );
+}
+
+export const AttachmentPreview = ({images}) => {
+    return (
+        <div className='max-h-[200px] w-full grid grid-cols-3 overflow-y-scroll gap-[10px]'>
+            {images}
+        </div>
+    )
+}
+const Textarea = forwardRef((props,ref ) => {
+    return (
+        <div className='my-[10px]'>
+                        <textarea
+                            ref={ref}
+                            rows={4}
+                            placeholder='Úm ba la xì bum'
+                            className='rounded-[10px] outline-none resize-none w-full p-[10px] text-[19px]'
+                        />
+        </div>
+    )
+})
+const Header = () => {
+    const profile = useSelector(state => state.profile)
+    const {avatar, name} = profile;
+    return (
+        <div className='flex  gap-[10px] '>
+            <Avatar src={avatar}></Avatar>
+            <div className='flex flex-col'>
+                <div>{name}</div>
+                <div>Only me</div>
+            </div>
+        </div>
+    )
+}
+const ModalHeader = () => {
+    return (
+        <div className='py-[10px] border-b-[2px]  border-solid  border-slate-200 w-full'>
+            <div className=" font-['Alexandria']">
+                Tạo bài viết mới
+            </div>
+        </div>
+    )
 }

@@ -1,74 +1,83 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Qinqii.DTOs.Request.Contact;
 using Qinqii.Service;
 
 namespace Qinqii.Models
 {
-    // [Authorize]
+     [Authorize]
     public class QinqiiHub : Hub
     {
-        private readonly SignalRService _user;
 
         private readonly ConnectionManager _connectionManager;
+        private readonly UserService _userService;
 
-
-        public QinqiiHub(SignalRService user, ConnectionManager connectionManager)
+        
+        
+        public QinqiiHub( ConnectionManager connectionManager, UserService userService)
         {
-            _user = user;
             _connectionManager = connectionManager;
+            _userService = userService;
         }
         
-        public async Task SendIceCandidate(string candidate)
+        public async Task SendIceCandidate(string candidate, int caller_id, int callee_id)
         {
-            await Clients.Others.SendAsync("ReceiveIceCandidate",  candidate);
+            if(Context.GetHttpContext().GetUserId() == caller_id)
+                await Clients.User(callee_id.ToString()).SendAsync("ReceiveIceCandidate",  candidate);
+            else
+                await Clients.User(caller_id.ToString()).SendAsync("ReceiveIceCandidate",  candidate);
         }
-        public async Task SendOffer(string sdp)
+        public async Task SendOffer(string sdp, int user_id)
         {
-            await Clients.Others.SendAsync("ReceiveOffer",  sdp);
+            var profile = await _userService.GetProfile(user_id);
+            await Clients.User(user_id.ToString()).SendAsync("ReceiveOffer", sdp,
+                new {caller_id = Context.GetHttpContext().GetUserId(), callee_id = user_id ,profile.name, profile.avatar});
         }
-        public async Task SendAnswer(string sdp) 
+        public async Task SendAnswer(string sdp, int user_id) 
         {
-            await Clients.Others.SendAsync("ReceiveAnswer",  sdp);
+             await Clients.User(user_id.ToString()).SendAsync("ReceiveAnswer",  sdp);
         }
-        
+        public async Task EndCall(int user1, int user2)
+        {
+            if(Context.GetHttpContext().GetUserId() == user1)
+                await Clients.User(user2.ToString()).SendAsync("ReceiveEndCall");
+            else
+                await Clients.User(user1.ToString()).SendAsync("ReceiveEndCall");
+
+        }
         
       //  [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public override async Task OnConnectedAsync()
         {
-            /*string connection_id = Context.ConnectionId;
-            string device = Context.GetHttpContext().Request.Headers.UserAgent;
-            string ip_address = Context.GetHttpContext().Connection.RemoteIpAddress.ToString();
-            string user_id = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var userConnectionInfo = new Connection(
-                Int32.Parse(user_id), device, ip_address, connection_id
-            );
-
-
-            _connectionManager.TryAddUserConnection(new ConnectionDTO()
+            var user_id = Context.GetHttpContext().GetUserId();
+            var contacts = await _userService.GetContacts(new GetContactsRequest(){user_id = user_id});
+            
+            bool ok  = ConnectionManager.Connections.TryAdd(user_id, Context.ConnectionId);
+            if (!ok) throw new ConnectionAbortedException("Connection already exists");
+            
+            contacts.ToList().ForEach(async contact =>
             {
-                connection_id =
-                    connection_id,
-                user_id = Int32.Parse(user_id)
+                await Clients.User(contact.recipient_id.ToString()).SendAsync("updateOnlineStatus", user_id,
+                    "ONLINE");
             });
-            await Clients.Others.SendAsync("updateOnlineStatus", user_id,
-                "ONLINE");
-                */
-
-            //int row_inserted = await _user.MapConnectionIdToUser(userConnectionInfo);
             await base.OnConnectedAsync();
-
         }
         public override async Task OnDisconnectedAsync(Exception ex)
         {
-            /*
-            string user_id = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            _connectionManager.TryRemoveUserConnection(Int32.Parse(user_id));
-            Clients.Others.SendAsync("updateOnlineStatus", user_id, "OFFLINE");
-            */
-
+            var user_id = Context.GetHttpContext().GetUserId();
+            
+            var contacts = await _userService.GetContacts(new GetContactsRequest(){user_id = user_id});
+            contacts.ToList().ForEach(async contact =>
+            {
+                await Clients.User(contact.recipient_id.ToString()).SendAsync("updateOnlineStatus", user_id,
+                    "OFFLINE");
+            });
+            bool ok = ConnectionManager.Connections.TryRemove(user_id, out _);
+            if(!ok) throw new ConnectionAbortedException("Connection does not exist");
             await base.OnDisconnectedAsync(ex);
         }
     }

@@ -5,6 +5,7 @@ using Qinqii.DTOs.Request.Comment;
 using Qinqii.DTOs.Request.Notification;
 using Qinqii.Extensions;
 using Qinqii.Models;
+using Qinqii.Models.Attachments;
 using Qinqii.Models.Interfaces;
 using Qinqii.Models.Parameters;
 using Qinqii.Service;
@@ -15,6 +16,7 @@ namespace Qinqii.Controllers;
 [Authorize]
 public class PostController : ControllerBase
 {
+    private readonly MediaService _mediaService;
     private readonly PostService _postService;
     private readonly ILogger<PostController> _logger;
     private readonly IWebHostEnvironment _env;
@@ -23,9 +25,12 @@ public class PostController : ControllerBase
     public PostController(PostService postService,
         ILogger<PostController> logger, IWebHostEnvironment env,
         NotificationService notificationService,
-        IHubContext<QinqiiHub> hubContext)
+        IHubContext<QinqiiHub> hubContext,
+        MediaService mediaService)
+
     {
         _postService = postService;
+        _mediaService = mediaService;
         _logger = logger;
         _env = env;
         _notificationService = notificationService;
@@ -45,21 +50,40 @@ public class PostController : ControllerBase
     }
     
     [HttpPost("post/create")]
-    public async Task<IActionResult> CreatePost([FromForm] CreatePostRequest 
-    post, CancellationToken token)
+    public async Task<IActionResult> CreatePost([FromForm] List<VideoAttachment> videos, [FromForm] List<ImageAttachment> images, CreatePostRequest request, CreatePostRequest post,CancellationToken token)
     {
-        if (post.attachments != null)
-            post.attachment_links.AddRange(
-                await Server.UploadAsync(post.attachments, _env.WebRootPath));
-            await _postService.CreatePost(post, token);
-
+        var videoAndThumbnailPathList =  await Task.WhenAll<VideoTVP>(videos.Select(async (video) =>
+        {
+            var videoPath = await Server.UploadAsync(video.video, _env.WebRootPath);
+            var thumbnailPath = await Server.UploadAsync(video.thumbnail.image, _env.WebRootPath);
+            return new VideoTVP(){video_url = videoPath, thumbnail_url = thumbnailPath};
+        }));
+        var imagePathList =  await Task.WhenAll<PhotoTVP>(images.Select(async (image) =>
+        {
+            var imagePath = await Server.UploadAsync(image.image, _env.WebRootPath);
+            return new PhotoTVP(){image_url = imagePath};
+        }));
+        var listVideoAttIds =  await _mediaService.UploadVideoAndThumbnail(videoAndThumbnailPathList.ToList());
+        var listImageAttIds =  await _mediaService.UploadImages(imagePathList.ToList());
+        var attachment_ids = listVideoAttIds.Concat(listImageAttIds).Select((id) => new AttachmentIdsTVP(){attachment_id = id});
+         await _postService.CreatePost(post, attachment_ids, token);
+        
         return Ok();
     }
-
+    [HttpPost("post/upload-attachments")]
+    public async Task<IActionResult> UploadAttachments([FromForm] IFormFileCollection attachments)
+    {
+        var uploadedAttachments = await Server.UploadAsync(attachments, _env.WebRootPath);
+        return Ok(uploadedAttachments);
+    }
+   
+    
     [HttpDelete("post/delete")]
     public async Task<IActionResult> DeletePost(DeletePostRequest post)
     {
         await _postService.DeletePost(post);
         return Ok();
     }
+    
+    
 }

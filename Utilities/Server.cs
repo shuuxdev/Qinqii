@@ -1,4 +1,5 @@
 using Qinqii.Models;
+using Qinqii.Models.Exceptions;
 
 namespace Qinqii.Utilities;
 
@@ -19,9 +20,19 @@ public static class Server
             await using var fileStream =
                 new FileStream(Path.Combine(webRootPath, $"assets/{name}{suffix}"), FileMode.CreateNew);
             await att.CopyToAsync(fileStream);
-            //whoops some ass
         }
 
+        if (tvp.Count == 0)
+            throw new NoAttachmentUploadedException();
         return tvp;
+    }
+    public static async Task<string> UploadAsync(IFormFile file, string webRootPath)
+    {
+        var name = Guid.NewGuid().ToString();
+        var suffix = file.ContentType.Split("/")[1] ;
+        await using var fileStream =
+            new FileStream(Path.Combine(webRootPath, $"assets/{name}.{suffix}"), FileMode.CreateNew);
+        await file.CopyToAsync(fileStream);
+        return name + "." + suffix;
     }
 }

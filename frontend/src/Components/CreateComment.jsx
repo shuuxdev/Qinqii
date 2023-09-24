@@ -1,12 +1,13 @@
 import { TextareaAutosize } from "@mui/material";
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { BsCameraFill, BsEmojiLaughingFill } from 'react-icons/bs';
 import { IoMdSend } from "react-icons/io";
 import { useDispatch } from "react-redux";
-import { commentThunk } from "../Modules/Posts.js";
+import { commentThunk } from "../Thunks/Posts.js";
 import { UploadImage } from "./CommonComponent.jsx";
 import { AnimatePresence, animate, motion, useAnimation } from "framer-motion";
 import { Button } from "antd";
+import { PostActionContext } from './Post';
 export const CreateComment = ({ post, initValue, initAttachments = [], parent_id }) => {
     const controls = useAnimation();
 
@@ -15,6 +16,7 @@ export const CreateComment = ({ post, initValue, initAttachments = [], parent_id
     const fileRef = useRef();
     const contentRef = useRef(null);
     const [showToolbox, setShowToolbox] = useState(false);
+    const {addComment} = useContext(PostActionContext)
     const RemoveFileFromUploadFiles = (file_id) => {
         let _files = Array.from([...files]);
         setFiles(
@@ -38,7 +40,7 @@ export const CreateComment = ({ post, initValue, initAttachments = [], parent_id
     const Comment = () => {
 
         const data = { content: contentRef.current.value, post_id: post.id, attachments: files, parent_id }
-        dispatch(commentThunk(data));
+        dispatch(commentThunk(data, addComment));
         setFiles([]);
         fileRef.current.value = "";
         contentRef.current.value = "";

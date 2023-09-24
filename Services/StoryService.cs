@@ -48,6 +48,6 @@ public class StoryService
             "[STORY].[Delete]",
             commandType: CommandType.StoredProcedure, param: param);
     }
-
+    
     
 }

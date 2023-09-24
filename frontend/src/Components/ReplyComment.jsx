@@ -3,10 +3,10 @@ import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import { useEffect, useRef, useState } from 'react';
 import { BsCameraFill, BsEmojiLaughingFill } from 'react-icons/bs';
 import { useDispatch } from "react-redux";
-import { commentThunk } from "../Modules/Posts.js";
+import { commentThunk } from "../Thunks/Posts.js";
 import { UploadImage } from "./CommonComponent.jsx";
 import { useContext } from "react";
-import { CommentContainerContext } from "./Post.jsx";
+import { CommentContainerContext, PostActionContext } from './Post.jsx';
 import { useLayoutEffect } from "react";
 export const ReplyComment = ({ onCancel, post, comment, initValue, initAttachments = [] }) => {
     const controls = useAnimation();
@@ -15,6 +15,7 @@ export const ReplyComment = ({ onCancel, post, comment, initValue, initAttachmen
     const [files, setFiles] = useState(initAttachments)
     const fileRef = useRef();
     const contentRef = useRef(null);
+    const {addComment} = useContext(PostActionContext)
     const RemoveFileFromUploadFiles = (file_id) => {
         let _files = Array.from([...files]);
         setFiles(
@@ -43,7 +44,7 @@ export const ReplyComment = ({ onCancel, post, comment, initValue, initAttachmen
             content = '@' + comment.author_name + ' ' + contentRef.current.value;
         }
         const data = { content, post_id: post.id, attachments: files, parent_id }
-        dispatch(commentThunk(data));
+        dispatch(commentThunk(data, addComment));
         setFiles([]);
         fileRef.current.value = "";
         contentRef.current.value = "";

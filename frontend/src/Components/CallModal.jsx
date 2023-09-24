@@ -1,94 +1,95 @@
-import { Modal } from 'antd'
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import { Button, Modal } from 'antd';
+import React, { useContext, useEffect, useState } from 'react';
 import { BsCameraVideoFill, BsCameraVideoOffFill, BsFillMicFill, BsFillMicMuteFill } from 'react-icons/bs';
-import connection from '../Helper/SignalR.js';
 import { useDispatch, useSelector } from 'react-redux';
-import { MdCallEnd } from 'react-icons/md';
-import { IoMdCall } from 'react-icons/io';
-import { displayIncomingCallModal, displayOutGoingCallModal, hideCallModal } from '../Modules/Call.js';
-import { CurrentChatContext } from './Chat.jsx';
+import { CallContext } from '../Layouts/DefaultLayout';
+import {CallModal as CModal} from '../Enums/CallModal';
+import { ImPhoneHangUp} from 'react-icons/im';
+import { CallState } from '../Enums/callState';
 
-export default function CallModal({ mode }) {
+const CallModal = () => {
     const dispatch = useDispatch();
-    const DenyCall = () => { dispatch(hideCallModal()) }
-
+    const { call, param } = useSelector(state => state.call);
     return (
-        <Modal open={true} footer={null} width='fit-content' onCancel={DenyCall}>
-            {mode === 'OUTGOING' ? <OutGoingModal /> : <InComingModal />}
+        <div className="flex">
+            {
+                call != null && call === CModal.ONGOING && <VideoCallModal param={param} />
+            }
+            {
+                call != null && call === CModal.INCOMING  && <IncomingCallModal param={param} />
+            }
+
+        </div>
+    )
+}
+const IncomingCallModal = ({ param }) => {
+    const { AcceptCall, DeclineCall, setCallDetailImmediately } = useContext(CallContext);
+    return (
+        <Modal open={true} footer={null} onCancel={DeclineCall} >
+            <div className="flex items-center flex-col">
+                <div className="rounded-full w-[40px] h-[40px] overflow-hidden">
+                    <img src={param.avatar} alt="" className="object-cover" />
+                </div>
+                <p className=" text-lg font-semibold">{param.name} is calling you</p>
+                <div className="flex">
+                    <Button onClick={() => {
+                        AcceptCall();
+                    }} className="mr-2" type="default">Accept</Button>
+                    <Button onClick={DeclineCall} className="ml-2" type="primary" danger>Decline</Button>
+                </div>
+            </div>
         </Modal>
-
     )
 }
-const InComingModal = () => {
-    const { conversation } = useContext(CurrentChatContext);
-    const dispatch = useDispatch();
-    useEffect(() => {
-        console.log(conversation);
 
-    }, [])
-
-    const DenyCall = () => { dispatch(hideCallModal()) }
-    const AcceptCall = () => { }
+const VideoCallModal = ({ param }) => {
+    const { videoRef, remoteRef, EndCall, callState } = useContext(CallContext);
     return (
-        <div className="flex justify-center items-center">
-            <div className="py-[30px] px-[60px] flex w-fit">
-                <div onClick={DenyCall} className='cursor-pointer w-fit p-[10px] text-white rounded-full bg-green-500'>
-                    <MdCallEnd size={32} />
-
+        <Modal open={true} footer={null} width={'100%'} className="max-w-[900px] call-modal"  onCancel={EndCall}>
+            <div className="relative">
+                <div className="absolute client top-[10px] left-[10px] z-[310]">
+                    <div className=" aspect-video rounded-[10px] overflow-hidden">
+                        <video ref={videoRef} autoPlay className="object-cover w-full h-full"></video>
+                    </div>
                 </div>
-                <div onClick={AcceptCall} className='cursor-pointer w-fit p-[10px] text-white rounded-full bg-red-500'>
+                <div className="absolute remote inset-0 z-[300]">
+                    <div className=" video-overlay rounded-[10px] overflow-hidden">
+                        {
+                            callState === CallState.WAITING_FOR_ANSWER ? <div className="flex  items-center justify-center w-full h-full">
+                                <p className="text-white text-2xl">Waiting for answer</p>
+                            </div> : <video ref={remoteRef} autoPlay className="object-cover w-full h-full"></video>
+                        }
 
-                    <IoMdCall size={32} />
+                    </div>
+                    <div className="absolute w-full bottom-[30px] z-[310]">
+                        <div className="flex w-full test items-center justify-center">
+                            <Microphone />
+                            <Camera />
+                            <EndCallButton />
+                        </div>
+                    </div>
                 </div>
+
             </div>
-        </div>
+        </Modal>
     )
 }
-const OutGoingModal = () => {
-    const localRef = useRef();
-    const remoteRef = useRef();
-    const { conversation } = useContext(CurrentChatContext);
 
-
-    const InitLocalMedia = () => {
-        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-            console.log(stream);
-            localRef.current.srcObject = stream;
-        }
-        )
-
-    }
-
-    useEffect(() => {
-        InitLocalMedia();
-
-    }, [])
+const EndCallButton = () => {
+    const { EndCall } = useContext(CallContext);
     return (
-        <div className='w-[800px]'>
-            <div className="flex gap-[10px] ">
-                <div className='flex-1'>
-                    <video ref={localRef} autoPlay></video>
-
-                </div>
-                {/* <div className='flex-1'>
-                    <video ref={remoteRef} autoPlay></video>
-                </div> */}
-            </div>
-            <div className='flex justify-center items-center w-full pt-[40px]'>
-                <div className='flex gap-[10px] '>
-                    <Camera />
-                    <Microphone />
-                </div>
-            </div>
-        </div>
+        <ImPhoneHangUp onClick={EndCall} size={32} className="cursor-pointer text-red-600" />
     )
 }
-
 const Microphone = () => {
     const [mute, setMute] = useState(false);
-
+    const {ToggleAudio} = useContext(CallContext);
+    const Toggle = () => {
+        setMute(!mute)
+        ToggleAudio();
+    }
     return (
-        <div onClick={() => setMute(!mute)} className='cursur-pointer text-red-600' >
+        <div onClick={Toggle} className='cursur-pointer text-red-600' >
             {
                 mute ?
                     <BsFillMicMuteFill size={32} />
@@ -101,17 +102,20 @@ const Microphone = () => {
 }
 const Camera = () => {
     const [mute, setMute] = useState(false);
-
+    const {ToggleCamera} = useContext(CallContext);
+    const Toggle = () => {
+        setMute(!mute)
+        ToggleCamera();
+    }
     return (
-        <div onClick={() => setMute(!mute)} className='cursur-pointer text-red-600' >
+        <div onClick={Toggle} className='cursor-pointer text-red-600' >
             {
                 mute ?
                     <BsCameraVideoOffFill size={32} /> :
                     <BsCameraVideoFill size={32} />
-
-
             }
         </div>
 
     )
 }
+export default CallModal;

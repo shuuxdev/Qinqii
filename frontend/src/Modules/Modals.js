@@ -1,4 +1,3 @@
-import { ModalType } from "../Enums/Modal.js";
 
 const { createSlice } = require("@reduxjs/toolkit");
 
@@ -16,7 +15,6 @@ const modalSlice = createSlice({
         },
         hideModal: (state, action) => {
             state.modalType = null;
-            state.modalProps = {};
         }
     }
     

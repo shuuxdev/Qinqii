@@ -1,14 +1,12 @@
 import { Modal } from "antd"
 
-export const ModalWrapper = ({ handleClose, open, children }) => {
+export const ModalWrapper = ({ handleClose, open, children, className }) => {
 
     return (
-
-        <Modal open={open} footer={null} onCancel={handleClose}>
-            `           <div className="flex">
+        <Modal className={className}  open={open} footer={null} onCancel={handleClose}>
                 {children}
-            </div>
         </Modal>
+
     )
 
 }

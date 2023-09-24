@@ -27,7 +27,7 @@ public class FriendController : ControllerBase
     [HttpGet("user/people-you-may-know")]
     public async Task<IActionResult> GetPeopleYouMayKnow(GetPeopleYouMayKnowRequest request)
     {
-        var list =await _friendService.GetPeopleYouMayKnow( request);
+        var list = await _friendService.GetPeopleYouMayKnow(request);
         return Ok(list);
     }
     [HttpGet("user/friend-requests")]
@@ -38,13 +38,14 @@ public class FriendController : ControllerBase
         return Ok(u);
     }
     [HttpPatch("user/update-friend-status")]
-    public async Task<IActionResult> UpdateFriendStatus([FromBody]EditFriendStatusRequest request)
+    public async Task<IActionResult> UpdateFriendStatus([FromBody] EditFriendStatusRequest request)
     {
         await _user.UpdateFriendStatus(request);
 
         if (request.status == FriendRequestStatusType.ACCEPTED)
         {
             var receiver = await _friendService.GetFriendRequestSenderId(request.id);
+
             var sender = await _friendService.GetFriendRequestReceiverId(request.id);
             await _notificationService.Notify(receiver, sender, NotificationType.FRIEND_ACCEPT);
         }
@@ -57,19 +58,31 @@ public class FriendController : ControllerBase
         return new JsonResult(u);
     }
     [HttpPost("user/send-friend-request")]
-    public async Task<IActionResult> SendFriendRequest([FromBody]CreateFriendRequest request)
+    public async Task<IActionResult> SendFriendRequest([FromBody] CreateFriendRequest request)
     {
-         int request_id = await _friendService.CreateFriendRequest(request);
-         await _notificationService.Notify(
-             request.friend_id, 
-             request.user_id, 
-             NotificationType.FRIEND_REQUEST,
-             new List<INotificationParameter>()
-             {
+        int request_id = await _friendService.CreateFriendRequest(request);
+        await _notificationService.Notify(
+            request.friend_id,
+            request.user_id,
+            NotificationType.FRIEND_REQUEST,
+            new List<INotificationParameter>()
+            {
                  new FriendRequestIdParameter(request_id.ToString()),
-             });
-         var sender = await _user.GetUser(request.user_id); // sender
-         await _friendService.BroadcastFriendRequest(sender, request.friend_id);
+            });
+        var sender = await _user.GetUser(request.user_id); // sender
+        await _friendService.BroadcastFriendRequest(sender, request.friend_id);
         return Ok();
+    }
+    [HttpGet("user/friendsWithName")]
+    public async Task<IActionResult> GetUserFriendsWithName(string startWith)
+    {
+        var u = await _user.FindFriendsByName(startWith, HttpContext.GetUserId());
+        return Ok(u);
+    }
+    [HttpGet("user/findByName")]
+    public async Task<IActionResult> FindUserByName(string startWith)
+    {
+        var u = await _user.FindUserByName(startWith);
+        return Ok(u);
     }
 }

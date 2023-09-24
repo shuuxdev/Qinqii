@@ -24,7 +24,6 @@ const Tab = {
 const Item = ({ icon, content, selected, onClick }) => {
 
     const { data, isSuccess } = useGetPeopleYouMayKnowQuery({ pageSize: 5, page: 1 });
-    console.log(data);
 
     return <div onClick={onClick} className={"flex p-[0px_40px] " + (selected ? ` text-[${Color.Primary}] bg-[${Color.Selected}] border-l-[2px] border-solid border-[${Color.Primary}]` : '')}>
         <div className={`flex items-center w-full border-b-[1px] border-solid border-[${Color.BorderGray}] p-[20px_0px]`}>

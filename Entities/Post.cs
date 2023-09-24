@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 public class Post
 {
    
+    [JsonProperty("id")]
     [JsonPropertyName("id")]
     public int post_id { get; set; }
     public int author_id { get; set; }

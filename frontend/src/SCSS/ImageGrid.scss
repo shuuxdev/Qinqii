@@ -1,0 +1,12 @@
+@import 'utilities';
+
+.image-grid {
+
+  :first-child {
+    grid-column: 1 / -1;
+  }
+  display:grid;
+  grid-gap: 10px;
+  grid-template-rows: 1fr;
+
+}

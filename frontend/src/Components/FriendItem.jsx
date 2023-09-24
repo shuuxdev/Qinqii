@@ -9,10 +9,10 @@ export function FriendItem({ friend }) {
       <div className="flex gap-[5px] flex-1 items-start">
 
         <div className="rounded-[10px] overflow-hidden w-[70px] h-[70px]">
-          <QinqiiCustomImage className={'w-full h-full object-cover'} src={friend.friend_avatar} />
+          <QinqiiCustomImage className={'w-full h-full object-cover'} src={friend.avatar} />
         </div>
         <Text>
-          {friend.friend_name}
+          {friend.name}
         </Text>
 
       </div>

@@ -5,23 +5,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import Color from '../Enums/Color';
 import { closeChat, fetchMessageAsync, openChat } from "../Modules/Chats.js";
-import { Avatar, Header, Text } from './CommonComponent.jsx';
+import { ActiveDot, Avatar, Header, InActiveDot, Text } from './CommonComponent.jsx';
 import Loading from "./Loading.jsx";
 import { useEffect } from "react";
 import { updateOnlineStatus } from "../Modules/Contacts.js";
 import connection from "../Helper/SignalR.js";
+import { OnlineStatus } from '../Enums/OnlineStatus';
 
-
-const test = {
-    "conversation_id": 1,
-    "conversation_default_emoji": "smile",
-    "sender_id": 2,
-    "recipient_id": 2,
-    "recipient_name": "Thanh Thủy",
-    "recipient_avatar": "thuy.jpg"
-}
 const ContactItem = ({ contact: { conversation_id, converstaion_default_emoji, sender_id,
-    recipient_id, recipient_name, recipient_avatar }, contact }) => {
+    recipient_id, recipient_name, recipient_avatar, online_status }, contact }) => {
 
     const dispatch = useDispatch();
 
@@ -41,6 +33,9 @@ const ContactItem = ({ contact: { conversation_id, converstaion_default_emoji, s
                 <Text> <Text bold>{recipient_name}</Text> </Text>
             </div>
             <div className="flex-[2] flex justify-center items-center gap-2">
+                {
+                    online_status === OnlineStatus.ONLINE ? <ActiveDot></ActiveDot> : <InActiveDot></InActiveDot>
+                }
                 <div onClick={() => OpenChat()}>
                     <RiMessage2Fill color={Color.Primary} size={24} />
                 </div>
@@ -68,7 +63,9 @@ export function ContactList() {
     const dispatch = useDispatch()
     useEffect(() => {
         connection.on('updateOnlineStatus', (user_id, status) => {
+            console.log(user_id, status)
             dispatch(updateOnlineStatus({ user_id, status }))
+
         })
 
     }, [])

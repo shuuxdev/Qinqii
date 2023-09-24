@@ -11,7 +11,7 @@ const chatSlice = createSlice({
       return [...state.map((item) => {
         if(item.conversation_id == action.payload.conversation_id)
         {
-          return {...item, messages: [...item.messages, action.payload]}
+          return {...item, messages: [ action.payload,...item.messages]}
         }
         return item;
       })]
@@ -35,8 +35,10 @@ export const fetchMessageAsync = (conversation_id) => async (dispatch, getState)
     reject(new Error('Không gửi được tin nhắn'))
   })
 }
-export const sendMessageAsync = (message_info) => async (dispatch, getState) => {
-  const response = (await POST_SendMessage(message_info))
+export const sendMessageAsync = (message, images, videos, thumbnails) => async (dispatch, getState) => {
+  console.log(videos)
+  console.log(thumbnails)
+  const response = (await POST_SendMessage(message, images, videos, thumbnails))
 }
 
 export const { sendMessage, openChat, closeChat } = chatSlice.actions

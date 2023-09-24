@@ -1,10 +1,11 @@
 import { TextareaAutosize } from "@mui/material";
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { BsCameraFill, BsEmojiLaughingFill } from 'react-icons/bs';
 import { IoMdSend } from "react-icons/io";
 import { useDispatch } from "react-redux";
-import { editCommentThunk, uploadAttachmentsThunk } from "../Modules/Posts.js";
+import { editCommentThunk, uploadAttachmentsThunk } from "../Thunks/Posts.js";
 import { UploadImage } from "./CommonComponent.jsx";
+import { PostActionContext } from './Post';
 export const EditComment = ({ comment = {}, initValue, initAttachments, onCancel = () => { } }) => {
 
     const Cancel = () => {
@@ -18,6 +19,7 @@ export const EditComment = ({ comment = {}, initValue, initAttachments, onCancel
     const fileRef = useRef();
     const contentRef = useRef();
     const removeList = useRef([]);
+    const {updateComment} = useContext(PostActionContext)
     const RemoveNewAttachments = (index) => {
         setNewAttachments(
             newAttachments.filter(
@@ -73,7 +75,7 @@ export const EditComment = ({ comment = {}, initValue, initAttachments, onCancel
 
 
         const _comment = { content: contentRef.current.value, comment_id: comment.id, attachments: [...insertList, ..._removeList] }
-        dispatch(editCommentThunk(_comment));
+        dispatch(editCommentThunk(_comment, updateComment));
         Reset();
         Cancel();
     }

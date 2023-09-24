@@ -18,11 +18,15 @@ public class StoryController : ControllerBase
         var story = await _storyService.GetStory(request);
         return Ok(story);
     }
-    /*[HttpPatch]
+    [HttpPost]
     public async Task<IActionResult> UpdateViewer(int id)
     {
         var user_id = HttpContext.GetUserId();
-        await _storyService.UpdateStoryViewer(id, user_id);
+        await _storyService.UpdateStoryViewerCount(new UpdateStoryViewerCountRequest
+        {
+            user_id = user_id,
+            story_id = id
+        });
         return Ok();
-    }*/
+    }
 }

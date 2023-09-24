@@ -21,7 +21,7 @@ namespace Qinqii.Ultilities
                     Audience = audience,
                     Issuer = issuer,
                     Subject = new ClaimsIdentity(new[]{
-                        new Claim(JwtRegisteredClaimNames.Sub, user.user_id),
+                        new Claim(JwtRegisteredClaimNames.Sub, user.user_id.ToString()),
                         new Claim(AdditionalClaimTypes.Name, user.name),
                         new Claim(AdditionalClaimTypes.Background, user.background),
                         new Claim(AdditionalClaimTypes.Avatar, user.avatar)

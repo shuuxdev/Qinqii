@@ -1,34 +1,37 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit"
 
-const initialState = {
-    visible: false,
-    mode: '',
-};
+import { CallModal } from "../Enums/CallModal.js"
 
 const callSlice = createSlice({
-    initialState,
+
     name: 'call',
-    reducers: {
-        displayOutGoingCallModal: (state) => {
-            return {
-                visible: true,
-                mode: 'OUTGOING',
-            };
-        },
-        displayIncomingCallModal: (state) => {
-            return {
-                visible: true,
-                mode: 'INCOMING',
-            };
-        },
-        hideCallModal: (state) => {
-            return { visible: false };
-        },
+    initialState: {
+        call: null,
+        param: null
     },
-});
-export const {
-    displayIncomingCallModal,
-    displayOutGoingCallModal,
-    hideCallModal,
-} = callSlice.actions;
-export default callSlice.reducer;
+    reducers: {
+        showCallModal: (state, action) => {
+            return {
+                ...state,
+                call: CallModal.ONGOING,
+                param: action.payload
+            }
+        },
+        showIncomingCallModal: (state, action) => {
+            return {
+                ...state,
+                call: CallModal.INCOMING,
+                param: action.payload
+            }
+        },
+        endCall: (state) => {
+            return {
+                ...state,
+                call: CallModal.ENDED,
+                param: null
+            }
+        }
+    }
+})
+export const { showCallModal, showIncomingCallModal, endCall } = callSlice.actions
+export default callSlice.reducer

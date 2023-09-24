@@ -10,9 +10,9 @@ const contactSlice = createSlice({
     reducers: {
         updateOnlineStatus: (state, action) => {
              state.forEach((contact) => {
-                if(contact.recipient_id == action.payload.user_id)
+                if(contact.recipient_id === action.payload.user_id)
                 {
-                    contact.status = action.payload.status;
+                    contact.online_status = action.payload.status;
                 }
             })
         },

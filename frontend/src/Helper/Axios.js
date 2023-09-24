@@ -48,7 +48,7 @@ securedApi.interceptors.response.use(onSuccessResponse, (err) => {
     // window.location.href = '/login';
     return Promise.reject(err);
 });
-export const GET_Posts = async (user_id) => await securedApi.get('/feed');
+export const GET_Posts = async () => await securedApi.get('/feed');
 
 export const GET_UserProfile = async (user_id) =>
     await securedApi.get('/user/profile');
@@ -65,10 +65,31 @@ export const POST_Login = async ({ username, password }) =>
         password,
     });
 
-export const POST_SendMessage = async (message_info) =>
-    await securedApi.post('/chat/message', {
-        ...message_info,
-    });
+export const POST_SendMessage = async (message, images, videos, thumbnails) =>
+{
+
+    if(thumbnails.length != videos.length) throw new Error('Thumbnail and video length must be equal');
+    const formData = new FormData();
+    appendToFormData(formData, message);
+    for (let i = 0; i < images.length; ++i) {
+        formData.append(`images[${i}].image`, images[i]);
+    }
+
+    for (let i = 0; i < videos.length; ++i) {
+        formData.append(`videos[${i}].video`, videos[i]);
+        formData.append(`videos[${i}].thumbnail.image`, thumbnails[i]);
+    }
+    return securedApi.post('/chat/message', formData);
+}
+
+const appendToFormData = (formData, object) => {
+    for (let key in object) {
+        if (object.hasOwnProperty(key)) {
+            formData.append(key, object[key]);
+        }
+    }
+}
+
 export const GET_AllChat = async () => await securedApi.get('/chat/all');
 export const PATCH_FriendStatus = async ({ id, status }) =>
     await securedApi.patch('/user/update-friend-status', { id, status });
@@ -80,32 +101,51 @@ export const SEND_React = async (payload) =>
     await handleApiCall(securedApi
         .patch('/react', payload), ResponseType.Data)
         
-export const UNDO_REACT = async (reaction_id) =>
+export const UNDO_REACT = async (id) =>
     await handleApiCall(securedApi
-        .delete(`/undo-react?id=${reaction_id}`),ResponseType.StatusCode)
+        .delete(`/undo-react?id=${id}`),ResponseType.StatusCode)
         
 
 export const DELETE_Post = async (post_id) =>
     await handleApiCall(securedApi
         .delete(`/post/delete?id=${post_id}`), ResponseType.StatusCode)
-        
+
+export const POST_UpdateStoryViewer = async (story_id) =>
+    await handleApiCall(securedApi.post(`/story/update-viewer?id=${story_id}`, ), ResponseType.StatusCode)
 
 export const GET_Story = async (story_id) =>
         await handleApiCall(securedApi
             .get(`/story?id=${story_id}`), ResponseType.Data)
-            
-export const POST_CreateNewPost = async ({ content, attachments }) => {
-    let files = [...attachments];
-    const formData = new FormData();
-    formData.append('content', content);
-    for (let i = 0; i < files.length; ++i) {
-        formData.append('attachments', files[i]);
-    }
 
-    return await securedApi.post('/post/create', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-    });
-};
+export const POST_UploadAttachments = async (attachments) => {
+    const formData = new FormData();
+    for (let i = 0; i < attachments.length; ++i) {
+        formData.append('attachments', attachments[i]);
+    }
+    return await handleApiCall(securedApi
+        .post('/post/upload-attachments', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        }), ResponseType.Data);
+}
+export const POST_CreateNewPost = async ({ content, videos, images, thumbnails }) => {
+    const formData = new FormData();
+    if (videos.length === thumbnails.length) {
+
+
+        formData.append('content', content);
+        for (let i = 0; i < videos.length; ++i) {
+            formData.append(`videos[${i}].video`, videos[i]);
+            formData.append(`videos[${i}].thumbnail.image`, thumbnails[i]);
+        }
+        for (let i = 0; i < images.length; ++i) {
+            formData.append(`images[${i}].image`, images[i]);
+        }
+
+        return await handleApiCall(securedApi.post('/post/create', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        }), ResponseType.StatusCode);
+    }
+}
 export const EDIT_Post = async ({ comment_id, content, attachments }) => {
     let files = [...attachments];
     const formData = new FormData();

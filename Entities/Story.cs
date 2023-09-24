@@ -10,6 +10,7 @@ public class Story
     public int author_id { get; set; }
     public string author_name { get; set; }
     public string author_avatar { get; set; }
+    public string thumbnail { get; set; }
     public List<Frame> frames { get; set; } = new();
     public List<FrameViewer> viewers { get; set; } = new();
 

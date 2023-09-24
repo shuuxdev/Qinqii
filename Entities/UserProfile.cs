@@ -4,7 +4,7 @@ public class UserProfile {
 
     public string avatar {get;set;}
     public string background {get;set;}
-    public string user_id {get;set;}
+    public int user_id {get;set;}
     public string gender { get; set; }
     public string relationship { get; set; }
     public string about { get; set; }

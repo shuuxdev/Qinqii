@@ -1,4 +1,4 @@
 export const AttachmentType = {
-    IMAGE: 0,
-    VIDEO: 1
+    IMAGE: "IMAGE",
+    VIDEO: "VIDEO"
 }

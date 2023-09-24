@@ -16,7 +16,7 @@ public class FeedService
         _ctx = ctx;
     }
     
-    public async Task<List<StoryThumbnail>> GetStories(
+    public async Task<IEnumerable<Story>> GetStories(
     CancellationToken token)
     {
          using var connection = _ctx.CreateConnection();
@@ -27,7 +27,7 @@ public class FeedService
         var reader = await connection.QueryMultipleAsync("[STORY].GetAll",
             commandType: CommandType.StoredProcedure, param: param);
 
-        var stories = (await reader.ReadAsync<StoryThumbnail>()).ToList();
+        var stories = await reader.ToStories();
         return stories;
     }
     public async Task<IEnumerable<Post>> GetAllPosts() 

@@ -71,10 +71,9 @@ public class GlobalController : ControllerBase
     
 
     [HttpDelete("undo-react")]
-    public async Task<IActionResult> UndoReaction(
-        DeleteReactionRequest react)
+    public async Task<IActionResult> UndoReaction(int id)
     {
-        await _postService.UndoReact(react);
+        await _postService.UndoReact(new DeleteReactionRequest(){id = id, user_id = HttpContext.GetUserId()});
         return Ok();
     }
 }

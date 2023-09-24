@@ -1,4 +1,4 @@
-public class Conversation
+public class Contact
 {
     IEnumerable<Message> messages;
 
@@ -11,5 +11,10 @@ public class Conversation
 
     public string recipient_avatar { get; set; }
 
-
+    public OnlineStatus? online_status { get; set; }
+}
+public enum OnlineStatus
+{
+    ONLINE,
+    OFFLINE
 }

@@ -1,21 +1,31 @@
 import { MediaViewerModal } from "./MediaViewerModal.jsx";
 import { ModalType } from '../../Enums/Modal.js'
-import { useSelector } from "react-redux";
+import {  useSelector } from 'react-redux';
+import {StoryUploadModal} from './StoryUploadModal';
+import { ShareModal } from './ShareModal';
+import { UploadAvatarModal } from './UploadAvatarModal';
 export const Modals = () => {
 
+    const { modalType, modalProps} = useSelector(state => state.modals);
 
-
-    const { modalType: activeModal, modalProps } = useSelector(state => state.modals);
-
-    const CloseModal = () => {
-        // setActiveModal(null);
-    }
-    const CloseMediaViewerModal = () => {
-        CloseModal()
-    }
     return (
         <>
-            <MediaViewerModal open={activeModal == ModalType.MEDIA} handleClose={CloseMediaViewerModal} />
+            {
+                modalType === ModalType.MEDIA &&
+                <MediaViewerModal {...modalProps} />
+            }
+            {
+                modalType === ModalType.STORY_UPLOAD &&
+                <StoryUploadModal/>
+            }
+            {
+                modalType === ModalType.SHARE &&
+                <ShareModal/>
+            }
+            {
+                modalType === ModalType.UPLOAD_AVATAR &&
+                <UploadAvatarModal {...modalProps}/>
+            }
         </>
     )
 }

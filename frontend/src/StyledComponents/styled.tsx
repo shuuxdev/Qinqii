@@ -19,7 +19,7 @@ export const HeaderText = styled.div<{
 }>`
     font-family: 'Nunito';
     color: ${(props) => props.color ?? 'black;'};
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 400;
 
         ${({md}) =>

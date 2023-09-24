@@ -12,9 +12,11 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.HttpLogging;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.OpenApi.Models;
 using Qinqii.Middlewares;
 using Qinqii.ModelBinders;
@@ -43,6 +45,7 @@ internal class Program
             var binderProvider = new UserIdModelBinderProvider(inputFormatters, readerFactory);
             options.ModelBinderProviders.Insert(0, binderProvider);
         });
+        
         builder.Services.AddScoped<DapperContext>();
         builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<MessageService>();
@@ -54,6 +57,7 @@ internal class Program
         builder.Services.AddScoped<PostService>();
         builder.Services.AddScoped<UploadService>();
         builder.Services.AddScoped<FriendService>();
+        builder.Services.AddScoped<MediaService>();
         builder.Services.AddScoped<CommentService>();
         builder.Services.AddSingleton<ConnectionManager>();
         builder.Services.AddTransient<ErrorHandlingMiddleware>();
@@ -62,6 +66,12 @@ internal class Program
         {
             option.LoggingFields = HttpLoggingFields.All;
         });
+        //Sau này có muốn thay đổi max request body size thì uncomment dòng này
+        //Dùng cho trường hợp upload file lớn
+        /*builder.Services.Configure<KestrelServerOptions>(options =>
+        {
+            options.Limits.MaxRequestBodySize = null;  // Unlimited size
+        });*/
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1",
@@ -175,7 +185,7 @@ internal class Program
             //SPA PROXY
             app.UseCors(cors =>
             {
-                cors.WithOrigins("http://localhost:3000").AllowAnyHeader()
+                cors.WithOrigins("http://localhost:3000").WithOrigins("http://192.168.2.29:3000").AllowAnyHeader()
                     .AllowAnyMethod().AllowCredentials();
             });
         }

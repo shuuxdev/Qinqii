@@ -13,4 +13,10 @@ public class Message
 
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
     public int recipient_id { get; set; }
+    
+    
+    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+    public IEnumerable<Attachment> attachments { get; set; } = new List<Attachment>();
+    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+    public IEnumerable<Reaction> reactions { get; set; } = new List<Reaction>();
 }

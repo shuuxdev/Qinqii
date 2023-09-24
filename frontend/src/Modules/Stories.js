@@ -1,5 +1,5 @@
 import { Severity } from "../Enums/FetchState.js";
-import { GET_Story } from "../Helper/Axios.js";
+import { GET_Story, POST_UpdateStoryViewer } from '../Helper/Axios.js';
 import { goToStory } from "./StoryUI.js";
 import { ShowNotification } from "./UI.js";
 
@@ -11,44 +11,20 @@ const storiesSlice = createSlice({
 
     reducers: {
         fetchStories: (state, action) => {
-            return [...action.payload]
+            return [ ...action.payload]
         },
-        addFrames: (state, action) => 
-        {
-            state.forEach(story => {
-                if(story.id == action.payload.id) 
-                {
-                    story.frames = action.payload.frames; 
-                    story.viewers = action.payload.viewers;
-                }
-            })
-        }
-            
+
         
     },
-    // extraReducers: (builder) => {
-    //     builder.addCase(addFramesThunk.rejected, (state, action) => {
-    //         console.log(action.error)
-    //     })
-    // }
-    
 })
 
-export const addFramesThunk = createAsyncThunk('stories/addFramesThunk', async ({story_id,navigate}, thunkAPI) => {
-    const [story, error] =await GET_Story(story_id)
-    if(error)
-    {
-        thunkAPI.dispatch(ShowNotification({severity: Severity.ERROR, content: 'Load story không thành công'}))
-    }
-    else {
-        const {addFrames} = storiesSlice.actions
-        thunkAPI.dispatch(addFrames(story))
-        const index = thunkAPI.getState().stories.findIndex((story) => story.id == story_id)
-        thunkAPI.dispatch(goToStory({ index }))
-        navigate(`/story/${story.id}`)
-    }
-    
-})
+export const updateViewerThunk = createAsyncThunk(
+    'stories/updateViewerThunk',
+    async (story_id, thunkAPI) => {
+        const [statusCode, error] = await POST_UpdateStoryViewer(story_id)
 
-export const {fetchStories, addFrames} = storiesSlice.actions
+    }
+)
+
+export const {fetchStories} = storiesSlice.actions
 export default storiesSlice.reducer;

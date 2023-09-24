@@ -1,13 +1,12 @@
-import { useEffect, useState, useContext, useRef } from "react";
-import { useLayoutEffect } from "react";
-import { useMemo } from "react";
-import { CommentContainerContext } from "./Post.jsx";
-import { Button, Modal } from "antd";
-import { Avatar, Text } from "./CommonComponent.jsx";
-import { useDispatch, useSelector } from "react-redux";
-import { undoReactThunk } from "../Modules/Posts.js";
+import { useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { PostActionContext } from './Post.jsx';
+import { Button, Modal } from 'antd';
+import { Avatar, Text } from './CommonComponent.jsx';
+import { useDispatch, useSelector } from 'react-redux';
+import { ENTITY } from '../Enums/Entity';
+import { undoReactThunk } from '../Thunks/Posts';
 
-export const TopReactions = ({ UndoReaction, post, reactions }) => {
+export const TopReactions = ({ entity, reactions, action, entity_type }) => {
     const user_id = useSelector(state => state.profile.user_id)
     const move = 5;
     const sz = 20;
@@ -15,6 +14,7 @@ export const TopReactions = ({ UndoReaction, post, reactions }) => {
     const ref = useRef();
     const [selectedEmoji, setSelectedEmoji] = useState(0);
     const [showModal, setShowModal] = useState(false);
+
 
     const emojis = useMemo(() => {
         let map = new Map();
@@ -27,10 +27,16 @@ export const TopReactions = ({ UndoReaction, post, reactions }) => {
 
         return topEmojisReacted;
     })
+    const dispatch = useDispatch();
+    // use for top reactions
+    const UndoReaction = (reaction) => {
+        const payload = {entity,entity_type, reaction_id: reaction.id}
+        dispatch(undoReactThunk(payload, action));
+    }
 
     useLayoutEffect(() => {
         const _emoji = emojis.slice(0, 3);
-        if (emojis.length == 0) ref.current.style.display = 'none';
+        if (emojis.length === 0) ref.current.style.display = 'none';
         else if (ref.current) {
             ref.current.style.display = 'flex';
             ref.current.style.width = `${(sz * _emoji.length) - (move * (_emoji.length - 1)) + px * 2}px`

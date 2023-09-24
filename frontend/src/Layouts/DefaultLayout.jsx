@@ -1,34 +1,38 @@
-import Navbar from "../Components/Navbar.jsx"
-import Color from "../Enums/Color.js"
-import { sendMessage } from "../Modules/Chats.js"
-import React, { useEffect, useState } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import { Outlet } from "react-router-dom"
-import { Card } from "../Components/Card.jsx"
-import { Chat } from "../Components/Chat.jsx"
-import { ContactList } from '../Components/Contacts.jsx'
-import { FriendRequest } from "../Components/FriendRequest.jsx"
-import { GroupRecommend } from "../Components/Groups.jsx"
-import { Sidebar } from "../Components/Sidebar.jsx"
-import { GlobalProvider } from "../Contexts/GlobalStateContext.jsx"
-import connection from "../Helper/SignalR.js"
+import Navbar from '../Components/Navbar.jsx';
+import Color from '../Enums/Color.js';
+import { sendMessage } from '../Modules/Chats.js';
+import React, { createContext, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Outlet } from 'react-router-dom';
+import { Card } from '../Components/Card.jsx';
+import { Chat } from '../Components/Chat.jsx';
+import { ContactList } from '../Components/Contacts.jsx';
+import { FriendRequest } from '../Components/FriendRequest.jsx';
+import { GroupRecommend } from '../Components/Groups.jsx';
+import { Sidebar } from '../Components/Sidebar.jsx';
+import { GlobalProvider } from '../Contexts/GlobalStateContext.jsx';
+import connection from '../Helper/SignalR.js';
 
 
-import Loading from "../Components/Loading.jsx"
-import { useAxios } from '../Hooks/useAxios.jsx'
-import { fetchContacts, fetchContactsAction } from '../Modules/Contacts.js'
-import { addFriendRequest, fetchFriendRequests, fetchFriendRequestsAction } from '../Modules/FriendRequests.js'
-import { fetchProfileAction } from '../Modules/Profile.js'
-import { Snackbar } from "@mui/material"
-import { fetchStories } from "../Modules/Stories.js"
-import { Grid } from "antd"
-import { addNotification, fetchNotifications } from "../Modules/Notifications.js"
+import Loading from '../Components/Loading.jsx';
+import { useAxios } from '../Hooks/useAxios.jsx';
+import { fetchContacts } from '../Modules/Contacts.js';
+import { addFriendRequest, fetchFriendRequests } from '../Modules/FriendRequests.js';
+import { fetchProfile } from '../Modules/Profile.js';
+import { fetchStories } from '../Modules/Stories.js';
+import { Grid } from 'antd';
+import { addNotification, fetchNotifications } from '../Modules/Notifications.js';
+import { useWebRTC } from '../Hooks/useWebRTC';
+import CallModal from '../Components/CallModal';
+export const CallContext = createContext();
+
+
 const LeftSection = () => {
     return (
-        <div className={`font-['Alexandria'] m-0 p-0 bg-[${Color.Background}]  box-border  flex flex-col  lg:w-[300px] `}>
+        <div className={`font-['Alexandria'] m-0 p-0 bg-[${Color.Background}]  box-border  flex flex-col  w-[300px] `}>
             <Card></Card>
             <Sidebar></Sidebar>
-            <GroupRecommend></GroupRecommend>
+            {/*<GroupRecommend></GroupRecommend>*/}
         </div>
     )
 }
@@ -37,18 +41,27 @@ const ChatContainer = () => {
     const dispatch = useDispatch()
 
     useEffect(() => {
-        connection.on('RecieveMessage', (message) => {
-            dispatch(sendMessage(message))
+        connection.on('RecieveMessage', (json) => {
+            console.log(JSON.parse(json));
+            dispatch(sendMessage(JSON.parse(json)))
         })
-
+        return () => {
+            connection.off('RecieveMessage');
+        }
     }, [])
 
+
+
     return (
-        <div className='px-[50px] fixed flex gap-[10px] bottom-0 right-0  z-[100]'>
+        <CallContext.Provider value={useWebRTC()}>
+            <CallModal/>
+        <div className='fixed flex gap-[10px] bottom-0 right-0  z-[100]'>
             {chatList.length > 0 && chatList.map((chat) =>
                 <Chat key={chat.conversation_id} conversation_info={chat} />)
             }
         </div>
+        </CallContext.Provider>
+
     )
 }
 const RightSection = () => {
@@ -75,7 +88,7 @@ const initApiCall = async (axios, dispatch) => {
     if (ok) {
         dispatch(fetchFriendRequests(friend_requests))
         dispatch(fetchContacts(contacts))
-        dispatch(fetchProfileAction(profile))
+        dispatch(fetchProfile(profile))
         dispatch(fetchStories(stories))
         dispatch(fetchNotifications(notifications))
 
@@ -99,7 +112,6 @@ const startConnection = () => {
         .catch((e) => console.log('SignalR error: ' + e))
 }
 const DefaultLayout = () => {
-    const screen = Grid.useBreakpoint();
     const dispatch = useDispatch()
     const axios = useAxios()
 
@@ -111,11 +123,9 @@ const DefaultLayout = () => {
     useEffect(() => {
         pageReady();
         connection.on("ReceiveNotification", (notification) => {
-            console.log(notification)
             dispatch(addNotification(notification))
         })
         connection.on("ReceiveFriendRequest", (friend) => {
-            console.log(friend)
             dispatch(addFriendRequest(friend))
         })
     }, [])
@@ -131,7 +141,7 @@ const DefaultLayout = () => {
                 <Navbar></Navbar>
                 <div className='flex gap-[30px]'>
                     <LeftSection></LeftSection>
-                    <div className={`font-['Alexandria'] m-0 p-0 bg-[${Color.Background}]  box-border gap-[25px] flex flex-col  lg:w-[750px] `}>
+                    <div className={`font-['Alexandria'] m-0 p-0 bg-[${Color.Background}]  box-border gap-[25px] flex flex-col  w-[750px] `}>
 
                         <Outlet />
                     </div>

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Qinqii.DTOs.Request.Comment;
 using Qinqii.DTOs.Request.Reaction;
 using Qinqii.Enums;
+using Qinqii.Extensions;
 using Qinqii.Models;
 using Qinqii.Utilities;
 
@@ -40,22 +41,43 @@ public class PostService
         await connection.ExecuteAsync("[POST].[Delete]",
             commandType: CommandType.StoredProcedure, param: param);
     }
+
+    /*public async Task<Attachment> GetPostAttachments(GetPostAttachmentsRequest post)
+    {
+         var connection = _ctx.CreateConnection();
+        var param = post.ToParameters();
+        await connection.ExecuteAsync("[POST].[GetAttachments]",
+            commandType: CommandType.StoredProcedure, param: param);
+    }*/
     
-    public async Task CreatePost(CreatePostRequest post,CancellationToken token)
+    public async Task CreatePost(CreatePostRequest post, IEnumerable<AttachmentIdsTVP> attachment_ids,CancellationToken token)
     {
         using var connection = _ctx.CreateConnection();
         var param = post.ToParameters();
-        if (post.attachments != null)
+        if (attachment_ids != null)
         {
             //Post có đính kèm tệp
-             var dt = post.attachment_links.ToTableValuedParameters();
+             var dt = attachment_ids.ToTableValuedParameters();
             param.Add("@tvp", dt);
         }
         
         var cmd = new CommandDefinition(commandType: CommandType
                 .StoredProcedure, commandText: "[POST].[Create]",
             parameters: param, cancellationToken:token);
+        
+        
+        
         var u = await connection.ExecuteAsync(cmd);
+    }
+    public async Task<Post> GetPost(int post_id)
+    {
+        using var connection = _ctx.CreateConnection();
+        var param = new DynamicParameters();
+        param.Add("@post_id", post_id);
+        var reader = await connection.QueryMultipleAsync(
+            "[POST].[Get]",
+            commandType: CommandType.StoredProcedure, param: param);
+        return await reader.ToPost();
     }
 
    

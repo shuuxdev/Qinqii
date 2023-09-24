@@ -1,58 +1,58 @@
-import React, { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { BgColor, HeaderText, Text } from '../StyledComponents/styled.tsx'
-import { faker } from '@faker-js/faker'
-import { ActiveDot, Avatar } from './CommonComponent.jsx'
-import { BsEmojiAngry, BsEmojiAngryFill, BsFillEmojiHeartEyesFill, BsFillHeartFill, BsHeart } from 'react-icons/bs'
-import bg1 from '../Assets/s1.jpg'
-import bg2 from '../Assets/s2.jpg'
-import bg3 from '../Assets/s3.jpg'
-import vd1 from '../Assets/vd1.mp4'
-import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
-import Timer from '../Helper/Timer.js'
-import moment from 'moment/moment.js'
-import { useDispatch, useSelector } from 'react-redux'
-import { goToStory } from '../Modules/StoryUI.js'
-import { addFramesThunk } from '../Modules/Stories.js'
-import { useNavigate } from 'react-router-dom'
-import { MdOutlineCancelPresentation } from 'react-icons/md'
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { HeaderText, Text } from '../StyledComponents/styled.tsx';
+import { ActiveDot, Avatar, QinqiiCustomImage } from './CommonComponent.jsx';
+import { BsFillHeartFill } from 'react-icons/bs';
+import { AnimatePresence, motion, useAnimationControls } from 'framer-motion';
+import Timer from '../Helper/Timer.js';
+import moment from 'moment/moment.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
+import { MdOutlineCancelPresentation } from 'react-icons/md';
+import Loading from './Loading';
+import { useAxios } from '../Hooks/useAxios';
+import { fetchStories } from '../Modules/Stories';
+import { timeSinceCreatedAt } from '../Helper/GetTimeSince';
+import { useUserID } from '../Hooks/useUserID';
 
 const dateFormat = 'YYYY/MM/DD hh:mm:ss';
-
-
-const frames = [
-    { type: 'VIDEO', url: vd1, duration: 40, id: 'id1' },
-    { type: 'IMAGE', url: bg2, duration: 3, id: 'id2' },
-    { type: 'IMAGE', url: bg3, duration: 3, id: 'id3' }]
-const stories = [
-    { seen: true, thumbnail: faker.image.url(), author_name: 'shuu', author_avatar: bg1, created_at: moment('2023/08/08 04:00:00').format(dateFormat), },
-    { seen: false, thumbnail: faker.image.url(), author_name: 'Hào', author_avatar: bg2, created_at: moment('2023/08/08 06:00:00').format(dateFormat) },
-    { seen: false, thumbnail: faker.image.url(), author_name: 'Hào', author_avatar: bg2, created_at: moment('2023/08/08 06:00:00').format(dateFormat) },
-    { seen: false, thumbnail: faker.image.url(), author_name: 'Hào', author_avatar: bg2, created_at: moment('2023/08/08 06:00:00').format(dateFormat) },
-    { seen: false, thumbnail: faker.image.url(), author_name: 'Hào', author_avatar: bg2, created_at: moment('2023/08/08 06:00:00').format(dateFormat) },
-    { seen: false, thumbnail: faker.image.url(), author_name: 'Hào', author_avatar: bg2, created_at: moment('2023/08/08 06:00:00').format(dateFormat) },
-    { seen: false, thumbnail: faker.image.url(), author_name: 'Hào', author_avatar: bg2, created_at: moment('2023/08/08 06:00:00').format(dateFormat) },
-    { seen: false, thumbnail: faker.image.url(), author_name: 'Phúc', author_avatar: bg3, created_at: moment('2023/08/09 05:00:00').format(dateFormat) }
-]
 
 
 const StoryViewerContext = createContext();
 
 export default function StoryViewer() {
     const stories = useSelector(state => state.stories);
-    const currentSelectedStoryIndex = useSelector(state => state.storiesUI.currentSelectedStoryIndex);
+    const param = useParams();
+    let currentSelectedStoryIndex =  stories.findIndex(story => story.id === parseInt(param.id))
+    const axios = useAxios();
 
+    const dispatch = useDispatch();
 
-
+    useEffect(() => {
+        const fetchStoriesAsync = async () => {
+            const response = await axios.GET_Stories();
+            if(response.status === 200)
+                dispatch(fetchStories(response.data));
+        }
+        if(stories.length == 0)
+            fetchStoriesAsync();
+    }, [param.id]);
 
     const defaultValue = { story: stories[currentSelectedStoryIndex] }
 
     return (
         <StoryViewerContext.Provider value={defaultValue}>
             <motion.div initial={{ opacity: 0, x: "-40px" }} animate={{ opacity: 1, x: 0 }} className="flex h-screen ">
-                <StoryList stories={stories} />
-                <Viewer key={stories[currentSelectedStoryIndex].id} frames={stories[currentSelectedStoryIndex].frames} />
+                {
+                    stories.length > 0 && currentSelectedStoryIndex !== -1 ?
+                        <>
+                            <StoryList stories={stories} />
+                            <Viewer  story={stories[currentSelectedStoryIndex]} key={stories[currentSelectedStoryIndex].id}/>
+                        </>
+                    : <Loading/>
+                }
+
             </motion.div>
-        </StoryViewerContext.Provider>
+         </StoryViewerContext.Provider>
     )
 }
 const StorySeen = ({ seen, children }) => {
@@ -73,18 +73,15 @@ const StorySeen = ({ seen, children }) => {
 const StoryItem = ({ story }) => {
     const time = moment(story.created_at, dateFormat);
     const now = moment();
-    const dispatch = useDispatch();
     const navigate = useNavigate()
-    const GoToStory = (story_id) => {
-        dispatch(addFramesThunk({ story_id, navigate }))
-    }
+
     const OpenInViewer = () => {
-        GoToStory(story.id)
+        navigate(`/story/${story.id}`)
 
     }
     return (
         <div onClick={OpenInViewer} className="relative  overflow-hidden aspect-[3/4] bg-red-500 rounded-[10px]">
-            <img src={story.thumbnail} className='object-cover w-full h-full' />
+            <QinqiiCustomImage src={story.thumbnail} className='object-cover w-full h-full' />
             <div className="absolute top-0 z-20 pt-[10px] pl-[10px] items-center flex gap-[8px]">
                 <div className="shrink-0">
                     {
@@ -102,7 +99,7 @@ const StoryItem = ({ story }) => {
             <StoryItemOverlay />
             <div className="flex gap-[7px] absolute bottom-0 pb-[10px] items-center pl-[10px] z-20 ">
                 <ActiveDot />
-                <Text>{moment.duration(now.diff(time)).hours()} giờ trước</Text>
+                <Text>{timeSinceCreatedAt(story.created_at)}</Text>
             </div>
         </div>
     )
@@ -114,7 +111,9 @@ const StoryItemOverlay = ({ onClick }) => {
         </div>
     )
 }
-const StoryList = ({ stories }) => {
+const StoryList = ({stories}) => {
+
+
 
 
     return (
@@ -148,8 +147,9 @@ const FrameState = {
     OPEN: 'OPEN',
     PAUSE: 'PAUSE'
 }
-const Viewer = ({ frames }) => {
-
+const Viewer = ({story}) => {
+    const frames = story.frames;
+    const user_id = useUserID();
 
     const [currentActiveFrameIndex, setCurrentActiveFrameIndex] = useState(0);
     const [currentActiveFrameState, setCurrentActiveFrameState] = useState(FrameState.OPEN);
@@ -193,22 +193,27 @@ const Viewer = ({ frames }) => {
     }, [])
     return (
         <ViewerContext.Provider value={defaultValue}>
-            <div className="h-full flex-1 flex justify-center items-center   bg-red-400">
-                <div className=" relative  rounded-[10px] m-[10px]    h-[600px]  w-[400px]">
-                    <StoryHeader images={frames} />
-                    <FrameOverlay onLeftPanelClick={PrevFrame} onCenterPanelClick={ToggleFrameState} onRightPanelClick={NextFrame} />
-                    <FrameContent key={frames[currentActiveFrameIndex].id} frame={frames[currentActiveFrameIndex]} />
-                    <StoryAction />
-                    <StoryFooter />
-                    <StoryDetail />
+                <div className="h-full flex-1 flex justify-center items-center   bg-red-400">
+                    <div className=" relative  rounded-[10px] m-[10px]    h-[600px]  w-[400px]">
+                        <StoryHeader images={frames} />
+                        <FrameOverlay onLeftPanelClick={PrevFrame} onCenterPanelClick={ToggleFrameState} onRightPanelClick={NextFrame} />
+                        <FrameContent key={frames[currentActiveFrameIndex].id} frame={frames[currentActiveFrameIndex]} />
+                        <StoryAction />
+                        <StoryFooter />
+                        {
+                            user_id === story.author_id &&
+                            <StoryDetail />
+
+                        }
+                    </div>
                 </div>
-            </div>
         </ViewerContext.Provider>
 
     )
 }
 const StoryDetail = () => {
     const { story } = useContext(StoryViewerContext);
+    const user_id = useUserID();
 
     const [isShow, setShow] = useState(false);
     const OpenStoryDetail = () => {
@@ -218,7 +223,7 @@ const StoryDetail = () => {
         <AnimatePresence >
             <div className="absolute z-20 w-full bottom-0 translate-y-[100%]">
                 {
-                    isShow ?
+                   isShow ?
                         <motion.div className='w-full h-[300px] bg-white  rounded-[10px]' animate={{ opacity: 1, y: '-100%' }} transition={{ damping: 0, duration: 0.2 }}>
 
 
@@ -259,7 +264,7 @@ const FrameContent = ({ frame }) => {
     return (
         <>
             {
-                frame.frame_type === 'IMAGE' ? <img src={frame.frame_url} className='object-cover h-full w-full rounded-[10px]' />
+                frame.frame_type === 'IMAGE' ? <QinqiiCustomImage src={frame.frame_url} className='object-cover h-full w-full rounded-[10px]' />
                     : <VideoFrame frame={frame} />
             }
         </>
@@ -300,31 +305,12 @@ function StoryFooter() {
 function StoryAction() {
     return (
         <div className="absolute right-0 z-20 top-[50%] translate-y-[-50%] pr-[15px]">
-            <div className="flex flex-col gap-[10px] py-[15px] px-[5px] border-solid border-[2px] border-white rounded-full">
 
-                <EmojiButton emoji={<BsFillHeartFill color='white' size={26} />} />
-            </div>
         </div>
     )
 }
-const StoryInput = () => {
-    return (
-        <div>
 
-            <input type="text" placeholder='Reply to story' />
-        </div>
-    )
-}
-const EmojiButton = ({ emoji }) => {
-    const HandleClick = () => {
 
-    }
-    return (
-        <div onClick={HandleClick}>
-            {emoji}
-        </div>
-    )
-}
 
 function StoryHeader({ images }) {
 
