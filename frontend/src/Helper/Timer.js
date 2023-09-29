@@ -24,7 +24,7 @@ class Timer {
         this.state = 'RUNNING'
         this.start = Date.now();
         this.timerId = window.setTimeout(() => {this.callback(); this.state= 'STOP';} , this.remaining);
-        if(this.state == 'STOP') this.clearTimeout();
+        if(this.state === 'STOP') this.clearTimeout();
       
     };
     

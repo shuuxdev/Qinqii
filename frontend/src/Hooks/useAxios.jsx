@@ -58,8 +58,10 @@ export const useAxios = () => {
     );
 
     const GET_Feed = async () => await securedApi.get('/feed');
-    const GET_Stories = async () => securedApi
-        .get(`/stories`)
+    const GET_Stories = async (page, page_size) => {
+        if(page && page_size) return securedApi.get(`/stories?PageNumber=${page}&PageSize=${page_size}`)
+        return securedApi.get(`/stories`)
+    }
     const GET_Story = async (id) =>  await GetApiResponseAs(securedApi
         .get(`/story?id=${id}`), ResponseType.Data)
     const GET_MyProfile = async () => await securedApi.get(`/user/profile`);
@@ -100,6 +102,22 @@ export const useAxios = () => {
     const     GET_UserFriends          = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/friends?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
     const     GET_UserPeopleYouMayKnow = async  ({pageSize, page}) => await GetApiResponseAs(securedApi.get(`user/people-you-may-know?&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
 
+    const POST_CreateStory = async (videos, thumbnails, images ) => {
+
+        if(videos.length != thumbnails.length) throw new Error('videos and thumbnails must have the same length')
+        const formFile = new FormData();
+        formFile.append('expire_after', 24);
+        for(let i = 0; i < videos.length; i++)
+        {
+            formFile.append(`videos[${i}].video`, videos[i]);
+            formFile.append(`videos[${i}].thumbnail.image`, thumbnails[i]);
+        }
+        for(let i = 0; i < images.length; i++)
+        {
+            formFile.append(`images[${i}].image`, images[i]);
+        }
+        return GetApiResponseAs(securedApi.post('/story/create', formFile), ResponseType.StatusCode);
+    }
 
     const api = {
         GET_FriendRequests,
@@ -110,6 +128,7 @@ export const useAxios = () => {
         POST_SendMessage,
         POST_ChangeAvatar,
         POST_ChangeBackground,
+        POST_CreateStory,
         GET_AllChat,
         GET_Chat,
         GET_Stories,

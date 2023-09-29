@@ -70,7 +70,7 @@ public class FriendController : ControllerBase
                  new FriendRequestIdParameter(request_id.ToString()),
             });
         var sender = await _user.GetUser(request.user_id); // sender
-        await _friendService.BroadcastFriendRequest(sender, request.friend_id);
+        await _friendService.BroadcastFriendRequest(sender, request.friend_id, request_id);
         return Ok();
     }
     [HttpGet("user/friendsWithName")]

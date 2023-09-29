@@ -16,7 +16,7 @@ const ResponseType = {
     StatusCode: 'StatusCode',
     Data: 'Data'
 }
-const handleApiCall = async (api, responseType)  => {
+const GetApiResponseAs = async (api, responseType)  => {
 
     try {
         const res = await api;
@@ -51,7 +51,7 @@ securedApi.interceptors.response.use(onSuccessResponse, (err) => {
 export const GET_Posts = async () => await securedApi.get('/feed');
 
 export const GET_UserProfile = async (user_id) =>
-    await securedApi.get('/user/profile');
+     GetApiResponseAs(securedApi.get(`/user?id=${user_id}`), ResponseType.Data);
 
 export const GET_Messages = async (conversation_id) =>
     await securedApi.get(`/chat?id=${conversation_id}`);
@@ -98,23 +98,24 @@ export const POST_SendFriendRequest = async ({ friend_id }) =>
 export const GET_Chat = async () => (await securedApi.get('/chat')).data;
 
 export const SEND_React = async (payload) =>
-    await handleApiCall(securedApi
+    await GetApiResponseAs(securedApi
         .patch('/react', payload), ResponseType.Data)
         
 export const UNDO_REACT = async (id) =>
-    await handleApiCall(securedApi
+    await GetApiResponseAs(securedApi
         .delete(`/undo-react?id=${id}`),ResponseType.StatusCode)
-        
 
-export const DELETE_Post = async (post_id) =>
-    await handleApiCall(securedApi
-        .delete(`/post/delete?id=${post_id}`), ResponseType.StatusCode)
+export const GET_UserPosts = async ({user_id, page, pageSize})=>  GetApiResponseAs(securedApi.get(`user/posts?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+export const     GET_UserImages  = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/images?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+export const     GET_UserVideos           = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/videos?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+export const     GET_UserFriends          = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/friends?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+export const DELETE_Post = async (post_id) => GetApiResponseAs(securedApi.delete(`/post/delete?id=${post_id}`), ResponseType.StatusCode)
 
 export const POST_UpdateStoryViewer = async (story_id) =>
-    await handleApiCall(securedApi.post(`/story/update-viewer?id=${story_id}`, ), ResponseType.StatusCode)
+    await GetApiResponseAs(securedApi.post(`/story/update-viewer?id=${story_id}`, ), ResponseType.StatusCode)
 
 export const GET_Story = async (story_id) =>
-        await handleApiCall(securedApi
+        await GetApiResponseAs(securedApi
             .get(`/story?id=${story_id}`), ResponseType.Data)
 
 export const POST_UploadAttachments = async (attachments) => {
@@ -122,7 +123,7 @@ export const POST_UploadAttachments = async (attachments) => {
     for (let i = 0; i < attachments.length; ++i) {
         formData.append('attachments', attachments[i]);
     }
-    return await handleApiCall(securedApi
+    return await GetApiResponseAs(securedApi
         .post('/post/upload-attachments', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         }), ResponseType.Data);
@@ -141,7 +142,7 @@ export const POST_CreateNewPost = async ({ content, videos, images, thumbnails }
             formData.append(`images[${i}].image`, images[i]);
         }
 
-        return await handleApiCall(securedApi.post('/post/create', formData, {
+        return await GetApiResponseAs(securedApi.post('/post/create', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         }), ResponseType.StatusCode);
     }
@@ -176,7 +177,7 @@ export const UPLOAD_Attachments = async (attachments) => {
     for (let i = 0; i < attachments.length; ++i) {
         formData.append('images', attachments[i]);
     }
-    return await handleApiCall(securedApi
+    return await GetApiResponseAs(securedApi
         .post('/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         }), ResponseType.Data);

@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import connection from "../Helper/SignalR.js";
-import { asyncLogin } from "../Modules/User.js";
+import { asyncLogin } from "../Reducers/User.js";
 
 const LOGIN_INFO = {
     username: "",

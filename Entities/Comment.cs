@@ -1,11 +1,13 @@
 using System.Net.Mail;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 public class Comment
 {
 
     public int post_id { get; set; }
     [JsonPropertyName("id")]
+    [JsonProperty("id")]
     public int comment_id { get; set; }
     public string content { get; set; }
     public int author_id { get; set; }

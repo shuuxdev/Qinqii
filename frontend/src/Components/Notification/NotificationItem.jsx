@@ -1,9 +1,15 @@
 import { BsThreeDots } from 'react-icons/bs'
 import Color from '../../Enums/Color.js'
-import { Avatar, DropdownItem, DropdownMenu } from '../CommonComponent.jsx'
 import { useNavigate } from 'react-router-dom'
 import { NotificationDropdownContext } from './NotificationDropdown.jsx'
-import { useContext } from 'react'
+import React, { useContext } from 'react'
+import { Avatar } from '../Common/Avatar';
+import { DropdownMenu } from '../Common/DropdownMenu';
+import { Text } from '../Common/Text';
+import { AiOutlineDelete } from 'react-icons/ai';
+import { NotificationNotSeenDot } from '../Common/NotificationNotSeenDot';
+import { useDispatch } from 'react-redux';
+import { markAsRead } from '../../Reducers/Notifications';
 
 const data = {
   "id": 47,
@@ -19,50 +25,78 @@ const data = {
   "actor_avatar": "shuu.jpg",
   "read": false
 }
-export function NotificationItem({ children, data }) {
+export function NotificationItem({ children, data, index }) {
   const TriggerSize = 18;
+  console.log(data);
   const navigate = useNavigate();
   const { CCIDOfNotification, setCCIDOfNotification } = useContext(NotificationDropdownContext);
+  const zIndex = 100 - index;
+  const ToggleDropdown = () => {
+    setCCIDOfNotification(CCIDOfNotification ? null : data.id);
+  }
+  const dispatch = useDispatch()
+  const CloseDropdown = () => {
+    setCCIDOfNotification(null);
+  }
   const Trigger = () => (
-    <div onClick={() => setCCIDOfNotification(data.id)} className={`p-[10px]   self-end w-fit rounded-full cursor-pointer hover:bg-[${Color.Hover}]`}>
+    <div  onClick={ToggleDropdown}  className={`p-[10px] opacity-0 hover:opacity-[1]  self-end w-fit rounded-full cursor-pointer hover:bg-[${Color.White}]`}>
       <BsThreeDots size={TriggerSize}></BsThreeDots>
-    </div>)
+    </div>
+
+  )
+  const handleClick = () => {
+    dispatch(markAsRead(data.id));
+    navigate(`/user/${data.actor_id}`, {replace: true})
+  }
   return (
     <div className="notification_item">
       <div className="shrink-0">
         <Avatar sz={36} src={data.actor_avatar} />
       </div>
       <div className="grow flex ">
-        <div onClick={() => navigate(`/user/${data.actor_id}`)} className="flex-grow">
+        <div onClick={handleClick} className="flex-grow relative">
           {children}
+
         </div>
-        <div className="shrink-0">
-          <Trigger />
+        <div style={{zIndex}} className="shrink-0 relative">
+          <DropdownMenu  isOpen={CCIDOfNotification === data.id} handleItemClick={CloseDropdown}  TriggerElement={Trigger}>
+            <div className="p-[10px] relative cursor-pointer hover:bg-[#E53935] group">
+              <Text className='w-fit group-hover:text-white'> Xóa bình luận</Text>
+              <AiOutlineDelete className='group-hover:text-white' />
+            </div>
+          </DropdownMenu>
         </div>
       </div>
+      {
+          data.read === false &&
+          <div className='absolute right-[20px]'>
+            <NotificationNotSeenDot />
+          </div>
+      }
+
     </div>
   )
 }
-export const FriendRequestNotificationItem = ({ data }) => {
-  return <NotificationItem data={data}>
+export const FriendRequestNotificationItem = ({ data, index }) => {
+  return <NotificationItem index={index} data={data}>
     <span className="text-sm font-semibold">{data.actor_name} đã gửi cho bạn một lời mời kết bạn</span>
     <div className="text-xs text-gray-500">{data.timestamp}</div>
   </NotificationItem>
 }
-export const CommentNotificationItem = ({ data }) => {
-  return <NotificationItem data={data}>
+export const CommentNotificationItem = ({ data, index }) => {
+  return <NotificationItem index={index} data={data}>
     <span className="text-sm font-semibold">{data.actor_name} đã bình luận trong một bài viết của bạn</span>
     <div className="text-xs text-gray-500">{data.timestamp}</div>
   </NotificationItem>
 }
-export const LikePostNotificationItem = ({ data }) => {
-  return <NotificationItem data={data}>
+export const LikePostNotificationItem = ({ data, index }) => {
+  return <NotificationItem index={index} data={data}>
     <span className="text-sm font-semibold">{data.actor_name} đã thả cảm xúc về bài viết của bạn</span>
     <div className="text-xs text-gray-500">{data.timestamp}</div>
   </NotificationItem>
 }
-export const FriendRequestAcceptedNotificationItem = ({ data }) => {
-  return <NotificationItem data={data}>
+export const FriendRequestAcceptedNotificationItem = ({ data, index }) => {
+  return <NotificationItem index={index} data={data}>
     <span className="text-sm font-semibold">{data.actor_name} đã chấp nhận lời mời kết bạn của bạn</span>
     <div className="text-xs text-gray-500">{data.timestamp}</div>
   </NotificationItem>

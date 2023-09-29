@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Qinqii.Models;
+using Qinqii.Models.Paging;
 using Qinqii.Service;
 
 namespace Qinqii.Controllers;
@@ -34,10 +35,10 @@ public class FeedController : ControllerBase
         };
     }
     [HttpGet("stories")]
-    public async Task<IActionResult> GetStories(CancellationToken token)
+    public async Task<IActionResult> GetStories(Page page,CancellationToken token)
     {
         int user_id =  HttpContext.GetUserId();
-        var stories = await _feedService.GetStories(token);
+        var stories = await _feedService.GetStories(page, user_id, token);
         return Ok(stories);
     }
 }

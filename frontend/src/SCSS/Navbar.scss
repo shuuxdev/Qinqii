@@ -1,0 +1,21 @@
+
+@import 'utilities';
+.container {
+  width: clamp(200px, 100%, 1300px);
+  .favicon {
+    flex-shrink: 0;
+  }
+
+  .search {
+    width: 100%;
+    max-width: 400px;
+    .search-bar {
+      @include max-media(sm){
+        flex-grow: 1;
+        flex-shrink: 1;
+      }
+    }
+  }
+}
+
+

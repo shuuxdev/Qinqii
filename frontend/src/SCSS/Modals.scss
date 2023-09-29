@@ -95,7 +95,11 @@ $call-modal-height: 600px;
     }
 }
 .story-upload-modal {
-
+    .ant-modal-body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
 }
 .avatar-upload-modal {

@@ -6,8 +6,10 @@ import '../../SCSS/Notification.scss';
 import { CommentNotificationItem, FriendRequestAcceptedNotificationItem, FriendRequestNotificationItem, LikeCommentNotificationItem, LikePostNotificationItem, NotificationItem } from "./NotificationItem.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import connection from '../../Helper/SignalR.js'
-import { addNotification } from "../../Modules/Notifications.js";
+import { addNotification } from "../../Reducers/Notifications.js";
 import { NotificationType } from "../../Enums/NotificationType.js";
+import { useMediaQuery } from 'react-responsive';
+import { ScreenWidth } from '../../Enums/ScreenWidth';
 export const NotificationDropdownContext = createContext();
 
 
@@ -21,7 +23,7 @@ export const NotificationDropdown = () => {
     const ctxValue = {
         CCIDOfNotification, setCCIDOfNotification
     }
-
+    const isPhoneScreen = useMediaQuery({ query: `(max-width: ${ScreenWidth.sm}px)` });
     const Toggle = () => {
         setNotification(!notification);
     }
@@ -48,22 +50,29 @@ export const NotificationDropdown = () => {
     const setupDropdownPosition = () => {
         if (bellIcon.current) {
 
-            const { right, width } = bellIcon.current.getBoundingClientRect();
-            setPosition({ top: 100, right, width });
+
+
+            if(!isPhoneScreen) {
+                const { right, width } = bellIcon.current.getBoundingClientRect();
+                setPosition({ top: 100, right, width });
+                return;
+            }
+            setPosition({ top: 100, right: 0, width: window.innerWidth });
+
         }
     }
-    const renderNotification = (notification) => {
+    const renderNotification = (notification, index) => {
         switch (notification.type) {
             case NotificationType.FRIEND_REQUEST:
-                return <FriendRequestNotificationItem key={notification.id} data={notification}></FriendRequestNotificationItem>
+                return <FriendRequestNotificationItem index={index}  key={notification.id} data={notification}></FriendRequestNotificationItem>
             case NotificationType.COMMENT:
-                return <CommentNotificationItem key={notification.id} data={notification}></CommentNotificationItem>
+                return <CommentNotificationItem index={index} key={notification.id} data={notification}></CommentNotificationItem>
             case NotificationType.LIKE_COMMENT:
-                return <LikeCommentNotificationItem key={notification.id} data={notification}></LikeCommentNotificationItem>
+                return <LikeCommentNotificationItem index={index} key={notification.id} data={notification}></LikeCommentNotificationItem>
             case NotificationType.LIKE_POST:
-                return <LikePostNotificationItem key={notification.id} data={notification}></LikePostNotificationItem>
+                return <LikePostNotificationItem index={index} key={notification.id} data={notification}></LikePostNotificationItem>
             case NotificationType.FRIEND_ACCEPT:
-                return <FriendRequestAcceptedNotificationItem key={notification.id} data={notification} />
+                return <FriendRequestAcceptedNotificationItem index={index} key={notification.id} data={notification} />
             default:
                 return <div></div>
         }
@@ -84,17 +93,17 @@ export const NotificationDropdown = () => {
             <AnimatePresence>
                 {
                     notification &&
-                    <div className={className} style={{ right: window.innerWidth - position.right - position.width, marginTop: 3 }}>
-                        <motion.div className="overflow-y-hidden " variants={variants} initial="hidden" animate="visible" exit="hidden">
+                    <div className={className} style={{width: isPhoneScreen ? "100%" : "", right: window.innerWidth - position.right - position.width, marginTop: 3 }}>
+                        <motion.div  variants={variants} initial="hidden" animate="visible" exit="hidden">
                             <div className="notification_header">
                                 <div className="text-xl font-bold">Notification</div>
                             </div>
-                            <div className="notification" >
+                            <div className="notification w-full" >
 
                                 {
                                     notifications.length > 0 ?
-                                        notifications.map((notification, index) => (
-                                            renderNotification(notification)
+                                        notifications.slice(0,5).map((notification, index) => (
+                                            renderNotification(notification, index)
                                         ))
                                         : <EmptyNotification />
                                 }

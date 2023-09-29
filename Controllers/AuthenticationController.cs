@@ -20,7 +20,7 @@ namespace Qinqii.Controllers
         private readonly AuthService authService;
         private readonly IConfiguration config;
         private readonly IHostEnvironment _env;
-
+        
         public AuthenticationController(AuthService _authService, UserService
          _userService, IConfiguration _config, IHostEnvironment env)
         {
@@ -29,7 +29,7 @@ namespace Qinqii.Controllers
             this.config = _config;
             _env = env;
         }
-
+        
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginRequest u)
         {

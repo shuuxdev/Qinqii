@@ -1,15 +1,15 @@
 import React, { useRef, useState } from 'react';
 import { Modal } from 'antd';
 import { useDispatch } from 'react-redux';
-import { hideModal, showModal } from '../../Modules/Modals';
+import { hideModal, showModal } from '../../Reducers/Modals';
 import { motion } from 'framer-motion';
 import { AiOutlineCamera } from 'react-icons/ai';
 import { faker } from '@faker-js/faker';
-import { QinqiiCustomImage } from '../CommonComponent';
 import { ModalType } from '../../Enums/Modal';
-import { ShowNotification } from '../../Modules/UI';
+import { ShowNotification } from '../../Reducers/UI';
 import { Severity } from '../../Enums/FetchState';
 import { useAxios } from '../../Hooks/useAxios';
+import { QinqiiCustomImage } from '../Common/QinqiiCustomImage';
 
 export function UploadAvatarModal({src}) {
     const dispatch = useDispatch();

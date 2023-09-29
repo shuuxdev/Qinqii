@@ -9,7 +9,7 @@ public class Reaction
     [JsonIgnore] public string entity_type { get; set; }
 
     [JsonPropertyName("id")] public int id { get; set; } 
-    [JsonPropertyName("reactor_id")] public int user_id { get; set; }
+    public int reactor_id { get; set; }
     public string reactor_name { get; set; }
     public string reactor_avatar { get; set; }
     public string emoji { get; set; }

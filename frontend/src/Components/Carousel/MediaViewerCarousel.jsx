@@ -1,10 +1,10 @@
-import { QinqiiCustomImage } from '../CommonComponent';
 import { faker } from '@faker-js/faker';
 import {AiFillDownCircle, AiFillUpCircle} from 'react-icons/ai'
 import { twMerge } from 'tailwind-merge';
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { GetTransformYValue } from '../../Helper/GetTransformYValue';
 import { MediaViewerModalContext } from '../Modals/MediaViewerModal';
+import { QinqiiCustomImage } from '../Common/QinqiiCustomImage';
 
 const CarouselContext = createContext()
 const MediaViewerCarousel = ({ attachments }) => {

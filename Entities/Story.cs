@@ -13,7 +13,8 @@ public class Story
     public string thumbnail { get; set; }
     public List<Frame> frames { get; set; } = new();
     public List<FrameViewer> viewers { get; set; } = new();
-
+    
+    public bool seen { get; set; }
     public DateTime created_at { get; set; }
     public int expire_after { get; set; }
 }

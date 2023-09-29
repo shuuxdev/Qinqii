@@ -52,9 +52,9 @@ public class FriendService
         return receiver_id;
     }
 
-    public async Task BroadcastFriendRequest(User sender, int receiver_id)
+    public async Task BroadcastFriendRequest(User sender, int receiver_id, int request_id )
     {
-        await _hubContext.Clients.User(receiver_id.ToString()).SendAsync("ReceiveFriendRequest", sender);
+        await _hubContext.Clients.User(receiver_id.ToString()).SendAsync("ReceiveFriendRequest", sender, request_id);
     }
     
 }

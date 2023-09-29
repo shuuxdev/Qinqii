@@ -1,12 +1,13 @@
 import { ModalWrapper } from "./ModalWrapper.jsx"
 import '../../SCSS/Modals.scss'
-import { QinqiiCustomImage, QinqiiCustomVideo } from '../CommonComponent';
 import { faker } from '@faker-js/faker';
 import MediaViewerCarousel from '../Carousel/MediaViewerCarousel';
 import { useDispatch, useSelector } from 'react-redux';
 import { createContext, useState } from 'react';
-import { hideModal } from '../../Modules/Modals';
+import { hideModal } from '../../Reducers/Modals';
 import { ENTITY } from '../../Enums/Entity';
+import { QinqiiCustomVideo } from '../Common/QinqiiCustomVideo';
+import { QinqiiCustomImage } from '../Common/QinqiiCustomImage';
 
 
 

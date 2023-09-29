@@ -33,7 +33,7 @@ namespace Qinqii.Controllers
             this.signalr = signalr;
             user = userService;
         }
-
+        [HttpGet]
         public async Task<IActionResult> GetProfile(int id)
         {
             var user_profile = await user.GetProfile(id);

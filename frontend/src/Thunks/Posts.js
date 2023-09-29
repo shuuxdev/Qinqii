@@ -1,18 +1,20 @@
 import {
     CREATE_Comment,
     DELETE_Comment,
-    DELETE_Post, EDIT_Comment,
-    GET_Posts, POST_CreateNewPost,
+    DELETE_Post,
+    EDIT_Comment,
+    POST_CreateNewPost,
     SEND_React,
     UNDO_REACT,
     UPLOAD_Attachments,
 } from '../Helper/Axios';
 import { ENTITY } from '../Enums/Entity';
-import { CloseDialog, ShowNotification } from '../Modules/UI';
+import { CloseDialog, ShowNotification } from '../Reducers/UI';
 import { Severity } from '../Enums/FetchState';
 import { GetAttachmentType } from '../Helper/GetAttachmentType';
 import { getVideoFirstFrame } from '../Helper/GetVideoFirstFrame';
-import { fetchPostsThunk } from '../Modules/Posts';
+import { fetchPosts, fetchPostsThunk } from '../Reducers/Posts';
+
 const findParentComment = (comment, parent_id) => {
     if (!comment) return null;
 
@@ -104,16 +106,20 @@ export const reactToCommentThunk =
             dispatch(updateComment(comment));
         }
     };
-export const deletePostThunk = (post_id) => async (dispatch) => {
+export const deletePostThunk = (post_id, removePost) => async (dispatch) => {
     const [statusCode, err] = await DELETE_Post(post_id);
-    dispatch(fetchPostsThunk());
+
     if (statusCode === 200)
+    {
+        dispatch(removePost(post_id));
         dispatch(
             ShowNotification({
                 content: 'Xóa bài viết thành công',
                 severity: Severity.SUCCESS,
             })
         );
+    }
+
     else {
         dispatch(
             ShowNotification({
@@ -206,7 +212,7 @@ export const createNewPostThunk = ({content, attachments}) => async (dispatch, g
     }))
     let [statusCode,error] = await POST_CreateNewPost({content, videos, images, thumbnails})
     dispatch(CloseDialog());
-    dispatch(fetchPostsThunk())
+    dispatch(fetchPostsThunk(fetchPosts))
     if (statusCode === 200) {
         dispatch(
             ShowNotification({

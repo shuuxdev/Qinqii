@@ -1,27 +1,18 @@
-import { faker } from '@faker-js/faker';
 import { FaBirthdayCake, FaFemale, FaGraduationCap, FaHeart, FaMale } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-    addComment,
-    fetchPosts,
-    removeComment,
-    updateComment,
-    updatePost,
-    useGetFriendsQuery,
-    useGetImagesQuery,
-    useGetProfileQuery,
-    useGetVideosQuery,
-} from '../Modules/Profile.js';
+import { fetchPosts, fetchProfileThunk, useGetProfileQuery } from '../Reducers/Profile.js';
 import { useParams } from 'react-router-dom';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { QinqiiCustomImage } from '../Components/CommonComponent.jsx';
-import { Post } from '../Components/Post.jsx';
-import { FriendItem } from '../Components/FriendItem.jsx';
-import { AiOutlineCamera, AiOutlineComment, AiOutlineHeart } from 'react-icons/ai';
+import { AiOutlineCamera } from 'react-icons/ai';
 import { motion } from 'framer-motion';
 import { useAxios } from '../Hooks/useAxios';
-import { showModal } from '../Modules/Modals';
+import { showModal } from '../Reducers/Modals';
 import { ModalType } from '../Enums/Modal';
+import { QinqiiCustomImage } from '../Components/Common/QinqiiCustomImage';
+import { VideosTab } from '../Components/Profile/VideosTab';
+import { PostsTab } from '../Components/Profile/PostsTab';
+import { FriendsTab } from '../Components/Profile/FriendsTab';
+import { ImagesTab } from '../Components/Profile/ImagesTab';
 
 
 const AvatarCircle = ({src}) => {
@@ -43,15 +34,12 @@ const AvatarCircle = ({src}) => {
 }
 
 const BackgroundAndAvatar = () => {
-    const { profile } = useContext(ProfileContext)
+    const {profile} =  useContext(ProfileContext);
     const { background, avatar, name } = profile;
-    console.log(profile)
     return (
         <div className="shadow-md  p-[10px]">
-            <div className="relative  min-h-[300px] my-[10px] ">
-                <div className="aspect-video">
+            <div className="relative  min-h-[150px] my-[10px] aspect-video">
                     <QinqiiCustomImage className="rounded-[9px] object-cover w-full h-full"  src={background} alt="" />
-                </div>
                 <AvatarCircle src={avatar}/>
             </div>
 
@@ -127,25 +115,35 @@ const Tab = {
   Groups: 'GROUP'
 }
 const ProfileContext = createContext();
-const Profile = ({ user_profile }) => {
-  const param = useParams();
-
-  const { data: profile, isLoading, isFetching, isError, isSuccess } = useGetProfileQuery(param.id)
+const Profile = () => {
+    const param = useParams();
+    const dispatch = useDispatch();
+    const location = window.location;
+  const profile = useSelector(state => state.profile);
   const [activeTab, setActiveTab] = useState(Tab.Posts)
-  const dispatch = useDispatch()
-  const axios = useAxios()
-  const init = async () => {
-    const [data, error] = await axios.GET_UserPosts({user_id: param.id, page: 1, pageSize: 10})
-    dispatch(fetchPosts(data))
-  }
-  useEffect(() => {
-      init();
-  }, [param.id]);
+    console.log(profile);
+    useEffect(() => {
+        dispatch(fetchProfileThunk(param.id))
+    }, [param.id]);
+    useEffect(() => {
+        if(location.pathname === `/user/${param.id}`){
+            setActiveTab(Tab.Posts);
+        }
+        if(location.pathname === `/user/${param.id}/images`){
+            setActiveTab(Tab.Images);
+        }
+        if(location.pathname === `/user/${param.id}/videos`){
+            setActiveTab(Tab.Videos);
+        }
+        if(location.pathname === `/user/${param.id}/friends`){
+            setActiveTab(Tab.Friends);
+        }
 
+    }, [location.pathname]);
   return (
     <>
       {
-        profile && isSuccess &&
+         profile &&
         <ProfileContext.Provider value={{ profile, activeTab, setActiveTab }}>
           <BackgroundAndAvatar></BackgroundAndAvatar>
           <Navbar></Navbar>
@@ -179,143 +177,16 @@ const Profile = ({ user_profile }) => {
 }
 
 
-const ImagesTab = () => {
-  const param = useParams();
-  const { data: images, isSuccess } = useGetImagesQuery({user_id: param.id, page: 1, pageSize: 20})
-  
-    const dispatch = useDispatch();
-  const variant = {
-      hidden: {
-        opacity: 0,
-      },
-      visible: {
-        opacity: 1
-      }
-  }
-  const OpenInMediaViewer = (index) => {
-      const attachments = images.filter((image) => images[index].post_id === image.post_id)
-                        .map((image) => ({link: image.attachment_link, type:'IMAGE', id: image.attachment_id}))
 
-      let selectedIndex = 0;
-      attachments.forEach((attachment, i) => {
-            if(attachment.id === images[index].attachment_id) selectedIndex = i;
-      })
-
-      dispatch(showModal({modalType: ModalType.MEDIA, modalProps: {attachments, selected: selectedIndex}}))
-  }
-  return (<div className="grid gap-1 grid-flow-row grid-cols-3 grid-rows-3 p-[20px]">
-    {
-      isSuccess &&
-      images.map((image, index) => (
-        <div onClick={() => OpenInMediaViewer(index)} className="rounded-[5px] overflow-hidden relative aspect-square">
-          <motion.div variants={variant} initial="hidden" whileHover="visible" className='absolute cursor-pointer inset-0 transparent-black-background'>
-            <div className='absolute bottom-0 flex justify-between w-full p-[10px]'>
-                <div className='flex'>
-                  <AiOutlineHeart size={24} className='text-white mx-[5px]'/>
-                  <span className=''>{image.reactions}</span>
-                  </div>
-              <div className='flex'>
-
-                <AiOutlineComment size={24} className='text-white mx-[5px]'></AiOutlineComment>
-                <span className='text-white mx-[5px]'>{image.comments}</span>
-              </div>
-            </div>
-          </motion.div>
-          <QinqiiCustomImage className="w-full h-full object-cover" src={image.attachment_link} alt="" />
-        </div>
-      ))
-    }
-  </div>)
-
-}
-
-const PreviewImage = () => {
-
-}
-const VideosTab = () => {
-
-  const variant = {
-    hidden: {
-      opacity: 0,
-    },
-    visible: {
-      opacity: 1
-    }
-  }
-  const dispatch = useDispatch();
-  const param = useParams();
-  const { data: videos, isSuccess } = useGetVideosQuery({user_id: param.id, page: 1, pageSize: 20})
-    
-    const OpenInMediaViewer = (index) => {
-        const attachments = videos.filter((video) => videos[index].post_id === video.post_id)
-            .map((video) => ({link: video.attachment_link, type:'VIDEO', id: video.attachment_id, thumbnail: video.thumbnail}))
-
-        let selectedIndex = 0;
-        attachments.forEach((attachment, i) => {
-            if(attachment.id === videos[index].attachment_id) selectedIndex = i;
-        })
-
-        dispatch(showModal({modalType: ModalType.MEDIA, modalProps: {attachments, selected: selectedIndex}}))
-    }
-  return (<div className="grid gap-1 grid-flow-row grid-cols-3 grid-rows-3 p-[20px]">
-    {
-      isSuccess &&
-      videos.map((video,index) => (
-          <div onClick={() => OpenInMediaViewer(index)} className="rounded-[5px] overflow-hidden relative aspect-square">
-            <motion.div variants={variant} initial="hidden" whileHover="visible" className='absolute cursor-pointer inset-0 transparent-black-background'>
-              <div className='absolute bottom-0 flex justify-between w-full p-[10px]'>
-                <div className='flex'>
-                  <AiOutlineHeart size={24} className='text-white mx-[5px]'/>
-                  <span className='text-white mx-[5px]'>{video.reactions}</span>
-                </div>
-                <div className='flex'>
-
-                  <AiOutlineComment size={24} className='text-white mx-[5px]'></AiOutlineComment>
-                  <span className='text-white mx-[5px]'>{video.comments}</span>
-                </div>
-              </div>
-            </motion.div>
-            <QinqiiCustomImage className="w-full h-full object-cover" src={video.thumbnail} alt="" />
-          </div>
-      ))
-    }
-  </div>)
-}
-const PostsTab = () => {
-  const posts = useSelector(state => state.profile.posts)
-  return (<>
-    {
-      posts.map((post) => (
-        <Post post={post} action={{updatePost, updateComment, addComment, removeComment}} />
-      ))
-    }
-  </>)
-}
-const FriendsTab = () => {
-  const param = useParams();
-  const { data: friends, isSuccess } = useGetFriendsQuery({ user_id: param.id,page: 1, pageSize: 10 })
-
-  return (<>
-    {
-      isSuccess &&
-      <div className="rounded-[10px] p-[10px] qinqii-thin-shadow gap-[10px]   grid grid-cols-2">
-        {
-          friends.map((friend) => (
-            <FriendItem friend={friend} />
-          ))}
-      </div>
-    }
-  </>)
-}
 const Navbar = () => {
   const { setActiveTab } = useContext(ProfileContext)
   return (
-    <navbar className="flex bg-white text-gray-700">
+    <div className="flex bg-white text-gray-700">
       <NavItem text={'Posts'} onClick={() => setActiveTab(Tab.Posts)} />
       <NavItem text={'Ảnh'} onClick={() => setActiveTab(Tab.Images)} />
       <NavItem text={'Videos'} onClick={() => setActiveTab(Tab.Videos)} />
       <NavItem text={'Bạn bè'} onClick={() => setActiveTab(Tab.Friends)} />
-    </navbar>
+    </div>
   )
 }
 const NavItem = ({ onClick, text }) => {

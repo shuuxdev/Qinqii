@@ -121,6 +121,7 @@ public class ChatController : ControllerBase
         };
     }
     
+    [HttpDelete]
     public async Task<IActionResult> DeleteMessage(int message_id)
     {
         await _userService.DeleteMessage(message_id);

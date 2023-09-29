@@ -3,23 +3,23 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App.js';
 import { combineReducers } from 'redux';
-import identityReducer from './Modules/User';
-import chatReducer from './Modules/Chats';
-import contactsReducer from './Modules/Contacts';
-import profileReducer, { profileApiSlice } from './Modules/Profile';
-import friendRequestsReducer from './Modules/FriendRequests';
-import UIReducer from './Modules/UI';
-import postReducer from './Modules/Posts';
-import callReducer from './Modules/Call';
-import storiesReducer from './Modules/Stories';
-import modalReducer from './Modules/Modals';
-import notificationReducer from './Modules/Notifications';
+import userReducer from './Reducers/User';
+import chatReducer from './Reducers/Chats';
+import contactsReducer from './Reducers/Contacts';
+import profileReducer, { profileApiSlice } from './Reducers/Profile';
+import friendRequestsReducer from './Reducers/FriendRequests';
+import UIReducer from './Reducers/UI';
+import postReducer from './Reducers/Posts';
+import callReducer from './Reducers/Call';
+import storiesReducer from './Reducers/Stories';
+import modalReducer from './Reducers/Modals';
+import notificationReducer from './Reducers/Notifications';
 import { configureStore } from '@reduxjs/toolkit';
 import thunkMiddleware from 'redux-thunk';
 import { Provider } from 'react-redux';
 
 const rootReducer = combineReducers({
-    identity: identityReducer,
+    user: userReducer,
     chats: chatReducer,
     contacts: contactsReducer,
     profile: profileReducer,
