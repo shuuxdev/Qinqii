@@ -64,6 +64,8 @@ public static class QinqiiSqlHelper
         }
         return dt.AsTableValuedParameter();
     }
+    
+    
 
     
 }

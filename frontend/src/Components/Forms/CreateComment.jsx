@@ -57,7 +57,7 @@ export const CreateComment = ({ post, initValue, initAttachments = [], parent_id
     }
     return (
 
-        <motion.div layout animate={controls} className="relative  rounded-[15px]  w-full overflow-hidden grow bg-[#F0F2F5]">
+        <motion.div  animate={controls} className="relative  rounded-[15px]  w-full overflow-hidden grow bg-[#F0F2F5]">
             <input
                 type="text"
                 onFocus={HandleFocus}

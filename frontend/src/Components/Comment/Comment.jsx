@@ -97,7 +97,7 @@ export const Comment = ({ comment, post, index }) => {
         <div className=' w-full py-[10px]'>
             <div className='flex gap-[10px] relative'>
                 <div className='flex-shrink-0'>
-                    <Avatar sz={35} src={comment.author_avatar} />
+                    <Avatar sz={35} src={comment.author_avatar} user_id={comment.author_id}/>
                 </div>
 
                 {

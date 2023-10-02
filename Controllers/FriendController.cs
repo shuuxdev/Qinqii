@@ -57,6 +57,7 @@ public class FriendController : ControllerBase
         var u = await _user.GetFriends(id);
         return new JsonResult(u);
     }
+    
     [HttpPost("user/send-friend-request")]
     public async Task<IActionResult> SendFriendRequest([FromBody] CreateFriendRequest request)
     {
@@ -84,5 +85,17 @@ public class FriendController : ControllerBase
     {
         var u = await _user.FindUserByName(startWith);
         return Ok(u);
+    }
+    [HttpPost("user/cancel-friend-request")]
+    public async Task<IActionResult> CancelFriendRequest([FromBody] CancelFriendRequest request)
+    {
+        await _friendService.CancelFriendRequest(request);
+        return Ok();
+    }
+    [HttpPost("user/unfriend")]
+    public async Task<IActionResult> Unfriend([FromBody] UnfriendRequest request)
+    {
+        await _friendService.Unfriend(request);
+        return Ok();
     }
 }

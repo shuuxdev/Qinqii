@@ -111,6 +111,12 @@ namespace Qinqii.Controllers
                 StatusCode = 200
             };
         }
-
+        [HttpGet("relationship-with-user")]
+        public async Task<IActionResult> GetRelationshipOfUser(int id)
+        {
+            var u = await user.GetRelationship(HttpContext.GetUserId(), friend_id:id);
+            return Ok(u);
+        }
+        
     }
 }

@@ -159,7 +159,9 @@ export const EDIT_Post = async ({ comment_id, content, attachments }) => {
         headers: { 'Content-Type': 'multipart/form-data' },
     });
 };
-
+export const POST_MarkAsRead = async (conversation_id) => {
+    return await GetApiResponseAs(securedApi.post('/chat/mark-as-read',  {conversation_id} ), ResponseType.StatusCode);
+}
 export const DELETE_Comment = async (comment_id) =>
     await securedApi
         .delete(`/comment/delete?id=${comment_id}`)

@@ -39,6 +39,7 @@ export function StoryUploadModal(props) {
         }
         else {
             dispatch(ShowNotification({content: 'Story uploaded successfully', severity: Severity.SUCCESS }));
+            dispatch(hideModal());
         }
     }
     return (

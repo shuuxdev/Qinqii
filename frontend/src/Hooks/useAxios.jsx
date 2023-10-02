@@ -83,7 +83,7 @@ export const useAxios = () => {
         await api.post('/chat/message', {
             message_info,
         });
-    const GET_AllChat = async () => await securedApi.get(`/chat/all`);
+    const GET_AllChat = async () =>  securedApi.get(`/chat/all`);
     const GET_Chat = async () => (await securedApi.get('/chat')).data;
 
     const POST_ChangeAvatar = async (avatar) => {
@@ -119,6 +119,14 @@ export const useAxios = () => {
         return GetApiResponseAs(securedApi.post('/story/create', formFile), ResponseType.StatusCode);
     }
 
+    const GET_RelationshipWithUser = (user_id) => GetApiResponseAs(securedApi.get(`/user/relationship-with-user?id=${user_id}`), ResponseType.Data);
+
+     const POST_SendFriendRequest = async ({ friend_id }) =>
+         GetApiResponseAs(securedApi.post('/user/send-friend-request', {  friend_id}), ResponseType.StatusCode);
+     const POST_CancelFriendRequest = async ({ friend_id }) =>
+            GetApiResponseAs(securedApi.post('/user/cancel-friend-request', {  friend_id}), ResponseType.StatusCode);
+     const POST_Unfriend = async ({ friend_id }) =>
+            GetApiResponseAs(securedApi.post('/user/unfriend', {  friend_id}), ResponseType.StatusCode);
     const api = {
         GET_FriendRequests,
         GET_Messages,
@@ -129,6 +137,7 @@ export const useAxios = () => {
         POST_ChangeAvatar,
         POST_ChangeBackground,
         POST_CreateStory,
+        POST_SendFriendRequest,
         GET_AllChat,
         GET_Chat,
         GET_Stories,
@@ -141,7 +150,10 @@ export const useAxios = () => {
         GET_UserImages,
         GET_UserVideos,
         GET_UserFriends,
-        GET_UserPeopleYouMayKnow
+        GET_UserPeopleYouMayKnow,
+        GET_RelationshipWithUser,
+        DELETE_CancelFriendRequest: POST_CancelFriendRequest,
+        DELETE_Unfriend: POST_Unfriend,
     };
     return api;
 };

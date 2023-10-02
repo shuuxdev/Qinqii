@@ -1,6 +1,6 @@
 import { FaBirthdayCake, FaFemale, FaGraduationCap, FaHeart, FaMale } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPosts, fetchProfileThunk, useGetProfileQuery } from '../Reducers/Profile.js';
+import { fetchFriendsThunk, fetchPosts, fetchProfileThunk, useGetProfileQuery } from '../Reducers/Profile.js';
 import { useParams } from 'react-router-dom';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { AiOutlineCamera } from 'react-icons/ai';
@@ -13,6 +13,8 @@ import { VideosTab } from '../Components/Profile/VideosTab';
 import { PostsTab } from '../Components/Profile/PostsTab';
 import { FriendsTab } from '../Components/Profile/FriendsTab';
 import { ImagesTab } from '../Components/Profile/ImagesTab';
+import { ButtonState, FriendButton } from '../Components/Common/Buttons/FriendButton';
+import { useUserID } from '../Hooks/useUserID';
 
 
 const AvatarCircle = ({src}) => {
@@ -37,21 +39,13 @@ const BackgroundAndAvatar = () => {
     const {profile} =  useContext(ProfileContext);
     const { background, avatar, name } = profile;
     return (
-        <div className="shadow-md  p-[10px]">
+        <div className=" p-[10px]">
             <div className="relative  min-h-[150px] my-[10px] aspect-video">
                     <QinqiiCustomImage className="rounded-[9px] object-cover w-full h-full"  src={background} alt="" />
                 <AvatarCircle src={avatar}/>
             </div>
 
-            <div className="p-[10px] b-[red] mt-[80px]">
-                <div className=" flex items-center justify-center flex-col">
-                    {/* First name and Last name */}
-                    <h1 className="text-[28px] font-bold">{name}</h1>
-                    <div className="flex">
-                        <span className="text-gray-700">36 người bạn</span>
-                    </div>
-                </div>
-            </div>
+
         </div>
     )
 }
@@ -114,17 +108,38 @@ const Tab = {
   Friends: 'FRIEND',
   Groups: 'GROUP'
 }
+const RelationshipToButtonState = {
+    'ACCEPTED': ButtonState.IsFriend,
+    'PENDING': ButtonState.RequestSent,
+    'STRANGER': ButtonState.Default,
+}
 const ProfileContext = createContext();
 const Profile = () => {
     const param = useParams();
     const dispatch = useDispatch();
     const location = window.location;
-  const profile = useSelector(state => state.profile);
-  const [activeTab, setActiveTab] = useState(Tab.Posts)
-    console.log(profile);
+    const axios = useAxios();
+    const [relationship, setRelationship] = useState(null);
+     const profile = useSelector(state => state.profile);
+     const [activeTab, setActiveTab] = useState(Tab.Posts)
+    const me = useUserID()
+    const checkFriend = async () => {
+        const [data,error] = await axios.GET_RelationshipWithUser(param.id);
+        setRelationship(data);
+    }
     useEffect(() => {
+
         dispatch(fetchProfileThunk(param.id))
+        dispatch(fetchFriendsThunk({ user_id: param.id, page: 1, pageSize: 10 }))
+
+        return () => {
+            setRelationship(null);
+        }
     }, [param.id]);
+    useEffect(() => {
+        checkFriend();
+
+    });
     useEffect(() => {
         if(location.pathname === `/user/${param.id}`){
             setActiveTab(Tab.Posts);
@@ -146,6 +161,24 @@ const Profile = () => {
          profile &&
         <ProfileContext.Provider value={{ profile, activeTab, setActiveTab }}>
           <BackgroundAndAvatar></BackgroundAndAvatar>
+
+            <div className="p-[10px] b-[red] mt-[30px]">
+                <div className=" flex items-center justify-center flex-col">
+                    <h1 className="text-[28px] font-bold">{profile.name}</h1>
+                    {
+                     profile.user_id !== me &&
+                    <div className="flex">
+                        <span className="text-gray-700">{profile.friends.length} người bạn</span>
+                    </div>
+                    }
+                </div>
+            </div>
+            {
+             profile.user_id !== me &&
+            <div className='flex justify-center items-center' key={RelationshipToButtonState[relationship]}>
+                <FriendButton user_id={parseInt(param.id)} initState={RelationshipToButtonState[relationship]}/>
+            </div>
+            }
           <Navbar></Navbar>
 
           <div className="shadow-md  ">

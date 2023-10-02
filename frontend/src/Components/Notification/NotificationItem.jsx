@@ -7,7 +7,7 @@ import { Avatar } from '../Common/Avatar';
 import { DropdownMenu } from '../Common/DropdownMenu';
 import { Text } from '../Common/Text';
 import { AiOutlineDelete } from 'react-icons/ai';
-import { NotificationNotSeenDot } from '../Common/NotificationNotSeenDot';
+import { NotSeenDot } from '../Common/NotSeenDot';
 import { useDispatch } from 'react-redux';
 import { markAsRead } from '../../Reducers/Notifications';
 
@@ -51,7 +51,7 @@ export function NotificationItem({ children, data, index }) {
   return (
     <div className="notification_item">
       <div className="shrink-0">
-        <Avatar sz={36} src={data.actor_avatar} />
+        <Avatar sz={36} src={data.actor_avatar} user_id={data.actor_id}/>
       </div>
       <div className="grow flex ">
         <div onClick={handleClick} className="flex-grow relative">
@@ -70,7 +70,7 @@ export function NotificationItem({ children, data, index }) {
       {
           data.read === false &&
           <div className='absolute right-[20px]'>
-            <NotificationNotSeenDot />
+            <NotSeenDot />
           </div>
       }
 

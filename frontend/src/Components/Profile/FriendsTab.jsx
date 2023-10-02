@@ -6,12 +6,8 @@ import { fetchFriendsThunk } from '../../Reducers/Profile';
 import { NoFriends } from './NoFriends';
 
 export const FriendsTab = () => {
-    const param = useParams();
-    const dispatch = useDispatch()
-    const { friends, isLoading } = useSelector(state => state.profile);
-    useEffect(() => {
-        dispatch(fetchFriendsThunk({ user_id: param.id, page: 1, pageSize: 10 }))
-    }, [param.id]);
+
+    const { friends } = useSelector(state => state.profile);
 
     return (<>
         {

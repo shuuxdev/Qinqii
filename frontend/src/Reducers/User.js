@@ -12,6 +12,9 @@ const userSlice = createSlice({
     authenticate: (state, action) => {
       state.user_id = action.payload;
     },
+      fetchUser: (state, action) => {
+            return action.payload
+      }
   },
     extraReducers: (builder) => {
          builder.addCase(fetchUserThunk.fulfilled, (state, action) => {
@@ -44,3 +47,4 @@ export const fetchUserThunk = createAsyncThunk(
 )
 
 export default userSlice.reducer
+export const { authenticate , fetchUser} = userSlice.actions

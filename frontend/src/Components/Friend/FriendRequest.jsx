@@ -10,7 +10,7 @@ import { Avatar } from '../Common/Avatar';
 export const Request = ({ request: { name, sent_at, avatar, user_id, id } }) => {
     const dispatch = useDispatch();
     return (
-        <div className={`flex flex-col items-center justify-center rounded-[10px] mb-2  p-[20px] bg-[${Color.White}] `}>
+        <div className={`flex flex-col w-full items-center justify-center rounded-[10px] mb-2  p-[20px] bg-[${Color.White}] `}>
             <div className="flex w-full flex-row items-center justify-between mb-[20px]">
                 <div className="flex-[2.5]">
                     <Avatar src={avatar} user_id={user_id} />

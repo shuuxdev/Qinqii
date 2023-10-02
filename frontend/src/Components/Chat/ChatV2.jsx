@@ -25,22 +25,23 @@ import { useUserID } from '../../Hooks/useUserID';
 import { useMediaQuery } from 'react-responsive';
 import { ScreenWidth } from '../../Enums/ScreenWidth';
 import { twMerge } from 'tailwind-merge';
-import { markAsReadAsync } from '../../Reducers/Contacts';
-
+import { MessagePageContext } from '../../Pages/MessagePage';
 
 
 export const ChatContext = createContext();
 
-export function Chat({ contact: ci }) {
+export function ChatV2({ contact: ci }) {
     const [showEmoji, setShowEmoji] = React.useState(false);
     const defaultContextValue = { conversation: ci };
     const chatRef = useRef(null);
-    const chatContainerRef = useRef(null);
     const dispatch = useDispatch();
-    const me = useSelector(state => state.user)
+    const me = useSelector(state => state.user);
     const [attachments, setAttachments] = React.useState([]);
     const [uploadedFiles, setUploadedFiles] = React.useState([]);
     const uploadRef = useRef(null);
+
+
+    const {BackButton} = useContext(MessagePageContext);
 
     const HandleUpload = (e) => {
         const files = uploadRef.current.files;
@@ -50,7 +51,7 @@ export function Chat({ contact: ci }) {
         let files = Array.from([...uploadedFiles]);
         setUploadedFiles(
             files.filter(
-                (file) => files.indexOf(file) != file_id
+                (file) => files.indexOf(file) != file_id,
             ),
         );
     };
@@ -65,9 +66,9 @@ export function Chat({ contact: ci }) {
             sender_id: me.user_id,
             recipient_id: ci.recipient_id,
         };
-        const images =  uploadedFiles.filter(file => file.type.includes('image'))
-        const videos = uploadedFiles.filter(file => file.type.includes('video'))
-        const thumbnails = await Promise.all(videos.map(video => getVideoFirstFrame(video, "blob")))
+        const images = uploadedFiles.filter(file => file.type.includes('image'));
+        const videos = uploadedFiles.filter(file => file.type.includes('video'));
+        const thumbnails = await Promise.all(videos.map(video => getVideoFirstFrame(video, 'blob')));
         dispatch(sendMessageAsync(msg, images, videos, thumbnails));
 
         chatRef.current.value = '';
@@ -97,7 +98,7 @@ export function Chat({ contact: ci }) {
         const renderAttachments = async () => {
             const filesToRender = await Promise.all(Array.from(uploadedFiles).map(async (file, i) => {
 
-                if (file.type.includes("video")) {
+                if (file.type.includes('video')) {
                     let url = await getVideoFirstFrame(file);
                     return (
                         <div className='h-[70px] w-[70px] shrink-0'>
@@ -107,7 +108,7 @@ export function Chat({ contact: ci }) {
                             />
                         </div>
 
-                    )
+                    );
                 }
                 return (
                     <div className='h-[70px] w-[70px] shrink-0'>
@@ -116,28 +117,24 @@ export function Chat({ contact: ci }) {
                             src={URL.createObjectURL(file)}
                         />
                     </div>
-                )
-            }))
+                );
+            }));
             setAttachments(filesToRender);
-        }
+        };
         renderAttachments();
-    }, [uploadedFiles])
+    }, [uploadedFiles]);
 
-
-    useEffect(() => {
-        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-        chatContainerRef.current.scrollIntoView({ behavior: 'smooth' });
-        dispatch(markAsReadAsync(ci.conversation_id));
-    }, [ci.messages]);
     const isPhoneScreen = useMediaQuery({ query: `(max-width: ${ScreenWidth.sm}px)` });
-    let className = twMerge(`shadow-v1 rounded-[15px] relative flex flex-col  bottom-0   bg-[${Color.White}]`, isPhoneScreen ?  'w-full h-full' : 'w-[350px] h-[450px]');
+    let className = twMerge(`shadow-v1 rounded-[15px] relative flex flex-col  bottom-0   bg-[${Color.White}] w-full h-screen`);
 
     return (
         <ChatContext.Provider value={defaultContextValue}>
             <input ref={uploadRef} type='file' accept='image/*,video/*' multiple={true} className='hidden' />
-            <div   className={className}>
-                <div className={`flex items-center justify-between p-[10px] border-b-[1px] border-solid border-[${Color.BorderGray}]`}>
+            <div className={className}>
+                <div
+                    className={`flex items-center justify-between p-[10px] border-b-[1px] border-solid border-[${Color.BorderGray}] `}>
                     <div className='flex items-center gap-[7px] '>
+                        <BackButton/>
                         <Avatar src={ci.recipient_avatar} user_id={ci.recipient_id}></Avatar>
                         <div className='flex flex-col'>
                             <Text bold>{ci.recipient_name}</Text>
@@ -167,20 +164,18 @@ export function Chat({ contact: ci }) {
                             }}>
                             <BsFillCameraVideoFill color={Color.Primary} size={20}></BsFillCameraVideoFill>
                         </div>
-                        <div className='cursor-pointer' onClick={Close}>
-                            <MdCancelPresentation color='red' size={20}></MdCancelPresentation>
-                        </div>
+
                     </div>
                 </div>
-                <div ref={chatContainerRef} className='overflow-y-scroll p-[10px] grow'>
+                <div className='overflow-y-scroll p-[10px] grow'>
                     {
 
                         ci.messages.slice(0).reverse().map(message => (
                             <Message key={message.message_id} from={message.sender_id == me.user_id ? 'me' : 'you'}
                                      sender_avatar={message.sender_id == me.user_id ? me.avatar : ci.recipient_avatar}
                                      recipient_avatar={message.sender_id == me.user_id ? me.avatar : ci.recipient_avatar}
-                                     messages = {ci.messages}
-                                     message={message}/>
+                                     messages={ci.messages}
+                                     message={message} />
                         ))
                     }
                 </div>
@@ -201,7 +196,7 @@ export function Chat({ contact: ci }) {
                                             <Suspense fallback={<div
                                                 className='flex justify-center items-center w-full h-full'><Loading />
                                             </div>}>
-                                                <QinqiiEmojiPicker ref={chatRef}/>
+                                                <QinqiiEmojiPicker ref={chatRef} />
                                             </Suspense>
 
                                         </motion.div>
@@ -215,24 +210,25 @@ export function Chat({ contact: ci }) {
                         </div>
 
                     </div>
-                        <div className={`bg-[${Color.Background}] flex flex-col overflow-x-auto grow rounded-[7px] items-start  `}>
-                            <div className='flex overflow-x-auto max-w-full'>
-                                <input onChange={HandleUpload} onClick={OpenUpload} ref={uploadRef} type='file' accept='image/*,video/*' multiple={true} className='hidden' />
-                                {attachments}
+                    <div
+                        className={`bg-[${Color.Background}] flex flex-col overflow-x-auto grow rounded-[7px] items-start  `}>
+                        <div className='flex overflow-x-auto max-w-full'>
+                            <input onChange={HandleUpload} onClick={OpenUpload} ref={uploadRef} type='file'
+                                   accept='image/*,video/*' multiple={true} className='hidden' />
+                            {attachments}
+                        </div>
+                        <div className='relative w-full'>
+                            <input ref={chatRef} type='text'
+                                   className={` p-[7px]  focus:outline-none  w-full bg-[${Color.Background}]`}
+                                   placeholder='Search' />
+                            <div
+                                className={` bg-[${Color.Background}] absolute top-[50%] translate-y-[-50%] right-[10px] `}>
+                                <IoMdSend onClick={SendMessage} color={Color.Primary} size={22}></IoMdSend>
                             </div>
-                            <div className='relative w-full'>
-                                <input ref={chatRef} type='text'
-                                       className={` p-[7px]  focus:outline-none  w-full bg-[${Color.Background}]`}
-                                       placeholder='Search' />
-                                <div className={` bg-[${Color.Background}] absolute top-[50%] translate-y-[-50%] right-[10px] `}>
-                                    <IoMdSend onClick={SendMessage} color={Color.Primary} size={22}></IoMdSend>
-                                </div>
-                            </div>
-
-
-
                         </div>
 
+
+                    </div>
 
 
                 </div>

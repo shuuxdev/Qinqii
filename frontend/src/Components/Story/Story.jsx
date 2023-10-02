@@ -176,7 +176,7 @@ const StoryDetail = () => {
                                 story.viewers.map(viewer => (
                                     <div className="  items-center flex gap-[8px]">
                                         <div className="shrink-0">
-                                            <Avatar src={viewer.viewer_avatar} />
+                                            <Avatar src={viewer.viewer_avatar} user_id={viewer.viewer_id}/>
                                         </div>
                                         <div className="flex flex-wrap flex-1">
                                             <Text color='black' className>{viewer.viewer_name}</Text>
@@ -215,7 +215,7 @@ const AvatarBox = () => {
     const { story } = useContext(StoryViewerContext)
     return (
         <div className="flex gap-[10px] justify-center items-center">
-            <Avatar src={story.author_avatar} />
+            <Avatar src={story.author_avatar} user_id={story.author_id}/>
             <Text>{story.author_name}</Text>
         </div>
     )

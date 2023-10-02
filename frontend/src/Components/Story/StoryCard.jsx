@@ -47,7 +47,7 @@ const UploadStory = () => {
             {children}
         </div>
 
-    const user = useSelector(state => state.profile);
+    const user = useSelector(state => state.user);
     const dispatch = useDispatch();
     const HandleClick = () => {
         dispatch(showModal({modalType: ModalType.STORY_UPLOAD}))

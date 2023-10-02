@@ -56,5 +56,16 @@ public class FriendService
     {
         await _hubContext.Clients.User(receiver_id.ToString()).SendAsync("ReceiveFriendRequest", sender, request_id);
     }
-    
+    public async Task CancelFriendRequest(CancelFriendRequest request)
+    {
+        using var connection = _ctx.CreateConnection();
+        var param = request.ToParameters();
+        await connection.ExecuteAsync("[ACCOUNT].[CancelFriendRequest]", commandType: CommandType.StoredProcedure, param: param);
+    }
+    public async Task Unfriend(UnfriendRequest request)
+    {
+        using var connection = _ctx.CreateConnection();
+        var param = request.ToParameters();
+        await connection.ExecuteAsync("[ACCOUNT].[Unfriend]", commandType: CommandType.StoredProcedure, param: param);
+    }
 }

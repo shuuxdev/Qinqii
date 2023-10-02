@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 public class Message
 {
 
+    public DateTime? read_at { get; set; }
     public int message_id { get; set; }
 
     public string message_text { get; set; }

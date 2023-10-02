@@ -162,7 +162,7 @@ export function CreatePost() {
         e.target.blur();
         dispatch(OpenDialog());
     };
-    const { avatar } = useSelector((state) => state.profile);
+    const { avatar, user_id } = useSelector((state) => state.user);
 
 
 
@@ -172,7 +172,7 @@ export function CreatePost() {
             className={`rounded-[10px] bg-[${Color.White}] gap-[20px] flex w-full  p-[15px_20px] items-center`}
         >
             <div>
-                <Avatar src={avatar} />
+                <Avatar src={avatar} user_id={user_id}/>
             </div>
             <div className='flex-[12]'>
                 <input

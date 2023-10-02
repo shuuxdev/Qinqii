@@ -61,7 +61,7 @@ export function ShareModal(props) {
                             foundedFriends.map(friend => (
                                 <div className="flex items-center gap-[10px]">
                                     <div className="shrink-0">
-                                        <Avatar sz={36} src={friend.avatar} />
+                                        <Avatar sz={36} src={friend.avatar} user_id={friend.id} />
 
                                     </div>
                                     <div className="grow">

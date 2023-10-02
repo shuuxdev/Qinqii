@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.OpenApi.Models;
 using Qinqii.Middlewares;
 using Qinqii.ModelBinders;
+using Qinqii.Repositories;
 using Qinqii.Utilities;
 using Qinqii.Workers;
 
@@ -60,6 +61,9 @@ internal class Program
         builder.Services.AddScoped<MediaService>();
         builder.Services.AddScoped<CommentService>();
         builder.Services.AddSingleton<ConnectionManager>();
+        builder.Services.AddScoped<PostRepository>();
+        builder.Services.AddScoped<StoryRepository>();
+        builder.Services.AddScoped<QueryHelper>();
         builder.Services.AddTransient<ErrorHandlingMiddleware>();
         builder.Services.AddHostedService<StoryUpdatingWorker>();
         builder.Services.AddHttpLogging((option) =>
@@ -76,6 +80,7 @@ internal class Program
         {
             c.SwaggerDoc("v1",
                 new OpenApiInfo() { Title = "Qinqii", Version = "v1" });
+            c.SwaggerDoc("v2", new OpenApiInfo() { Title = "Qinqii", Version = "v2" });
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
             {
                 Scheme = "Bearer",
@@ -83,6 +88,8 @@ internal class Program
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.Http
             });
+            c.ResolveConflictingActions(api => api.First());
+            /*c.DocInclusionPredicate((docName, apiDesc) => apiDesc.GroupName == docName);*/
         });
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -196,6 +203,7 @@ internal class Program
         app.UseSwaggerUI(c =>
         {
             c.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+            c.SwaggerEndpoint("/swagger/v2/swagger.json", "v2");
         });
 
         app.MapControllerRoute(

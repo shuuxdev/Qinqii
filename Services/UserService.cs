@@ -55,6 +55,19 @@ namespace Qinqii.Service
             using var connection = _ctx.CreateConnection();
             var param = contact.ToParameters();
             var contacts = (await connection.QueryAsync<Contact>("[ACCOUNT].[Contacts]", commandType: System.Data.CommandType.StoredProcedure, param: param));
+            
+            var messages = await Task.WhenAll<IEnumerable<Message>>(contacts.Select(async (contact) =>
+            {
+                var param = new DynamicParameters();
+                param.Add("@conversation_id", contact.conversation_id, dbType: System.Data.DbType.Int32);
+                var reader =await  connection.QueryMultipleAsync("[MESSAGE].[Get]", commandType: System.Data.CommandType.StoredProcedure, param: param);
+                var messages = await reader.ToMessages();
+                return messages;
+            }));
+            for (int i = 0; i < contacts.Count(); i++)
+            {
+                contacts.ElementAt(i).messages = messages.ElementAt(i);
+            }
             return contacts;
 
         }
@@ -187,6 +200,15 @@ namespace Qinqii.Service
             param.Add("@message_id", messageId, dbType: System.Data.DbType.Int32);
             param.Add("@reaction_id", reactionId, dbType: System.Data.DbType.Int32);
             await connection.ExecuteAsync("[MESSAGE].[React]", commandType: System.Data.CommandType.StoredProcedure, param: param);
+        }
+        public async Task<string> GetRelationship(int user_id, int friend_id)
+        {
+            using var connection = _ctx.CreateConnection();
+            var param = new DynamicParameters();
+            param.Add("@user_id", user_id, dbType: System.Data.DbType.Int32);
+            param.Add("@friend_id", friend_id, dbType: System.Data.DbType.Int32);
+            var relationship = await connection.QuerySingleAsync<string>("[ACCOUNT].[GetRelationship]", commandType: System.Data.CommandType.StoredProcedure, param: param);
+            return relationship;
         }
     }
     

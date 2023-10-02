@@ -79,12 +79,15 @@
 
 $call-modal-height: 600px;
 .call-modal {
+    .ant-modal-content {
+        height: 100%;
+        padding: 0 !important;
 
+    }
     .client {
-        width: clamp(200px, 100%, 300px);
+        width: clamp(200px, 30vw, 300px);
     }
     .remote {
-        height: $call-modal-height;
         .video-overlay {
             background: rgba(0, 0, 0, 0.94);
             height: 100%;

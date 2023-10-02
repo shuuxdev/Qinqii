@@ -1,17 +1,5 @@
-import { DropdownMenu } from '../Components/Common/DropdownMenu';
-import Color from '../Enums/Color';
-import { BsThreeDots } from 'react-icons/bs';
 
-export const TestPage = () => {
-
-    return (
-        <div className='w-[100vw] h-[100vh] flex justify-center items-center'>
-           <NoChatSelected/>
-        </div>
-    )
-}
-
-function NoChatSelected() {
+export function NoChatSelected() {
     return (
         <div className="flex flex-col items-center justify-center h-full text-center">
             <svg

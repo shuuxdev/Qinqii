@@ -19,6 +19,7 @@ using Qinqii.Utilities;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Qinqii.Controllers;
+[ApiExplorerSettings(GroupName = "v2")]
 [ApiController]
 [Route("chat")]
 public class ChatController : ControllerBase
@@ -31,7 +32,7 @@ public class ChatController : ControllerBase
     private readonly NotificationService _notificationService;
     private readonly IWebHostEnvironment _env;
 
-    public ChatController(MessageService messageService, MediaService _mediaService, IHubContext<QinqiiHub> _hubContext, SignalRService _signalr, UserService userService, NotificationService notificationService, IWebHostEnvironment env)
+    public ChatController(MessageService messageService,  MediaService _mediaService, IHubContext<QinqiiHub> _hubContext, SignalRService _signalr, UserService userService, NotificationService notificationService, IWebHostEnvironment env)
     {
         _messageService = messageService;
         this._mediaService = _mediaService;
@@ -42,7 +43,7 @@ public class ChatController : ControllerBase
         _notificationService = notificationService;
         _userService = userService;
     }
-    
+    [ApiExplorerSettings]
     [Authorize]
     [HttpPost("message")]
     public async Task<IActionResult> CreateMessage([FromForm] CreateMessageRequest message, [FromForm] List<VideoAttachment> videos,[FromForm]  List<ImageAttachment> images)
@@ -125,6 +126,12 @@ public class ChatController : ControllerBase
     public async Task<IActionResult> DeleteMessage(int message_id)
     {
         await _userService.DeleteMessage(message_id);
+        return Ok();
+    }
+    [HttpPost("mark-as-read")]
+    public async Task<IActionResult> MarkMessageAsRead([FromBody] MarkMessagesAsReadRequest request)
+    {
+        await _messageService.MarkMessageAsRead(request);
         return Ok();
     }
 }

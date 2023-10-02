@@ -1,4 +1,7 @@
 export function QinqiiCustomImage({ src, className }) {
+    console.log(
+        src
+    );
     return (
         <>
             {

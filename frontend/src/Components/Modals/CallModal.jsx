@@ -46,7 +46,7 @@ const VideoCallModal = ({ param }) => {
     const { videoRef, remoteRef, EndCall, callState } = useContext(CallContext);
     return (
         <Modal open={true} footer={null} width={'100%'} className="max-w-[900px] call-modal"  onCancel={EndCall}>
-            <div className="relative">
+            <div className="relative h-[600px]">
                 <div className="absolute client top-[10px] left-[10px] z-[310]">
                     <div className=" aspect-video rounded-[10px] overflow-hidden">
                         <video ref={videoRef} autoPlay className="object-cover w-full h-full"></video>

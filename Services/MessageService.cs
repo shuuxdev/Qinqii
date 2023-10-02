@@ -35,5 +35,12 @@ namespace Qinqii.Service
             var messages = await reader.ToMessages();
             return messages;
         }
+        public async Task MarkMessageAsRead (MarkMessagesAsReadRequest request)
+        {
+            using var connection = _ctx.CreateConnection();
+            var param =  request.ToParameters();
+            await connection.ExecuteAsync("[MESSAGE].[MarkAsRead]", commandType: System.Data.CommandType.StoredProcedure, param: param);
+        }
+        
     }
 }

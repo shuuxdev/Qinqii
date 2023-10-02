@@ -5,6 +5,8 @@ import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState
 import { GetTransformYValue } from '../../Helper/GetTransformYValue';
 import { MediaViewerModalContext } from '../Modals/MediaViewerModal';
 import { QinqiiCustomImage } from '../Common/QinqiiCustomImage';
+import { ScreenWidth } from '../../Enums/ScreenWidth';
+import { useMediaQuery } from 'react-responsive';
 
 const CarouselContext = createContext()
 const MediaViewerCarousel = ({ attachments }) => {
@@ -44,7 +46,11 @@ const MediaViewerCarousel = ({ attachments }) => {
         }
     }
 
-
+    const isPhoneScreen = useMediaQuery({ query: `(max-width: ${ScreenWidth.sm}px)` });
+    const isTabletScreen = useMediaQuery({ query: `(max-width: ${ScreenWidth.md}px)` });
+    let mxCaurosel = 99
+    if(isPhoneScreen) mxCaurosel = 2
+    if(isTabletScreen) mxCaurosel = 3
 
     const ctxValue = {
         moveTo,

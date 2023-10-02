@@ -13,6 +13,7 @@ import { Text } from './Text';
 import { Avatar } from './Avatar';
 import { useNavigate } from 'react-router-dom';
 import { MdOutlineCancel } from 'react-icons/md';
+import { MessageDropdown } from '../MessageDropdown/MessageDropdown';
 export function CreateGroup() {
     return (
         <div>
@@ -96,11 +97,15 @@ export function Customization() {
 
 const Navbar = () => {
     return (
-        <div className={`relative bg-[${Color.White}] w-full`}>
+        <div className={`navbar relative bg-[${Color.White}] w-full`}>
             <div className="w-full container gap-[10px] p-[20px] m-[0_auto] flex items-center justify-between ">
                 <WebFavicon></WebFavicon>
                 <Searchbar></Searchbar>
-                <NotificationDropdown />
+                <div className='flex gap-[20px]'>
+                    <MessageDropdown/>
+                    <NotificationDropdown />
+                </div>
+
             </div>
         </div>
     )
