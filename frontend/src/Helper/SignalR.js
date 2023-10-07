@@ -4,8 +4,9 @@ import {
     LogLevel,
 } from '@microsoft/signalr';
 import Cookies from 'react-cookie/cjs/Cookies.js';
+import { SERVER_DOMAIN } from '../Enums/Server';
 const connection = new HubConnectionBuilder()
-    .withUrl('https://localhost:7084/chatHub', {
+    .withUrl(`${SERVER_DOMAIN}/chatHub`, {
         withCredentials: true,
         transport: HttpTransportType.WebSockets,
         accessTokenFactory: () => {

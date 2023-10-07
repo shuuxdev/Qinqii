@@ -131,6 +131,7 @@ export const deletePostThunk = (post_id, removePost) => async (dispatch) => {
 };
 export const uploadAttachmentsThunk = (files) => async (dispatch) => {
     let [attachments, err] = await UPLOAD_Attachments(files);
+    debugger
     if (err)
         dispatch(
             ShowNotification({

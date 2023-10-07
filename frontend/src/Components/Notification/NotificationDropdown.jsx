@@ -11,6 +11,7 @@ import { NotificationType } from "../../Enums/NotificationType.js";
 import { useMediaQuery } from 'react-responsive';
 import { ScreenWidth } from '../../Enums/ScreenWidth';
 import { MessageDropdown } from '../MessageDropdown/MessageDropdown';
+import { NoNotifications } from './NoNotifications';
 export const NotificationDropdownContext = createContext();
 
 
@@ -28,6 +29,8 @@ export const NotificationDropdown = () => {
     const Toggle = () => {
         setNotification(!notification);
     }
+    let unreadNotifications = notifications.filter(notification => !notification.read);
+
     const variants = {
         visible: {
             height: "auto",
@@ -88,7 +91,7 @@ export const NotificationDropdown = () => {
         setupDropdownPosition();
     }, [notification])
 
-    let className = twMerge("absolute top-full z-[100] rounded-[10px]");
+    let className = twMerge("absolute  w-[350px] top-full z-[100] rounded-[10px]");
     return (
         <NotificationDropdownContext.Provider value={ctxValue}>
             <AnimatePresence>
@@ -97,7 +100,7 @@ export const NotificationDropdown = () => {
                     <div className={className} style={{width: isPhoneScreen ? "100%" : "", right: window.innerWidth - position.right - position.width, marginTop: 3 }}>
                         <motion.div  variants={variants} initial="hidden" animate="visible" exit="hidden">
                             <div className="notification_header">
-                                <div className="text-xl font-bold">Notification</div>
+                                <div className="text-xl font-bold">Thông báo</div>
                             </div>
                             <div className="notification w-full" >
 
@@ -106,20 +109,20 @@ export const NotificationDropdown = () => {
                                         notifications.slice(0,5).map((notification, index) => (
                                             renderNotification(notification, index)
                                         ))
-                                        : <EmptyNotification />
+                                        : <NoNotifications/>
                                 }
                             </div>
                         </motion.div>
                     </div>
                 }
             </AnimatePresence>
-            <div ref={bellIcon} onClick={Toggle} className="relative ">
+            <div ref={bellIcon} onClick={Toggle} className="relative cursor-pointer">
 
                 {
-                    notifications.length > 0 &&
+                    unreadNotifications.length > 0 &&
                     <div className="absolute top-[-0.2em] left-[-0.2em]">
                         <div className="rounded-full bg-red-500 w-[15px] h-[15px] flex justify-center items-center">
-                            <div className="text-[0.5em] font-bold text-white">{notifications.length}</div>
+                            <div className="text-[0.5em] font-bold text-white">{unreadNotifications.length}</div>
                         </div>
                     </div>
                 }
@@ -127,14 +130,6 @@ export const NotificationDropdown = () => {
                 <AiOutlineBell size={26}></AiOutlineBell>
             </div>
         </NotificationDropdownContext.Provider>
-    )
-}
-const EmptyNotification = () => {
-    return (
-        <div className="flex flex-col items-center justify-center h-full">
-            <div className="text-2xl font-bold">No Notification</div>
-            <div className="text-gray-400">You will see your notification here</div>
-        </div>
     )
 }
 

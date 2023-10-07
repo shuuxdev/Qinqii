@@ -14,20 +14,20 @@ namespace Qinqii.Controllers;
 [Authorize]
 public class FriendController : ControllerBase
 {
-    private readonly FriendService _friendService;
-    private readonly UserService _user;
+    private readonly FriendRepository _friendRepository;
+    private readonly UserRepository _user;
     private NotificationService _notificationService;
 
-    public FriendController(FriendService friendService, UserService user, NotificationService notificationService)
+    public FriendController(FriendRepository friendRepository, UserRepository user, NotificationService notificationService)
     {
-        _friendService = friendService;
+        _friendRepository = friendRepository;
         _user = user;
         _notificationService = notificationService;
     }
     [HttpGet("user/people-you-may-know")]
     public async Task<IActionResult> GetPeopleYouMayKnow(GetPeopleYouMayKnowRequest request)
     {
-        var list = await _friendService.GetPeopleYouMayKnow(request);
+        var list = await _friendRepository.GetPeopleYouMayKnow(request);
         return Ok(list);
     }
     [HttpGet("user/friend-requests")]
@@ -44,24 +44,24 @@ public class FriendController : ControllerBase
 
         if (request.status == FriendRequestStatusType.ACCEPTED)
         {
-            var receiver = await _friendService.GetFriendRequestSenderId(request.id);
+            var receiver = await _friendRepository.GetFriendRequestSenderId(request.id);
 
-            var sender = await _friendService.GetFriendRequestReceiverId(request.id);
+            var sender = await _friendRepository.GetFriendRequestReceiverId(request.id);
             await _notificationService.Notify(receiver, sender, NotificationType.FRIEND_ACCEPT);
         }
         return Ok();
     }
     [HttpGet("user/friends")]
-    public async Task<IActionResult> GetUserFriends(int id)
+    public async Task<IActionResult> GetUserFriends(int user_id)
     {
-        var u = await _user.GetFriends(id);
+        var u = await _user.GetFriends(user_id);
         return new JsonResult(u);
     }
     
     [HttpPost("user/send-friend-request")]
     public async Task<IActionResult> SendFriendRequest([FromBody] CreateFriendRequest request)
     {
-        int request_id = await _friendService.CreateFriendRequest(request);
+        int request_id = await _friendRepository.CreateFriendRequest(request);
         await _notificationService.Notify(
             request.friend_id,
             request.user_id,
@@ -69,9 +69,10 @@ public class FriendController : ControllerBase
             new List<INotificationParameter>()
             {
                  new FriendRequestIdParameter(request_id.ToString()),
+                 new UserIdParameter(request.user_id.ToString())
             });
         var sender = await _user.GetUser(request.user_id); // sender
-        await _friendService.BroadcastFriendRequest(sender, request.friend_id, request_id);
+        await _friendRepository.BroadcastFriendRequest(sender, request.friend_id, request_id);
         return Ok();
     }
     [HttpGet("user/friendsWithName")]
@@ -89,13 +90,13 @@ public class FriendController : ControllerBase
     [HttpPost("user/cancel-friend-request")]
     public async Task<IActionResult> CancelFriendRequest([FromBody] CancelFriendRequest request)
     {
-        await _friendService.CancelFriendRequest(request);
+        await _friendRepository.CancelFriendRequest(request);
         return Ok();
     }
     [HttpPost("user/unfriend")]
     public async Task<IActionResult> Unfriend([FromBody] UnfriendRequest request)
     {
-        await _friendService.Unfriend(request);
+        await _friendRepository.Unfriend(request);
         return Ok();
     }
 }

@@ -1,55 +1,68 @@
 using System.Data;
+using Dapper;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Qinqii.DTOs.Request.Story;
 using Qinqii.Models;
-using Qinqii.Models.Interfaces;
-using Qinqii.Models.Paging;
 using Qinqii.Utilities;
 
-namespace Qinqii.Repositories;
+namespace Qinqii.Service;
 
-public class StoryRepository : IRepository<Story>
+public class StoryRepository
 {
-    private readonly QueryHelper _query;
+    private readonly DapperContext _ctx;
 
-    public StoryRepository(QueryHelper query)
+    public StoryRepository(DapperContext ctx)
     {
-        _query = query;
-    }
-    
-    public Task<Story> GetById(int id)
-    {
-        throw new NotImplementedException();
+        _ctx = ctx;
     }
 
-    public Task<IEnumerable<Story>> GetAll(Page page)
+    public async Task<Story> GetStory(GetStoryRequest request)
     {
-        throw new NotImplementedException();
+        using var connection = _ctx.CreateConnection();
+        var param = request.ToParameters();
+        var reader = await connection.QueryMultipleAsync(
+            "[STORY].[Get]",
+            commandType: CommandType.StoredProcedure, param: param);
+        var story = await reader.ReadSingleAsync<Story>();
+        var frames = (await reader.ReadAsync<Frame>()).ToList();
+        var viewers = await reader.ReadAsync<FrameViewer>();
+        story.frames = frames.ToList();
+        story.viewers = viewers.ToList();
+        return story;
     }
-
-    public Task<IEnumerable<Story>> GetAll()
+    public async Task<IEnumerable<Story>> GetAllStories(CancellationToken token)
     {
-        throw new NotImplementedException();
-    }
+        using var connection = _ctx.CreateConnection();
+        var param = new DynamicParameters();
+        var stories = await connection.QueryAsync<Story>("[STORY].GetAllStoriesForBackgroundService",
+            commandType: CommandType.StoredProcedure, param: param);
 
-    public async Task<IEnumerable<Story>> GetAll(Page page, int user_id, CancellationToken token)
-    {
-        var param = page.ToParameters();
-        param.Add("@user_id", user_id, DbType.Int32);
-        var stories = await _query.QueryMultipleAsync<IEnumerable<Story>>("[STORY].GetAll", param);
         return stories;
     }
-
-    public Task<Story> Create(Story entity)
+    public async Task UpdateStoryViewerCount(UpdateStoryViewerCountRequest 
+    request)
     {
-        throw new NotImplementedException();
+        using var connection = _ctx.CreateConnection();
+        var param = request.ToParameters();
+        var dto = await connection.ExecuteAsync(
+            "[STORY].[Update_Viewers]",
+            commandType: CommandType.StoredProcedure, param: param);
     }
-
-    public Task<Story> Update(Story entity)
+    public async Task CreateStory(CreateStoryRequest request, IEnumerable<AttachmentIdsTVP> attachment_ids)
     {
-        throw new NotImplementedException();
+        using var connection = _ctx.CreateConnection();
+        var param = request.ToParameters();
+        param.Add("@attachment_ids", attachment_ids.ToTableValuedParameters());
+        var dto = await connection.ExecuteAsync(
+            "[STORY].[Create]",
+            commandType: CommandType.StoredProcedure, param: param);
     }
-
-    public Task<Story> Delete(int id)
+    public async Task DeleteStory(DeleteStoryRequest request)
     {
-        throw new NotImplementedException();
+        using var connection = _ctx.CreateConnection();
+        var param = request.ToParameters();
+        var dto = await connection.ExecuteAsync(
+            "[STORY].[Delete]",
+            commandType: CommandType.StoredProcedure, param: param);
     }
 }

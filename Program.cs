@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.HttpLogging;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -23,6 +24,9 @@ using Qinqii.ModelBinders;
 using Qinqii.Repositories;
 using Qinqii.Utilities;
 using Qinqii.Workers;
+using PostRepository = Qinqii.Service.PostRepository;
+using StoryRepository = Qinqii.Service.StoryRepository;
+using UserRepository = Qinqii.Service.UserRepository;
 
 internal class Program
 {
@@ -48,24 +52,25 @@ internal class Program
         });
         
         builder.Services.AddScoped<DapperContext>();
-        builder.Services.AddScoped<UserService>();
-        builder.Services.AddScoped<MessageService>();
-        builder.Services.AddScoped<FeedService>();
+        builder.Services.AddScoped<UserRepository>();
+        builder.Services.AddScoped<MessageRepository>();
+        builder.Services.AddScoped<FeedRepository>();
         builder.Services.AddScoped<NotificationService>();
         builder.Services.AddScoped<SignalRService>();
         builder.Services.AddScoped<AuthService>();
-        builder.Services.AddScoped<StoryService>();
-        builder.Services.AddScoped<PostService>();
-        builder.Services.AddScoped<UploadService>();
-        builder.Services.AddScoped<FriendService>();
-        builder.Services.AddScoped<MediaService>();
-        builder.Services.AddScoped<CommentService>();
-        builder.Services.AddSingleton<ConnectionManager>();
-        builder.Services.AddScoped<PostRepository>();
         builder.Services.AddScoped<StoryRepository>();
+        builder.Services.AddScoped<PostRepository>();
+        builder.Services.AddScoped<UploadService>();
+        builder.Services.AddScoped<FriendRepository>();
+        builder.Services.AddScoped<MediaService>();
+        builder.Services.AddScoped<CommentRepository>();
+        builder.Services.AddSingleton<ConnectionManager>();
+        builder.Services.AddScoped<Qinqii.Repositories.PostRepository>();
+        builder.Services.AddScoped<Qinqii.Repositories.StoryRepository>();
         builder.Services.AddScoped<QueryHelper>();
         builder.Services.AddTransient<ErrorHandlingMiddleware>();
         builder.Services.AddHostedService<StoryUpdatingWorker>();
+        builder.Services.AddScoped<PasswordHasher>();
         builder.Services.AddHttpLogging((option) =>
         {
             option.LoggingFields = HttpLoggingFields.All;
@@ -93,6 +98,12 @@ internal class Program
         });
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            /*.AddGoogle(option =>
+            {
+                
+                option.ClientId = "100968371322-sjj838ql83314m31tunjjnph1o7njtem.apps.googleusercontent.com";
+                option.ClientSecret = "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";
+            })*/
             .AddJwtBearer(option =>
             {
                 option.Events = new JwtBearerEvents()
@@ -163,18 +174,18 @@ internal class Program
             });
         var app = builder.Build();
         // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
+        if (app.Environment.IsProduction())
         {
             app.UseExceptionHandler("/Home/Error");
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
+          //  app.UseHsts();
         }
 
         // app.UseHttpLogging();
-        app.UseHttpsRedirection();
-        //app.UseMiddleware<ErrorHandlingMiddleware>();
+        //app.UseHttpsRedirection();
+        app.UseMiddleware<ErrorHandlingMiddleware>();
         app.UseStaticFiles();
-        app.UseWebroot(builder, @"dist");
+        app.UseWebroot(builder);
         app.UseRouting();
         if (app.Environment.IsDevelopment())
         {

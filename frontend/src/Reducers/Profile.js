@@ -8,27 +8,21 @@ import {
     GET_UserProfile,
     GET_UserVideos,
 } from '../Helper/Axios';
-
+import Cookies from 'react-cookie/cjs/Cookies';
 export const fetchProfileAction = (profile) => ({
     type: FETCH_PROFILE,
     payload: profile,
 });
 
-function getCookie(name) {
-    let value = "; " + document.cookie;
-    let parts = value.split("; " + name + "=");
-    if (parts.length === 2) {
-        return parts.pop().split(";").shift();
-    }
-}
+
 
 export const profileApiSlice = createApi({
     reducerPath: 'profileAPI',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'https://localhost:7084/',
+        baseUrl: 'http://localhost:5000/',
         credentials: 'include',
         headers: {
-            'Authorization': 'Bearer ' + getCookie('Token'),
+            'Authorization': 'Bearer ' + new Cookies().get('Token'),
         }
     }),
     

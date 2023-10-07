@@ -1,9 +1,10 @@
 import axios from 'axios';
 import Cookies from 'react-cookie/cjs/Cookies.js';
 import { useNavigate } from 'react-router-dom';
+import { SERVER_DOMAIN } from '../Enums/Server';
 const cookies = new Cookies();
 
-const SERVER_DOMAIN = 'https://localhost:7084';
+
 const api = axios.create({
     baseURL: `${SERVER_DOMAIN}/`,
     withCredentials: true,
@@ -51,8 +52,8 @@ export const useAxios = () => {
     securedApi.interceptors.response.use(
         onSuccessResponse,
         (failedResponse) => {
-            cookies.remove('Token');
-            navigate('/login');
+            // cookies.remove('Token');
+            // navigate('/login');
             return Promise.reject(failedResponse);
         }
     );
@@ -85,17 +86,20 @@ export const useAxios = () => {
         });
     const GET_AllChat = async () =>  securedApi.get(`/chat/all`);
     const GET_Chat = async () => (await securedApi.get('/chat')).data;
+    const appendToFormData = (formData, object) => {
+        for (let key in object) {
+            if (object.hasOwnProperty(key)) {
+                formData.append(key, object[key]);
+            }
+        }
+    }
+    const POST_UpdateProfile = async (profile) => {
+        const formFile = new FormData();
+        appendToFormData(formFile, profile);
 
-    const POST_ChangeAvatar = async (avatar) => {
-        const formFile = new FormData();
-        formFile.append('avatar', avatar);
-        return GetApiResponseAs(securedApi.post('/user/change-avatar', formFile), ResponseType.StatusCode);
+        return GetApiResponseAs(securedApi.post('/user/update-profile', formFile), ResponseType.StatusCode);
     }
-    const POST_ChangeBackground = async (background) => {
-        const formFile = new FormData();
-        formFile.append('background', background);
-        return GetApiResponseAs(securedApi.post('/user/change-background', formFile), ResponseType.StatusCode);
-    }
+
 
     const     GET_UserImages  = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/images?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
     const     GET_UserVideos           = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/videos?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
@@ -134,8 +138,7 @@ export const useAxios = () => {
         GET_Friends,
         POST_Login,
         POST_SendMessage,
-        POST_ChangeAvatar,
-        POST_ChangeBackground,
+       POST_UpdateProfile,
         POST_CreateStory,
         POST_SendFriendRequest,
         GET_AllChat,

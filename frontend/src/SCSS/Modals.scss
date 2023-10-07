@@ -13,7 +13,7 @@
 
     }
     .ant-modal-body {
-        background: black;
+        background: #3E4041;
         padding: 30px !important;
         height: 100vh !important;
         overflow-y: hidden;
@@ -31,14 +31,11 @@
         height: 100%;
         flex: 1;
     }
-    .media-viewer-carousel {
+    .vertical-media-viewer-carousel {
         display:flex;
         flex-direction: column;
         align-items: center;
-        @include max-media(md)
-        {
-            flex-direction: row;
-        }
+        border-right: 1px solid #B1B5B9;
         .wrapper-with-fixed-height {
             flex: 1;
             overflow: hidden;
@@ -48,9 +45,7 @@
                 transition: transform 0.3s ease-out;
                 flex-direction: column;
                 display: flex;
-                @include max-media(md){
-                    flex-direction: row;
-                }
+
 
                 .item {
                     box-sizing: content-box;
@@ -63,18 +58,46 @@
                     }
                 }
                 .item:not(:last-child) {
-                    @include max-media(md){
-                        border-right: 1px solid white;
-                    }
-                    @include min-media(md)
-                    {
-                        border-bottom: 1px solid white;
-                    }
+
                 }
             }
         }
 
     }
+    .horizontal-media-viewer-carousel {
+        display:flex;
+        align-items: center;
+        border-top: 1px solid #B1B5B9;
+        border-bottom: 1px solid #B1B5B9;
+        .wrapper-with-fixed-height {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            .list {
+                transition: transform 0.3s ease-out;
+                display: flex;
+
+
+                .item {
+                    box-sizing: content-box;
+                    padding: 20px;
+                    height: 100px;
+                    width: 100px;
+                    flex-shrink: 0;
+                    img {
+
+                        border-radius: 5px;
+                    }
+                }
+                .item:not(:last-child) {
+
+                }
+            }
+        }
+
+    }
+
 }
 
 $call-modal-height: 600px;
@@ -107,8 +130,6 @@ $call-modal-height: 600px;
 }
 .avatar-upload-modal {
     .ant-modal-body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        height: clamp(300px, 50vh, 500px);
     }
 }

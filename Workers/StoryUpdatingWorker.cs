@@ -22,7 +22,7 @@ public class StoryUpdatingWorker : BackgroundService
     {
         var scope = _serviceProvider.CreateScope();
         var storyService = scope.ServiceProvider
-            .GetRequiredService<StoryService>();
+            .GetRequiredService<StoryRepository>();
         while (!stoppingToken.IsCancellationRequested)
         {
             

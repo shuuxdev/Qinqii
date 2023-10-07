@@ -1,47 +1,123 @@
 using System.Data;
 using Dapper;
+using Microsoft.AspNetCore.Components;
+using Qinqii.DTOs.Request.Comment;
+using Qinqii.DTOs.Request.Reaction;
+using Qinqii.Enums;
+using Qinqii.Extensions;
 using Qinqii.Models;
-using Qinqii.Models.Interfaces;
-using Qinqii.Models.Paging;
+using Qinqii.Utilities;
 
-namespace Qinqii.Repositories;
+namespace Qinqii.Service;
 
-public class PostRepository : IRepository<Post>
+public class PostRepository
 {
-    private readonly QueryHelper _query;
+    #region oldstuff
 
-    public PostRepository(QueryHelper query)
-    {
-        _query = query;
-    }
-    public Task<Post> GetById(int id)
-    {
-       
-       throw new NotImplementedException();
-    }
+    private readonly DapperContext _ctx;
+    private readonly QueryHelper _queryHelper;
 
-    public Task<IEnumerable<Post>> GetAll(Page page)
+
+    public PostRepository(DapperContext ctx, QueryHelper queryHelper)
     {
-        throw new NotImplementedException();
+        _ctx = ctx;
+        _queryHelper = queryHelper;
     }
 
-    public Task<IEnumerable<Post>> GetAll()
+
+    public async Task EditPost(EditPostRequest post)
     {
-        return  _query.QueryMultipleAsync<IEnumerable<Post>>("[POST].[GetAll]", null);
+        using var connection = _ctx.CreateConnection();
+        var param = post.ToParameters();
+        if ( post.attachments != null)
+        {
+            var dt = post.attachments.ToTableValuedParameters();
+            param.Add("@tvp", dt);
+        }
+
+        await connection.ExecuteAsync("[POST].[Edit]",
+            commandType: CommandType.StoredProcedure, param: param);
     }
 
-    public Task<Post> Create(Post entity)
+    public async Task DeletePost(DeletePostRequest post)
     {
-        throw new NotImplementedException();
+        using var connection = _ctx.CreateConnection();
+        var param = post.ToParameters();
+        await connection.ExecuteAsync("[POST].[Delete]",
+            commandType: CommandType.StoredProcedure, param: param);
     }
 
-    public Task<Post> Update(Post entity)
+    /*public async Task<Attachment> GetPostAttachments(GetPostAttachmentsRequest post)
     {
-        throw new NotImplementedException();
+         var connection = _ctx.CreateConnection();
+        var param = post.ToParameters();
+        await connection.ExecuteAsync("[POST].[GetAttachments]",
+            commandType: CommandType.StoredProcedure, param: param);
+    }*/
+    
+    public async Task CreatePost(CreatePostRequest post, IEnumerable<AttachmentIdsTVP> attachment_ids,CancellationToken token)
+    {
+        using var connection = _ctx.CreateConnection();
+        var param = post.ToParameters();
+        if (attachment_ids != null)
+        {
+            //Post có đính kèm tệp
+             var dt = attachment_ids.ToTableValuedParameters();
+            param.Add("@tvp", dt);
+        }
+        
+        var cmd = new CommandDefinition(commandType: CommandType
+                .StoredProcedure, commandText: "[POST].[Create]",
+            parameters: param, cancellationToken:token);
+        
+        
+        
+        var u = await connection.ExecuteAsync(cmd);
+    }
+    public async Task<Post> GetPost(int post_id)
+    {
+        using var connection = _ctx.CreateConnection();
+        var param = new DynamicParameters();
+        param.Add("@post_id", post_id);
+        var reader = await connection.QueryMultipleAsync(
+            "[POST].[Get]",
+            commandType: CommandType.StoredProcedure, param: param);
+        return await reader.ToPost();
     }
 
-    public Task<Post> Delete(int id)
+   
+    
+    public async Task<int> GetPostAuthorId(int post_id)
     {
-        throw new NotImplementedException();
+        using var connection = _ctx.CreateConnection();
+        var param = new DynamicParameters();
+        param.Add("@post_id", post_id);
+        var author_id = await connection.QuerySingleAsync<int>(
+            "[POST].[GetAuthor]",
+            commandType: CommandType.StoredProcedure, param: param);
+        return author_id;
     }
+    
+    public async Task<Reaction> SendReact(CreateReactionRequest createReaction)
+    {
+        using var connection = _ctx.CreateConnection();
+        var param = createReaction.ToParameters();
+        var reaction = await connection.QuerySingleAsync<Reaction>(
+            "[REACTION].[Create]",
+            commandType: CommandType.StoredProcedure, param: param);
+        
+        return reaction;
+    }
+    public async Task UndoReact(DeleteReactionRequest react)
+    {
+        using var connection = _ctx.CreateConnection();
+        var param = react.ToParameters();
+        var cnt = await connection.ExecuteAsync(
+            "[REACTION].[Delete]",
+            commandType: CommandType.StoredProcedure, param: param);
+        if (cnt != 1) throw new InvalidOperationException();
+    }
+    #endregion
+
+
 }

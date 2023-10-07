@@ -15,18 +15,18 @@ namespace Qinqii.Controllers;
 [ApiController]
 public class GlobalController : ControllerBase
 {
-    private readonly PostService _postService;
+    private readonly PostRepository _postRepository;
     private readonly NotificationService _notificationService;
     private readonly IHubContext<QinqiiHub> _hubContext;
-    private CommentService _commentService;
+    private CommentRepository _commentRepository;
 
-    public GlobalController(PostService postService, NotificationService 
-    notificationService, IHubContext<QinqiiHub> hubContext, CommentService commentService)
+    public GlobalController(PostRepository postRepository, NotificationService 
+    notificationService, IHubContext<QinqiiHub> hubContext, CommentRepository commentRepository)
     {
-        _postService = postService;
+        _postRepository = postRepository;
         _notificationService = notificationService;
         _hubContext = hubContext;
-        _commentService = commentService;
+        _commentRepository = commentRepository;
     }
 
     [HttpPatch("react")]
@@ -34,12 +34,12 @@ public class GlobalController : ControllerBase
         [FromBody] CreateReactionRequest request)
     {
         
-        var dto = await _postService.SendReact(request);
+        var dto = await _postRepository.SendReact(request);
         int author_id = 0;
         if (request.entity_type == (EntityType.POST))
-            author_id = await _postService.GetPostAuthorId(request.entity_id);
+            author_id = await _postRepository.GetPostAuthorId(request.entity_id);
         if(request.entity_type == (EntityType.COMMENT))
-            author_id = await _commentService.GetCommentAuthorId(request.entity_id);
+            author_id = await _commentRepository.GetCommentAuthorId(request.entity_id);
         
         var parameters = request.entity_type switch
         {
@@ -73,7 +73,7 @@ public class GlobalController : ControllerBase
     [HttpDelete("undo-react")]
     public async Task<IActionResult> UndoReaction(int id)
     {
-        await _postService.UndoReact(new DeleteReactionRequest(){id = id, user_id = HttpContext.GetUserId()});
+        await _postRepository.UndoReact(new DeleteReactionRequest(){id = id, user_id = HttpContext.GetUserId()});
         return Ok();
     }
 }

@@ -24,24 +24,24 @@ namespace Qinqii.Controllers;
 [Route("chat")]
 public class ChatController : ControllerBase
 {
-    private readonly MessageService _messageService;
+    private readonly MessageRepository _messageRepository;
     private readonly MediaService _mediaService;
     private readonly IHubContext<QinqiiHub> hubContext;
     private readonly SignalRService signalr;
-    private readonly UserService _userService;
+    private readonly UserRepository _userRepository;
     private readonly NotificationService _notificationService;
     private readonly IWebHostEnvironment _env;
 
-    public ChatController(MessageService messageService,  MediaService _mediaService, IHubContext<QinqiiHub> _hubContext, SignalRService _signalr, UserService userService, NotificationService notificationService, IWebHostEnvironment env)
+    public ChatController(MessageRepository messageRepository,  MediaService _mediaService, IHubContext<QinqiiHub> _hubContext, SignalRService _signalr, UserRepository userRepository, NotificationService notificationService, IWebHostEnvironment env)
     {
-        _messageService = messageService;
+        _messageRepository = messageRepository;
         this._mediaService = _mediaService;
         hubContext = _hubContext;
         signalr = _signalr;
         _notificationService = notificationService;
         _env = env;
         _notificationService = notificationService;
-        _userService = userService;
+        _userRepository = userRepository;
     }
     [ApiExplorerSettings]
     [Authorize]
@@ -62,7 +62,7 @@ public class ChatController : ControllerBase
         var listVideoAttIds =  await _mediaService.UploadVideoAndThumbnail(videoAndThumbnailPathList.ToList());
         var listImageAttIds =  await _mediaService.UploadImages(imagePathList.ToList());
         var attachment_ids = listVideoAttIds.Concat(listImageAttIds).Select((id) => new AttachmentIdsTVP(){attachment_id = id});
-        var _ = await _messageService.CreateMessage(message, attachment_ids);
+        var _ = await _messageRepository.CreateMessage(message, attachment_ids);
         
         CreateMessageResponse  responseMessage = new CreateMessageResponse()
         {
@@ -97,7 +97,7 @@ public class ChatController : ControllerBase
         {
             user_id = HttpContext.GetUserId()
         };
-        var contacts = await _userService.GetContacts(request);
+        var contacts = await _userRepository.GetContacts(request);
         contacts.ToList().ForEach( contact =>
         {
             contact.online_status = ConnectionManager.Connections.TryGetValue(contact.recipient_id, out _)
@@ -112,7 +112,7 @@ public class ChatController : ControllerBase
     public async Task<IActionResult> LoadConversation([FromQuery] GetMessagesRequest 
     request)
     {
-        var messages = await _messageService.GetMessages(request);
+        var messages = await _messageRepository.GetMessages(request);
         var json = JsonConvert.SerializeObject(messages);
         return new ContentResult()
         {
@@ -125,13 +125,13 @@ public class ChatController : ControllerBase
     [HttpDelete]
     public async Task<IActionResult> DeleteMessage(int message_id)
     {
-        await _userService.DeleteMessage(message_id);
+        await _userRepository.DeleteMessage(message_id);
         return Ok();
     }
     [HttpPost("mark-as-read")]
     public async Task<IActionResult> MarkMessageAsRead([FromBody] MarkMessagesAsReadRequest request)
     {
-        await _messageService.MarkMessageAsRead(request);
+        await _messageRepository.MarkMessageAsRead(request);
         return Ok();
     }
 }

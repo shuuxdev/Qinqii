@@ -73,4 +73,12 @@ public class QueryHelper
         using var connection = _ctx.CreateConnection();
         await connection.ExecuteAsync(sql, commandType: CommandType.StoredProcedure, param: param);
     }
+    public async Task<T> ExecuteScalarAsync<T>(string sql, DynamicParameters param)
+    {
+        using var connection = _ctx.CreateConnection();
+        var result = await connection.ExecuteScalarAsync<T>(sql, commandType: CommandType.StoredProcedure, param: param);
+        return result;
+    }
+    
+    
 }

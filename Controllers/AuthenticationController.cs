@@ -5,8 +5,10 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Qinqii.DTOs.Request.User;
 using Qinqii.Service;
 using Qinqii.Ultilities;
 
@@ -16,16 +18,16 @@ namespace Qinqii.Controllers
     [Route("auth")]
     public class AuthenticationController : ControllerBase
     {
-        private readonly UserService userService;
+        private readonly UserRepository _userRepository;
         private readonly AuthService authService;
         private readonly IConfiguration config;
         private readonly IHostEnvironment _env;
         
-        public AuthenticationController(AuthService _authService, UserService
-         _userService, IConfiguration _config, IHostEnvironment env)
+        public AuthenticationController(AuthService _authService, UserRepository
+         userRepository, IConfiguration _config, IHostEnvironment env)
         {
             this.authService = _authService;
-            this.userService = _userService;
+            this._userRepository = userRepository;
             this.config = _config;
             _env = env;
         }
@@ -33,7 +35,7 @@ namespace Qinqii.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginRequest u)
         {
-            int user_id = await authService.Login(u.username, u.password);
+            int user_id = await authService.Login(u.email, u.password);
             if (user_id == 0) return Unauthorized();
             List<Claim> claim = new List<Claim>
             {
@@ -63,8 +65,8 @@ namespace Qinqii.Controllers
         {
             try
             {
-                int user_id = await authService.Login(u.username, u.password);
-                if (user_id == 0) return Unauthorized();
+                int user_id = await authService.Login(u.email, u.password);
+                if (user_id == -1) return Unauthorized();
                 var token = JwtToken.Generate(config, user_id);
                 CookieOptions option = new CookieOptions();
                 if (_env.IsDevelopment())
@@ -73,7 +75,6 @@ namespace Qinqii.Controllers
                     option.SameSite = SameSiteMode.None;
                 }
                 Response.Cookies.Append(AdditionalClaimTypes.Token, token,option);
-                
                 return Ok();
             }
             catch (InvalidOperationException e)
@@ -81,6 +82,36 @@ namespace Qinqii.Controllers
                 var message = e.Message == "Sequence contains no elements" ? "Đăng nhập không thành công" : "Error";
                 return Unauthorized(message);
             }
+        }
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] UserRegisterRequest u)
+        {
+             await authService.Register(u.password, u.email);
+            return Ok();
+        }
+        [HttpGet("signin-google")]
+
+        public IActionResult GoogleLogin()
+        {
+            var redirectUrl = Url.Action("GoogleResponse", "Authentication");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var result = await HttpContext.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
+            if (!result.Succeeded) return BadRequest("Sign-in failed");
+            var idToken = result.Properties.GetTokenValue("id_token");
+            /*var token = JwtToken.Generate(config, user_id);
+            CookieOptions option = new CookieOptions();
+            if (_env.IsDevelopment())
+            {
+                option.Secure = true;
+                option.SameSite = SameSiteMode.None;
+            }
+            Response.Cookies.Append(AdditionalClaimTypes.Token, token,option);
+            return Ok(claims);*/
+            return Ok("Login thành công");
         }
     }
 }

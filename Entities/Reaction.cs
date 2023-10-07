@@ -8,7 +8,7 @@ public class Reaction
     [JsonIgnore] public int entity_id { get; set; }
     [JsonIgnore] public string entity_type { get; set; }
 
-    [JsonPropertyName("id")] public int id { get; set; } 
+    [JsonPropertyName("id")] public int reaction_id { get; set; } 
     public int reactor_id { get; set; }
     public string reactor_name { get; set; }
     public string reactor_avatar { get; set; }

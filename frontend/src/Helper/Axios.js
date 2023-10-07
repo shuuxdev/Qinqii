@@ -1,8 +1,8 @@
 import axios from 'axios';
 import Cookies from 'react-cookie/cjs/Cookies.js';
+import { SERVER_DOMAIN } from '../Enums/Server';
 const cookies = new Cookies();
 
-const SERVER_DOMAIN = 'https://localhost:7084';
 const api = axios.create({
     baseURL: `${SERVER_DOMAIN}/`,
     withCredentials: true,
@@ -59,9 +59,9 @@ export const GET_Friends = async (user_id) =>
     (await securedApi.get('/user/friends')).data;
 export const GET_FriendRequests = async () =>
     await securedApi.get('/user/friend-requests');
-export const POST_Login = async ({ username, password }) =>
+export const POST_Login = async ({ email, password }) =>
     await api.post('/auth/login_jwt', {
-        username,
+        email,
         password,
     });
 
@@ -105,10 +105,10 @@ export const UNDO_REACT = async (id) =>
     await GetApiResponseAs(securedApi
         .delete(`/undo-react?id=${id}`),ResponseType.StatusCode)
 
-export const GET_UserPosts = async ({user_id, page, pageSize})=>  GetApiResponseAs(securedApi.get(`user/posts?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
-export const     GET_UserImages  = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/images?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
-export const     GET_UserVideos           = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/videos?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
-export const     GET_UserFriends          = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/friends?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+export const GET_UserPosts = async ({user_id, page, pageSize})=>  GetApiResponseAs(securedApi.get(`user/posts?user_id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+export const     GET_UserImages  = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/images?user_id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+export const     GET_UserVideos           = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/videos?user_id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+export const     GET_UserFriends          = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/friends?user_id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
 export const DELETE_Post = async (post_id) => GetApiResponseAs(securedApi.delete(`/post/delete?id=${post_id}`), ResponseType.StatusCode)
 
 export const POST_UpdateStoryViewer = async (story_id) =>
@@ -162,17 +162,24 @@ export const EDIT_Post = async ({ comment_id, content, attachments }) => {
 export const POST_MarkAsRead = async (conversation_id) => {
     return await GetApiResponseAs(securedApi.post('/chat/mark-as-read',  {conversation_id} ), ResponseType.StatusCode);
 }
+export const POST_NotificationMarkAsRead = async (notification_id) => {
+    return await GetApiResponseAs(securedApi.post('/notification/mark-as-read',  {notification_id} ), ResponseType.StatusCode);
+}
 export const DELETE_Comment = async (comment_id) =>
     await securedApi
         .delete(`/comment/delete?id=${comment_id}`)
         .then((res) => [res.status, null])
         .catch((err) => [null, err]);
 
-export const EDIT_Comment = async (comment) => {
-    return await securedApi
-        .patch('/comment/edit', comment)
-        .then((res) => [res.data, null])
-        .catch((err) => [null, err]);
+export const EDIT_Comment = async ({deleted_attachments, new_attachments,...comment}) => {
+    let formData = new FormData();
+    formData.append('deleted_attachments', deleted_attachments);
+    for (let i = 0; i < new_attachments.length; ++i) {
+        formData.append('new_attachments', new_attachments[i]);
+    }
+    appendToFormData(formData, comment);
+    return await GetApiResponseAs(securedApi.patch('/comment/edit', formData), ResponseType.Data)
+
 };
 export const UPLOAD_Attachments = async (attachments) => {
     const formData = new FormData();

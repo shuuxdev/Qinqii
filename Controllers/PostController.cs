@@ -17,19 +17,19 @@ namespace Qinqii.Controllers;
 public class PostController : ControllerBase
 {
     private readonly MediaService _mediaService;
-    private readonly PostService _postService;
+    private readonly PostRepository _postRepository;
     private readonly ILogger<PostController> _logger;
     private readonly IWebHostEnvironment _env;
     private readonly NotificationService _notificationService;
     private readonly IHubContext<QinqiiHub> _hubContext;
-    public PostController(PostService postService,
+    public PostController(PostRepository postRepository,
         ILogger<PostController> logger, IWebHostEnvironment env,
         NotificationService notificationService,
         IHubContext<QinqiiHub> hubContext,
         MediaService mediaService)
 
     {
-        _postService = postService;
+        _postRepository = postRepository;
         _mediaService = mediaService;
         _logger = logger;
         _env = env;
@@ -45,7 +45,7 @@ public class PostController : ControllerBase
         // sửa [FromBody] sang [FromForm]
         // ở phần insert: cần lưu ảnh, tệp lên server trước khi lưu vào database
         
-        await _postService.EditPost(post);
+        await _postRepository.EditPost(post);
         return Ok();
     }
     
@@ -66,7 +66,7 @@ public class PostController : ControllerBase
         var listVideoAttIds =  await _mediaService.UploadVideoAndThumbnail(videoAndThumbnailPathList.ToList());
         var listImageAttIds =  await _mediaService.UploadImages(imagePathList.ToList());
         var attachment_ids = listVideoAttIds.Concat(listImageAttIds).Select((id) => new AttachmentIdsTVP(){attachment_id = id});
-         await _postService.CreatePost(post, attachment_ids, token);
+         await _postRepository.CreatePost(post, attachment_ids, token);
         
         return Ok();
     }
@@ -81,7 +81,7 @@ public class PostController : ControllerBase
     [HttpDelete("post/delete")]
     public async Task<IActionResult> DeletePost(DeletePostRequest post)
     {
-        await _postService.DeletePost(post);
+        await _postRepository.DeletePost(post);
         return Ok();
     }
     

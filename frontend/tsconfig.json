@@ -4,7 +4,8 @@
         "jsx": "react",
         "checkJs": false,
         "skipLibCheck": false,
-        "skipDefaultLibCheck": false
+        "skipDefaultLibCheck": false,
+      "allowSyntheticDefaultImports": true
     },
     "exclude": ["node_modules"]
 }

@@ -125,8 +125,11 @@ export function Chat({ contact: ci }) {
 
 
     useEffect(() => {
+        console.log('trigger ehrer');
         chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         chatContainerRef.current.scrollIntoView({ behavior: 'smooth' });
+        console.log(me.user_id, ci);
+        if(ci.unread_messages > 0)
         dispatch(markAsReadAsync(ci.conversation_id));
     }, [ci.messages]);
     const isPhoneScreen = useMediaQuery({ query: `(max-width: ${ScreenWidth.sm}px)` });
@@ -149,9 +152,7 @@ export function Chat({ contact: ci }) {
                         </div>
                     </div>
                     <div className='flex items-center gap-[7px]'>
-                        <div className='cursor-pointer'>
-                            <IoMdCall color={Color.Primary} size={20}></IoMdCall>
-                        </div>
+
                         <div className='cursor-pointer' onClick={
                             () => {
                                 setCallDetailImmediately({

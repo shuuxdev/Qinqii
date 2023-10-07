@@ -73,22 +73,22 @@ export const MessagePage = () => {
 
     return (
         <CallContext.Provider value={useWebRTC()}>
-            <CallModal/>
-        <MessagePageContext.Provider value={{ BackButton, selectedContactIndex, handleItemClick }}>
-            <div className='flex relative h-screen bg-white'>
-                <div className={chatListClass}>
-                    <Header />
-                    <ContactContainer contacts={contacts} />
-                </div>
-                <motion.div animate={chatControl} className={chatClass}>
-                    {
-                        contacts.length > 0 && selectedContactIndex != null ?
-                        <ChatV2 contact={contacts[selectedContactIndex]} />
-                            : <NoChatSelected/>
-                    }
-                </motion.div>
-            </div>
-        </MessagePageContext.Provider>
+            <CallModal key={Math.random()}/>
+                <MessagePageContext.Provider value={{ BackButton, selectedContactIndex, handleItemClick }}>
+                    <div className='flex relative h-screen bg-white'>
+                        <div className={chatListClass}>
+                            <Header />
+                            <ContactContainer contacts={contacts} />
+                        </div>
+                        <motion.div animate={chatControl} className={chatClass}>
+                            {
+                                contacts.length > 0 && selectedContactIndex != null ?
+                                <ChatV2 contact={contacts[selectedContactIndex]} />
+                                    : <NoChatSelected/>
+                            }
+                        </motion.div>
+                    </div>
+                </MessagePageContext.Provider>
         </CallContext.Provider>
 
     );

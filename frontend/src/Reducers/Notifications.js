@@ -1,3 +1,5 @@
+import { POST_NotificationMarkAsRead } from '../Helper/Axios';
+
 const { createSlice } = require("@reduxjs/toolkit");
 
 
@@ -24,6 +26,15 @@ const notificationSlice = createSlice({
         }
     }
 })
+
+export const markAsReadThunk =  (id) => async (dispatch, getState) => {
+    const notification = getState().notifications.find((notification) => notification.id === id)
+    if (notification && !notification.read) {
+        const [statusCode, error ]=  await POST_NotificationMarkAsRead(id);
+        if (statusCode === 200)
+        dispatch(markAsRead(id))
+    }
+}
 
 export const { addNotification, removeNotification, markAsRead,fetchNotifications } = notificationSlice.actions
 export default notificationSlice.reducer

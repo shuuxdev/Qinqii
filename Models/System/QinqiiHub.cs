@@ -14,14 +14,14 @@ namespace Qinqii.Models
     {
 
         private readonly ConnectionManager _connectionManager;
-        private readonly UserService _userService;
+        private readonly UserRepository _userRepository;
 
         
         
-        public QinqiiHub( ConnectionManager connectionManager, UserService userService)
+        public QinqiiHub( ConnectionManager connectionManager, UserRepository userRepository)
         {
             _connectionManager = connectionManager;
-            _userService = userService;
+            _userRepository = userRepository;
         }
         
         public async Task SendIceCandidate(string candidate, int caller_id, int callee_id)
@@ -33,7 +33,7 @@ namespace Qinqii.Models
         }
         public async Task SendOffer(string sdp, int user_id)
         {
-            var profile = await _userService.GetProfile(user_id);
+            var profile = await _userRepository.GetProfile(user_id);
             await Clients.User(user_id.ToString()).SendAsync("ReceiveOffer", sdp,
                 new {caller_id = Context.GetHttpContext().GetUserId(), callee_id = user_id ,profile.name, profile.avatar});
         }
@@ -54,7 +54,7 @@ namespace Qinqii.Models
         public override async Task OnConnectedAsync()
         {
             var user_id = Context.GetHttpContext().GetUserId();
-            var contacts = await _userService.GetContacts(new GetContactsRequest(){user_id = user_id});
+            var contacts = await _userRepository.GetContacts(new GetContactsRequest(){user_id = user_id});
             
             bool ok  = ConnectionManager.Connections.TryAdd(user_id, Context.ConnectionId);
             if (!ok) throw new ConnectionAbortedException("Connection already exists");
@@ -70,7 +70,7 @@ namespace Qinqii.Models
         {
             var user_id = Context.GetHttpContext().GetUserId();
             
-            var contacts = await _userService.GetContacts(new GetContactsRequest(){user_id = user_id});
+            var contacts = await _userRepository.GetContacts(new GetContactsRequest(){user_id = user_id});
             contacts.ToList().ForEach(async contact =>
             {
                 await Clients.User(contact.recipient_id.ToString()).SendAsync("updateOnlineStatus", user_id,

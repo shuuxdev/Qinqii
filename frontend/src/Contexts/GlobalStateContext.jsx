@@ -7,7 +7,7 @@ export const GlobalProvider = ({ children }) => {
 
 
     async function getMessageOfConversation(chat_id, contact) {
-        let messages = await fetch(`https://localhost:7084/chat/get_conversation?conversation_id=${chat_id}`, { credentials: 'include' })
+        let messages = await fetch(`/chat/get_conversation?conversation_id=${chat_id}`, { credentials: 'include' })
             .then(res => res.json())
             .then(data => data);
 

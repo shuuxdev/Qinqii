@@ -9,6 +9,7 @@ using Qinqii.DTOs.Request.Notification;
 using Qinqii.Extensions;
 using Qinqii.Models;
 using Qinqii.Models.Interfaces;
+using Qinqii.Models.QueryResult;
 using Qinqii.Utilities;
 
 public class NotificationService
@@ -51,11 +52,13 @@ public class NotificationService
         var notification = await reader.ToNotification();
         return notification;
     }
-    public async Task MarkAsRead(MarkAsReadRequest request)
+    public async Task<QueryResult> MarkAsRead(MarkAsReadRequest request)
     {
         using var connection = _ctx.CreateConnection();
         var param = request.ToParameters();
-        await connection.ExecuteAsync("[NOTIFICATION].MarkAsRead", param, commandType: CommandType.StoredProcedure);
+        var row = await connection.ExecuteAsync("[NOTIFICATION].MarkAsRead", param, commandType: CommandType.StoredProcedure);
+        var result = new QueryResult(row, row == 1);
+        return result;
     }
     public async Task DeleteNotification(DeleteNotificationRequest request)
     {

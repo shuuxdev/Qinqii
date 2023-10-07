@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Qinqii.Models;
 
 namespace Qinqii.Middlewares;
 
@@ -19,18 +20,51 @@ public class ErrorHandlingMiddleware : IMiddleware
         {
             await next(context);
         }
-        catch(Exception e)
+        catch (HttpStatusCodeException ex)
         {
-            context.Response.StatusCode = 403;
-            context.Response.ContentType = "application/json";
-            ProblemDetails details = new ProblemDetails()
-            {
-                Status = (int)HttpStatusCode.Forbidden,
-                Title = e.Message
-            };
-            _logger.LogError(e.Message);
-            string json =  JsonSerializer.Serialize(details);
-            context.Response.WriteAsync(json);
+            await HandleExceptionAsync(context, ex);
+        }
+        catch (Exception exceptionObj)
+        {
+            await HandleExceptionAsync(context, exceptionObj);
         }
     }
+
+    private Task HandleExceptionAsync(HttpContext context, HttpStatusCodeException exception)
+    {
+        string result = null;
+        context.Response.ContentType = "application/json";
+        if (exception is HttpStatusCodeException)
+        {
+            result = new ErrorResponse() 
+            {
+                Message = exception.Message,
+                StatusCode = (int)exception.StatusCode 
+            }.ToString();
+            context.Response.StatusCode = (int)exception.StatusCode;
+        }
+        else
+        {
+            result = new ErrorResponse() 
+            { 
+                Message = "Runtime Error",
+                StatusCode = (int)HttpStatusCode.BadRequest
+            }.ToString();
+            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+        }
+        return context.Response.WriteAsync(result);
+    }
+
+    private Task HandleExceptionAsync(HttpContext context, Exception exception)
+    {
+        string result = new ErrorResponse() 
+        { 
+            Message = exception.Message,
+            StatusCode = (int)HttpStatusCode.InternalServerError 
+        }.ToString();
+        context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+        return context.Response.WriteAsync(result);
+    }
+
+    
 }

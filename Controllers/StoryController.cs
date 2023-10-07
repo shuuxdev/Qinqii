@@ -10,27 +10,27 @@ namespace Qinqii.Controllers;
 [Route("story")]
 public class StoryController : ControllerBase
 {
-    private readonly StoryService _storyService;
+    private readonly StoryRepository _storyRepository;
     private readonly IWebHostEnvironment _env;
     private readonly MediaService _mediaService;
 
-    public StoryController(StoryService _storyService, IWebHostEnvironment env, MediaService mediaService)
+    public StoryController(StoryRepository storyRepository, IWebHostEnvironment env, MediaService mediaService)
     {
-        this._storyService = _storyService;
+        this._storyRepository = storyRepository;
         _env = env;
         _mediaService = mediaService;
     }
     [HttpGet]
     public async Task<IActionResult> GetStory(GetStoryRequest request)
     {
-        var story = await _storyService.GetStory(request);
+        var story = await _storyRepository.GetStory(request);
         return Ok(story);
     }
     [HttpPost("update-viewer")]
     public async Task<IActionResult> UpdateViewer(int id)
     {
         var user_id = HttpContext.GetUserId();
-        await _storyService.UpdateStoryViewerCount(new UpdateStoryViewerCountRequest
+        await _storyRepository.UpdateStoryViewerCount(new UpdateStoryViewerCountRequest
         {
             user_id = user_id,
             story_id = id
@@ -57,7 +57,7 @@ public class StoryController : ControllerBase
         var firstVideo = videoAndThumbnailPathList.FirstOrDefault()?.thumbnail_url;
         var firstImage = imagePathList.FirstOrDefault()?.image_url;
         request.thumbnail = firstVideo ?? firstImage;
-        await _storyService.CreateStory(request, attachment_ids);
+        await _storyRepository.CreateStory(request, attachment_ids);
         return Ok();
     }
 }

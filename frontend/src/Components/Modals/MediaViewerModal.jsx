@@ -1,18 +1,20 @@
-import { ModalWrapper } from "./ModalWrapper.jsx"
-import '../../SCSS/Modals.scss'
-import { faker } from '@faker-js/faker';
-import MediaViewerCarousel from '../Carousel/MediaViewerCarousel';
-import { useDispatch, useSelector } from 'react-redux';
+import { ModalWrapper } from './ModalWrapper.jsx';
+import '../../SCSS/Modals.scss';
+import VerticalMediaViewerCarousel from '../Carousel/VerticalMediaViewerCarousel';
+import { useDispatch } from 'react-redux';
 import { createContext, useState } from 'react';
 import { hideModal } from '../../Reducers/Modals';
-import { ENTITY } from '../../Enums/Entity';
 import { QinqiiCustomVideo } from '../Common/QinqiiCustomVideo';
 import { QinqiiCustomImage } from '../Common/QinqiiCustomImage';
-
+import { useMediaQuery } from 'react-responsive';
+import { ScreenWidth } from '../../Enums/ScreenWidth';
+import { HorizontalMediaViewerCarousel } from '../Carousel/HorizontalMediaViewerCarousel';
 
 
 export const MediaViewerModalContext = createContext();
 export const MediaViewerModal = ({ attachments, selected }) => {
+    const isPhoneScreen = useMediaQuery({ query: `(max-width: ${ScreenWidth.sm}px)` });
+    const isTabletScreen = useMediaQuery({ query: `(max-width: ${ScreenWidth.md}px)` });
     const dispatch = useDispatch();
     const handleClose = () => dispatch(hideModal());
 
@@ -21,7 +23,12 @@ export const MediaViewerModal = ({ attachments, selected }) => {
     return (
         <MediaViewerModalContext.Provider value={{activeCarousel, setActiveCarousel}}>
             <ModalWrapper className='media-viewer-modal' open={true} handleClose={handleClose}>
-                <MediaViewerCarousel attachments={attachments} />
+                {
+                    isPhoneScreen || isTabletScreen ? <HorizontalMediaViewerCarousel attachments={attachments}/>
+                        :
+                        <VerticalMediaViewerCarousel attachments={attachments} />
+
+                }
                 <ViewerPane payload={attachments[activeCarousel]}/>
              </ModalWrapper>
         </MediaViewerModalContext.Provider>

@@ -5,8 +5,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="FluentValidation" Version="11.7.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.22" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.0-preview2.22314.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.0" />
@@ -20,4 +22,8 @@
   <ItemGroup>
     <Folder Include="DTOs\Response\User\" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Update="wwwroot\assets\*.*" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
 </Project>

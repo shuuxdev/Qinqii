@@ -1,0 +1,12 @@
+.people-you-may-know {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(5px, 3vw, 50px);
+  gap: clamp(10px, 3vw, 20px);
+   &_container {
+      display: grid;
+     grid-gap: clamp(1px, 2vw, 10px);
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+
+   }
+}

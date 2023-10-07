@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Qinqii.DTOs.Request.Comment;
 using Qinqii.DTOs.Request.Notification;
+using Qinqii.Enums;
 using Qinqii.Extensions;
 using Qinqii.Models;
 using Qinqii.Models.Interfaces;
@@ -13,26 +14,28 @@ namespace Qinqii.Controllers;
 
 public class CommentController : ControllerBase
 {
-    private readonly PostService _postService;
-    private readonly CommentService _commentService;
+    private readonly PostRepository _postRepository;
+    private readonly CommentRepository _commentRepository;
+    private readonly MediaService _mediaService;
     private readonly ILogger<PostController> _logger;
     private readonly IWebHostEnvironment _env;
     private readonly NotificationService _notificationService;
     private readonly IHubContext<QinqiiHub> _hubContext;
-    public CommentController(PostService postService,
+    public CommentController(PostRepository postRepository,
         ILogger<PostController> logger, IWebHostEnvironment env,
         NotificationService notificationService,
         IHubContext<QinqiiHub> hubContext,
-        CommentService commentService
-        
+        CommentRepository commentRepository,
+        MediaService mediaService
         )
     {
-        _postService = postService;
+        _postRepository = postRepository;
         _logger = logger;
         _env = env;
         _notificationService = notificationService;
         _hubContext = hubContext;
-        _commentService = commentService;
+        _commentRepository = commentRepository;
+        _mediaService = mediaService;
     }
 
     [HttpPost("comment/create")]
@@ -44,9 +47,9 @@ public class CommentController : ControllerBase
             comment.attachment_links.AddRange(
                 await Server.UploadAsync(comment.attachments,
                     _env.WebRootPath));
-        var c = await _commentService.CreateComment(comment, user_id);
+        var c = await _commentRepository.CreateComment(comment, user_id);
 
-        var authorId = await _postService.GetPostAuthorId(comment.post_id);
+        var authorId = await _postRepository.GetPostAuthorId(comment.post_id);
         var parameters = new List<INotificationParameter>()
         {
             new PostIdParameter(c.post_id.ToString()),
@@ -59,13 +62,30 @@ public class CommentController : ControllerBase
     }
 
     [HttpPatch("comment/edit")]
-    public async Task<IActionResult> EditComment([FromBody] EditCommentRequest
+    public async Task<IActionResult> EditComment([FromForm] EditCommentRequest
         comment)
     {
         // sửa [FromBody] sang [FromForm]
         // ở phần insert: cần lưu ảnh, tệp lên server trước khi lưu vào database
+        comment.attachments.AddRange(comment.deleted_attachments.Select((a) => new AttachmentUpdateTVP()
+        {
+            attachment_id = a,
+            action = "DELETE"
+        }));
+        if (comment.new_attachments != null)
+        {
+            var pathList = await Server.UploadAsync(comment.new_attachments, _env.WebRootPath);
         
-        var c = await _commentService.EditComment(comment);
+            comment.attachments.AddRange(pathList.Select((path) => new AttachmentUpdateTVP()
+            {
+                attachment_type = "IMAGE",
+                attachment_link = path,
+                action = "INSERT"
+            }));    
+        }
+        
+        //if (comment.new_attachments != null)
+        var c = await _commentRepository.EditComment(comment);
 
         return Ok(c);
     }
@@ -73,7 +93,7 @@ public class CommentController : ControllerBase
     [HttpDelete("comment/delete")]
     public async Task<IActionResult> DeleteComment(DeleteCommentRequest comment)
     {
-        await _commentService.DeleteComment(comment);
+        await _commentRepository.DeleteComment(comment);
         return Ok();
     }
 }

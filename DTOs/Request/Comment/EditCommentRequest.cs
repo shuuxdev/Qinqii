@@ -8,6 +8,12 @@ public class EditCommentRequest
     public int comment_id { get; set; }
     [IgnoreDapperParameter]
     public List<AttachmentUpdateTVP> attachments { get; set; } = new();
+    [IgnoreDapperParameter]
+    public List<IFormFile> new_attachments { get; set; }
+    [IgnoreDapperParameter]
+    public List<int> deleted_attachments { get; set; }
+
     public string content { get; set; }
     
 }
+

@@ -35,4 +35,17 @@ public static class Server
         await file.CopyToAsync(fileStream);
         return name + "." + suffix;
     }
+    public static async Task<List<string>> UploadAsync(List<IFormFile> files, string webRootPath)
+    {
+        var pathList = await Task.WhenAll(files.Select(async (file) =>
+        {
+            var name = Guid.NewGuid().ToString();
+            var suffix = file.ContentType.Split("/")[1] ;
+            await using var fileStream =
+                new FileStream(Path.Combine(webRootPath, $"assets/{name}.{suffix}"), FileMode.CreateNew);
+            await file.CopyToAsync(fileStream);
+            return name + "." + suffix;
+        }));
+       return pathList.ToList();
+    }
 }

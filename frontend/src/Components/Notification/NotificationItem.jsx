@@ -2,14 +2,15 @@ import { BsThreeDots } from 'react-icons/bs'
 import Color from '../../Enums/Color.js'
 import { useNavigate } from 'react-router-dom'
 import { NotificationDropdownContext } from './NotificationDropdown.jsx'
-import React, { useContext } from 'react'
+import React, { useContext, useState } from 'react';
 import { Avatar } from '../Common/Avatar';
 import { DropdownMenu } from '../Common/DropdownMenu';
 import { Text } from '../Common/Text';
 import { AiOutlineDelete } from 'react-icons/ai';
 import { NotSeenDot } from '../Common/NotSeenDot';
-import { useDispatch } from 'react-redux';
-import { markAsRead } from '../../Reducers/Notifications';
+import { useDispatch, useSelector } from 'react-redux';
+import { markAsRead, markAsReadThunk } from '../../Reducers/Notifications';
+import { FriendRequest, Request } from '../Friend/FriendRequest';
 
 const data = {
   "id": 47,
@@ -27,7 +28,6 @@ const data = {
 }
 export function NotificationItem({ children, data, index }) {
   const TriggerSize = 18;
-  console.log(data);
   const navigate = useNavigate();
   const { CCIDOfNotification, setCCIDOfNotification } = useContext(NotificationDropdownContext);
   const zIndex = 100 - index;
@@ -45,7 +45,7 @@ export function NotificationItem({ children, data, index }) {
 
   )
   const handleClick = () => {
-    dispatch(markAsRead(data.id));
+    dispatch(markAsReadThunk(data.id));
     navigate(`/user/${data.actor_id}`, {replace: true})
   }
   return (
@@ -53,7 +53,7 @@ export function NotificationItem({ children, data, index }) {
       <div className="shrink-0">
         <Avatar sz={36} src={data.actor_avatar} user_id={data.actor_id}/>
       </div>
-      <div className="grow flex ">
+      <div className="grow flex gap-[10px]">
         <div onClick={handleClick} className="flex-grow relative">
           {children}
 
@@ -78,6 +78,7 @@ export function NotificationItem({ children, data, index }) {
   )
 }
 export const FriendRequestNotificationItem = ({ data, index }) => {
+  const requestPayload = useSelector(state => state.friendRequests).find(r => r.id == data.params.request_id);
   return <NotificationItem index={index} data={data}>
     <span className="text-sm font-semibold">{data.actor_name} đã gửi cho bạn một lời mời kết bạn</span>
     <div className="text-xs text-gray-500">{data.timestamp}</div>

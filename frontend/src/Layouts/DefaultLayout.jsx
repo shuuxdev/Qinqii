@@ -48,11 +48,11 @@ const ChatContainer = () => {
     return (
         <CallContext.Provider value={useWebRTC()}>
             <CallModal/>
-        <div className='fixed flex gap-[10px] bottom-0 right-0  z-[100]'>
+            <div className='fixed flex gap-[10px] bottom-0 right-0  z-[100]'>
             {chatList.length > 0 && chatList.map((chat) =>
                 <Chat key={chat.conversation_id} contact={chat} />)
             }
-        </div>
+            </div>
         </CallContext.Provider>
     )
 }

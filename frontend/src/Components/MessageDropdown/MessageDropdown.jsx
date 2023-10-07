@@ -1,22 +1,21 @@
-import { AnimatePresence, motion, useAnimation } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ScreenWidth } from '../../Enums/ScreenWidth';
-import MediaQuery, { useMediaQuery } from 'react-responsive';
+import { useMediaQuery } from 'react-responsive';
 import { useDispatch, useSelector } from 'react-redux';
 import { Avatar } from '../Common/Avatar';
 import { Text } from '../Common/Text';
 import { MdMessage } from 'react-icons/md';
 import React, { useEffect, useRef, useState } from 'react';
-import { Searchbar } from '../Common/Navbar';
 import Color from '../../Enums/Color';
 import { openChat } from '../../Reducers/Chats';
 import { useUserID } from '../../Hooks/useUserID';
 import { timeSinceCreatedAt } from '../../Helper/GetTimeSince';
-import { Chat } from '../Chat/Chat';
 import '../../SCSS/MessageDropdown.scss';
 import { CallContext } from '../../Layouts/DefaultLayout';
 import { useWebRTC } from '../../Hooks/useWebRTC';
 import { useNavigate } from 'react-router-dom';
-import { markAsReadAsync } from '../../Reducers/Contacts';
+import { ChatSearch } from '../Search/ChatSearch';
+
 export const MessageDropdown = () => {
     // const isPhoneScreen = useMediaQuery(`(max-width: ${ScreenWidth.sm})px`);
     const variant = {
@@ -64,11 +63,23 @@ export const MessageDropdown = () => {
     useEffect(() => {
         setupDropdownPosition();
     }, [isOpen]);
+
     const contacts = useSelector(state => state.contacts);
+    let unreadConversations = contacts.filter(contact => contact.unread_messages > 0).length;
+
     return (
         <CallContext.Provider value={useWebRTC()}>
-            <div ref={messageIcon} className='messages-icon' onClick={Toggle}>
+            <div ref={messageIcon} className='messages-icon relative cursor-pointer' onClick={Toggle}>
                 <MdMessage size={24} />
+                {
+                    unreadConversations > 0 &&
+                    <div className='absolute top-[-0.2em] left-[-0.2em]'>
+                        <div className="rounded-full bg-red-500 w-[15px] h-[15px] flex justify-center items-center">
+                            <div className="text-[0.5em] font-bold text-white">{unreadConversations}</div>
+                        </div>
+                    </div>
+                }
+
             </div>
             <AnimatePresence>
                 {
@@ -80,7 +91,8 @@ export const MessageDropdown = () => {
                         marginTop: 3,
                     }}>
                         <div className='message-dropdown p-[10px]'>
-                            <Searchbar/>
+                            <div className="text-xl font-bold p-[10px]">Tin nhắn</div>
+                            <ChatSearch/>
                             {
                                 contacts.map((contact,index) => (
                                     <MessageDropdownItem  onClick={() => handleItemClick(index)} contact={contact} key={contact.conversation_id}/>
