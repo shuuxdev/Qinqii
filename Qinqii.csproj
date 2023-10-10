@@ -22,5 +22,8 @@
   <ItemGroup>
     <Content Update="wwwroot\assets\*.*" CopyToPublishDirectory="Never" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\assets\" />
+  </ItemGroup>
 
 </Project>
