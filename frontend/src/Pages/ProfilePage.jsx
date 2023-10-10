@@ -1,6 +1,6 @@
-import { FaBirthdayCake, FaFemale, FaGraduationCap, FaHeart, FaMale } from 'react-icons/fa';
+import { FaBirthdayCake, FaFemale, FaHeart, FaMale } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchFriendsThunk, fetchPosts, fetchProfileThunk, useGetProfileQuery } from '../Reducers/Profile.js';
+import { fetchFriendsThunk, fetchProfile, fetchProfileThunk } from '../Reducers/Profile.js';
 import { useParams } from 'react-router-dom';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { AiOutlineCamera } from 'react-icons/ai';
@@ -16,27 +16,41 @@ import { ImagesTab } from '../Components/Profile/ImagesTab';
 import { ButtonState, FriendButton } from '../Components/Common/Buttons/FriendButton';
 import { useUserID } from '../Hooks/useUserID';
 import Loading from '../Components/Common/Loading';
+import Color from '../Enums/Color';
+import { FiEdit } from 'react-icons/fi';
+import { MdDone, MdOutlineCancel } from 'react-icons/md';
+import { DatePicker, Select } from 'antd';
+import TextArea from 'antd/es/input/TextArea';
+import { Text } from '../Components/Common/Text';
+import { AntdNotificationContext } from '../App';
+import moment from 'moment';
 
 
 const AvatarCircle = ({ src }) => {
     const dispatch = useDispatch();
-
-
+    const me = useUserID();
+    const params = useParams();
     const handleClick = () => {
         dispatch(showModal({ modalType: ModalType.UPLOAD_AVATAR, modalProps: { src } }));
     };
 
     return (
-        <div onClick={handleClick}
-             className='border-[5px]  border-white box-border   absolute overflow-hidden h-[150px] w-[150px] bg-[black] rounded-[50%] bottom-0 left-[50%] translate-x-[-50%] translate-y-[50%]'>
-            <motion.div className='absolute h-full cursor-pointer flex w-full items-center justify-center bg-white'
-                        initial={{ opacity: 0 }} whileHover={{ opacity: 0.3 }}>
-                <AiOutlineCamera size={28} />
-            </motion.div>
+        <div
+            className='border-[5px]  border-white box-border   absolute overflow-hidden h-[150px] w-[150px] bg-[black] rounded-[50%] bottom-0 left-[50%] translate-x-[-50%] translate-y-[50%]'>
+            {
+                me === parseInt(params.id) &&
+                <motion.div onClick={handleClick}
+                            className='absolute h-full cursor-pointer flex w-full items-center justify-center bg-white'
+                            initial={{ opacity: 0 }} whileHover={{ opacity: 0.3 }}>
+                    <AiOutlineCamera size={28} />
+                </motion.div>
+            }
+
             <QinqiiCustomImage src={src} alt='' className='w-full h-full object-cover' />
         </div>
     );
 };
+
 
 const BackgroundAndAvatar = () => {
     const { profile } = useContext(ProfileContext);
@@ -52,53 +66,214 @@ const BackgroundAndAvatar = () => {
 };
 
 
-const AboutMeItem = ({ icon, text }) => {
+const AboutMeItem = ({ Editor, Icon, text, itemType }) => {
+    const { editItems, setEditItems, onSubmit } = useContext(AboutContext);
+    const param = useParams();
+    const me = useUserID();
+    const axios = useAxios();
+
+    const Return = () => {
+        setEditItems(editItems.filter((item) => item !== itemType));
+    };
+
     return (
         <div className='flex  py-[10px] gap-[10px] items-center'>
-            {icon}
-            <p>{text}</p>
+            <div>
+                {Icon}
+            </div>
+            {
+                editItems.find((item) => item === itemType) ?
+                    <>
+                        <Editor />
+
+                        <MdOutlineCancel onClick={Return} className='cursor-pointer text-red-500 hover:scale-125' />
+                        <MdDone onClick={() => {onSubmit(itemType);Return();}}
+                                className='cursor-pointer text-green-500 hover:scale-125' />
+                    </>
+                    :
+                    <>
+                        <p>{text ?? 'Chưa cập nhật'}</p>
+                        {
+                            param.id == me &&
+                            <FiEdit onClick={() => setEditItems([...editItems, itemType])}
+                                    className='text-blue-500 cursor-pointer' />
+                        }
+                    </>
+            }
+
         </div>
     );
 };
+
+export const AboutContext = createContext();
+const ProfileForm = {
+    About: 'about',
+    Birthday: 'birthday',
+    Relationship: 'relationship',
+    Graduate: 'graduate',
+    Gender: 'gender',
+};
 const About = () => {
+    const param = useParams();
+    const me = useUserID();
+    const notify = useContext(AntdNotificationContext)
     const { profile } = useContext(ProfileContext);
     const { about, graduate, relationship, birthday, gender } = profile;
-
+    const [editItems, setEditItems] = useState([]);
+    const [editBio, setEditBio] = useState({ open: false });
+    const [profileForm, setProfileForm] = useState({
+        about: about,
+        graduate: graduate,
+        relationship: relationship,
+        birthday: birthday,
+        gender: gender,
+    });
+    const handleFormChange = (type, value) => {
+        setProfileForm({ ...profileForm, [type]: value });
+    };
+    const getVNWord = (word) => {
+        if (word === 'Male') return 'Nam';
+        if (word === 'Female') return 'Nữ';
+        if (word === 'Single') return 'Độc thân';
+        if (word === 'Dating') return 'Đang hẹn hò';
+    };
+    const RelationshipSelect = () => (
+        <Select defaultValue={getVNWord(relationship)} value={getVNWord(profileForm.relationship)} options={[
+            { value: 'Single', label: 'Độc thân' },
+            { value: 'Dating', label: 'Đang hẹn hò' },
+        ]} style={{ width: 120 }} onChange={(value) => handleFormChange(ProfileForm.Relationship, value)} />
+    );
+    const GenderSelect = () => (
+        <Select defaultValue={getVNWord(gender)} value={getVNWord(profileForm.gender)} options={[
+            { value: 'Male', label: 'Nam' },
+            { value: 'Female', label: 'Nữ' },
+            { value: 'GAYLORD', label: 'GAYLORD', disabled: true },
+        ]} style={{ width: 120 }} onChange={(value) => handleFormChange(ProfileForm.Gender, value)} />
+    );
+    const dispatch = useDispatch();
+    const axios = useAxios();
+    const handleSubmit = async (itemType) => {
+        let result = [];
+        if (itemType === ProfileForm.About) {
+            result =  await axios.PATCH_UpdateBio(profileForm.about);
+        }
+        if (itemType === ProfileForm.Birthday) {
+            result = await axios.PATCH_UpdateBirthday(profileForm.birthday);
+        }
+        if (itemType === ProfileForm.Gender) {
+            result = await axios.PATCH_UpdateGender(profileForm.gender);
+        }
+        if (itemType === ProfileForm.Relationship) {
+            result = await axios.PATCH_UpdateRelationship(profileForm.relationship);
+        }
+        let [statusCode, error] = result;
+        if (statusCode === 200) {
+            let _profile = { ...profile };
+            _profile[itemType] = profileForm[itemType];
+            console.log(_profile);
+            dispatch(fetchProfile(_profile));
+            notify.open({
+                message: `Cập nhật ${itemType} thành công`,
+                type: 'success',
+                duration: 7,
+                placement: 'bottomLeft'
+            });
+        } else {
+            notify.open({
+                message: `Cập nhật ${itemType} không thành công: ${error.response.data.Message}`,
+                type: 'error',
+                duration: 7,
+                placement: 'bottomLeft'
+            });
+        }
+    };
+    const BirthdaySelect = () => <DatePicker defaultValue={ moment(birthday)}
+                                             onChange={(value) => handleFormChange(ProfileForm.Birthday, value)} />;
     return (
-        <div className=' rounded-[9px] bg-[white]   my-[10px] '>
-            <div className=' p-[40px] flex flex-col gap-[20px]'>
-                <div className='flex flex-col text-gray-600'>
-                    <h1 className=' text-[20px]'>Giới thiệu</h1>
-                    <div className='flex justify-center'>
-                        <p>{about}</p>
+        <AboutContext.Provider value={{ editItems, setEditItems, onSubmit: handleSubmit }}>
+
+            <div className=' rounded-[9px] bg-[white]   my-[10px] '>
+                <div className=' p-[40px]  flex flex-col gap-[10px]'>
+                    <div className='flex gap-[10px] flex-col text-gray-600'>
+                        <h1 className=' text-[20px]'>Giới thiệu</h1>
+                        <div className='flex flex-col gap-[10px]'>
+                            {
+                                editBio.open ?
+                                    <TextArea
+                                        value={profileForm.about}
+                                        onChange={(e) => handleFormChange(ProfileForm.About, e.target.value)}
+                                        placeholder='Nhập tiểu sử của bạn <3'
+                                        autoSize={{ minRows: 3, maxRows: 5 }}
+                                    />
+                                    :
+                                    <p>{about}</p>
+                            }
+
+
+
+                            {
+                                param.id == me &&
+                                    <>
+                                    {
+                                        editBio.open ?
+                                        <div className='flex gap-[10px] justify-end'>
+
+                                            <div onClick={() => setEditBio({ open: false })}
+                                                 className={`bg-[${Color.Background}] w-[80px] gap-[4px] h-[30px]  rounded-[5px]  flex justify-center items-center cursor-pointer hover:bg-[${Color.Hover}]`}>
+                                                <Text fontSize={14}>
+                                                    Hủy
+                                                </Text>
+                                                <MdOutlineCancel className='text-red-500 cursor-pointer hover:scale-125' />
+
+                                            </div>
+                                            <div onClick={() => {
+                                                setEditBio({ open: false });
+                                                handleSubmit(ProfileForm.About);
+                                            }}
+                                                 className={`bg-[${Color.Background}] rounded-[5px] gap-[4px] w-[80px] h-[30px] flex justify-center items-center  cursor-pointer hover:bg-[${Color.Hover}]`}>
+                                                <Text fontSize={14}>
+                                                    Xong
+                                                </Text>
+                                                <MdDone className='text-green-500 cursor-pointer hover:scale-125' />
+
+                                            </div>
+                                        </div> :
+                                        <div onClick={() => setEditBio({ ...editBio, open: true })}
+                                             className={`flex w-full h-[40px] justify-center items-center rounded-[10px] bg-[${Color.Background}] hover:bg-[${Color.Hover}] cursor-pointer`}>
+                                            Chỉnh sửa bio
+                                        </div>
+                                    }
+                                    </>
+
+                            }
+
+                        </div>
+                    </div>
+
+                    <div className='w-full my-[20px] self-center h-[1px] bg-gray-200'></div>
+                    <div className='flex flex-col'>
+
+                        {/*<AboutMeItem Editor={RelationshipSelect} itemType={ProfileForm.Graduate}  Icon={<FaGraduationCap size={26} />} text={`Đã tốt nghiệp tại THPT ${graduate}`} />*/}
+
+                        <AboutMeItem Editor={RelationshipSelect} itemType={ProfileForm.Relationship}
+                                     Icon={<FaHeart size={26}></FaHeart>} text={getVNWord(relationship)} />
+
+                        {/*<AboutMeItem Editor={BirthdaySelect} itemType={ProfileForm.Birthday}*/}
+                        {/*             Icon={<FaBirthdayCake size={26} />} text={birthday} />*/}
+                        {
+                            gender === 'Male' ?
+                                <AboutMeItem Editor={GenderSelect} itemType={ProfileForm.Gender}
+                                             Icon={<FaMale size={26} />} text={'Nam'} />
+                                :
+                                <AboutMeItem Editor={GenderSelect} itemType={ProfileForm.Gender}
+                                             Icon={<FaFemale size={26} />} text={'Nữ'} />
+
+                        }
                     </div>
                 </div>
-
-                <div className='w-full my-[20px] self-center h-[1px] bg-gray-200'></div>
-                <div className='flex flex-col'>
-                    {
-                        graduate &&
-                        <AboutMeItem icon={<FaGraduationCap size={26} />} text={`Đã tốt nghiệp tại THPT ${graduate}`} />
-                    }
-                    {
-                        relationship &&
-                        <AboutMeItem icon={<FaHeart size={26}></FaHeart>} text={relationship} />
-                    }
-                    {
-                        birthday &&
-                        <AboutMeItem icon={<FaBirthdayCake size={26} />} text={birthday.slice(0, 10)} />
-
-                    }
-                    {
-                        gender == 'MALE' ?
-                            <AboutMeItem icon={<FaMale size={26} />} text={gender} />
-                            :
-                            <AboutMeItem icon={<FaFemale size={26} />} text={gender} />
-
-                    }
-                </div>
             </div>
-        </div>
+        </AboutContext.Provider>
+
     );
 };
 

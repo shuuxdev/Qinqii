@@ -1,16 +1,16 @@
-import { TextareaAutosize } from "@mui/material";
 import { useContext, useEffect, useRef, useState } from 'react';
 import { BsCameraFill, BsEmojiLaughingFill } from 'react-icons/bs';
-import { IoMdSend } from "react-icons/io";
-import { useDispatch } from "react-redux";
-import { commentThunk } from "../../Thunks/Posts.js";
-import { AnimatePresence, animate, motion, useAnimation } from "framer-motion";
-import { Button } from "antd";
+import { useDispatch } from 'react-redux';
+import { commentThunk } from '../../Thunks/Posts.js';
+import { motion, useAnimation } from 'framer-motion';
+import { Button } from 'antd';
 import { PostActionContext } from '../Post/Post';
 import { UploadImage } from '../Common/UploadImage';
+import { useValidateMedia } from '../../Hooks/useValidateMedia';
+
 export const CreateComment = ({ post, initValue, initAttachments = [], parent_id }) => {
     const controls = useAnimation();
-
+    const [validateMedia] = useValidateMedia();
     const dispatch = useDispatch();
     const [files, setFiles] = useState(initAttachments)
     const fileRef = useRef();
@@ -35,6 +35,12 @@ export const CreateComment = ({ post, initValue, initAttachments = [], parent_id
     }
     const HandleUpload = () => {
         const _files = fileRef.current.files;
+
+        let ok = true;
+        ok = validateMedia([..._files]);
+        if (!ok) return;
+
+
         setFiles([...files, ..._files]);
     }
     const Comment = () => {

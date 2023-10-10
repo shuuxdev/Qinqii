@@ -1,8 +1,8 @@
 import React, { forwardRef, Suspense, useContext, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Color from '../../Enums/Color';
-import { Alert, Dialog, DialogActions, DialogTitle, Snackbar } from '@mui/material';
-import { CloseDialog, HideNotification, OpenDialog } from '../../Reducers/UI.js';
+import { Dialog, DialogActions, DialogTitle } from '@mui/material';
+import { CloseDialog, OpenDialog } from '../../Reducers/UI.js';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BsEmojiSunglassesFill, BsImages, BsThreeDots } from 'react-icons/bs';
 import Loading from '../Common/Loading.jsx';
@@ -13,7 +13,7 @@ import { QinqiiEmojiPicker } from '../Common/QinqiiEmojiPicker';
 import { Button } from '../Common/Button';
 import { Avatar } from '../Common/Avatar';
 import { UploadImage } from '../Common/UploadImage';
-import { PostActionContext } from './Post';
+import { AntdNotificationContext } from '../../App';
 
 
 const DialogBody = ({ children }) => {
@@ -51,11 +51,29 @@ const PostManager = () => {
     const textareaRef = useRef();
     const [showPicker, setShowPicker] = useState(false);
     const dispatch = useDispatch();
+
+
+
+    const notify = useContext(AntdNotificationContext);
     const Close = () => {
         dispatch(CloseDialog());
     };
     const HandleUpload = (e) => {
         const files = uploadButtonRef.current.files;
+        let ok = true;
+        [...files].forEach((file) => {
+          if(!(file.type.includes("video") || file.type.includes("image"))) {
+            notify.open({
+                message: 'Chỉ có thể upload các định dạng ảnh và video như jpg, png, mp4',
+                type: 'error',
+                placement: 'bottomLeft',
+                duration: 5
+            });
+            ok = false;
+          }
+        })
+        if(!ok) return;
+
         setUploadedFiles(files);
     };
     const RemoveFileFromUploadFiles = (file_id) => {

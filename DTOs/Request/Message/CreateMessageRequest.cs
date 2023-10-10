@@ -11,8 +11,6 @@ public class CreateMessageRequest
     public int conversation_id { get; set; }
 
     /*public DateTime? sent_at { get; set; }*/
-    
-    [IgnoreDapperParameter]
     public int recipient_id { get; set; }
     
     

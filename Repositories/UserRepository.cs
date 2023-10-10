@@ -5,6 +5,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Qinqii.DTOs.Request.Contact;
 using Qinqii.DTOs.Request.User;
+using Qinqii.Entities;
 using Qinqii.Enums;
 using Qinqii.Extensions;
 using Qinqii.Models;
@@ -57,7 +58,7 @@ namespace Qinqii.Service
         {
             using var connection = _ctx.CreateConnection();
             var param = contact.ToParameters();
-            var contacts = (await connection.QueryAsync<Contact>("[ACCOUNT].[Contacts]", commandType: System.Data.CommandType.StoredProcedure, param: param));
+            var contacts = (await connection.QueryAsync<Contact>("[ACCOUNT].GetAllConversations", commandType: System.Data.CommandType.StoredProcedure, param: param));
             
             var messages = await Task.WhenAll<IEnumerable<Message>>(contacts.Select(async (contact) =>
             {
@@ -73,6 +74,15 @@ namespace Qinqii.Service
             }
             return contacts;
 
+        }
+        public async Task<Contact> GetContact(int user_id, int conversation_id)
+        {
+            using var connection = _ctx.CreateConnection();
+            var param = new DynamicParameters();
+            param.Add("@user_id", user_id, dbType: System.Data.DbType.Int32);
+            param.Add("@conversation_id", conversation_id, dbType: System.Data.DbType.Int32);
+            var contact = await connection.QuerySingleAsync<Contact>("[ACCOUNT].GetConversationById", commandType: System.Data.CommandType.StoredProcedure, param: param);
+            return contact;
         }
         public async Task<IEnumerable<PostVideoThumbnail>> GetUserPostVideoThumbnails(int id, int page, int pageSize)
         {
@@ -202,6 +212,49 @@ namespace Qinqii.Service
             param.Add("@user2_id", user2_id, dbType: System.Data.DbType.Int32);
             var relationship = await connection.QuerySingleAsync<string>("[ACCOUNT].[GetRelationship]", commandType: System.Data.CommandType.StoredProcedure, param: param);
             return relationship;
+        }
+
+        public async Task<QueryResult> UpdateRelationship(string status, int user_id)
+        {
+            using var connection = _ctx.CreateConnection();
+            var param = new DynamicParameters();
+            param.Add("@status", status, dbType: System.Data.DbType.String);
+            param.Add("@user_id", user_id, dbType: System.Data.DbType.Int32);
+            int row = await connection.ExecuteAsync("[ACCOUNT].[UpdateRelationship]", commandType: System.Data.CommandType.StoredProcedure, param: param);
+            var result = new QueryResult(row, row == 1);
+            return result;
+        }
+
+        public async Task<QueryResult> UpdateGender(string gender, int user_id)
+        {
+            using var connection = _ctx.CreateConnection();
+            var param = new DynamicParameters();
+            param.Add("@gender", gender, dbType: System.Data.DbType.String);
+            param.Add("@user_id", user_id, dbType: System.Data.DbType.Int32);
+            int row = await connection.ExecuteAsync("[ACCOUNT].[UpdateGender]", commandType: System.Data.CommandType.StoredProcedure, param: param);
+            var result = new QueryResult(row, row == 1);
+            return result;
+        }
+        public async Task<QueryResult> UpdateBirthday(DateTime birthday, int user_id)
+        {
+            using var connection = _ctx.CreateConnection();
+            var param = new DynamicParameters();
+            param.Add("@birthday", birthday, dbType: System.Data.DbType.DateTime);
+            param.Add("@user_id", user_id, dbType: System.Data.DbType.Int32);
+            int row = await connection.ExecuteAsync("[ACCOUNT].[UpdateBirthday]", commandType: System.Data.CommandType.StoredProcedure, param: param);
+            var result = new QueryResult(row, row == 1);
+            return result;
+        }
+    
+        public async Task<QueryResult> UpdateBio(string bio, int user_id)
+        {
+            using var connection = _ctx.CreateConnection();
+            var param = new DynamicParameters();
+            param.Add("@bio", bio, dbType: System.Data.DbType.String);
+            param.Add("@user_id", user_id, dbType: System.Data.DbType.Int32);
+            int row = await connection.ExecuteAsync("[ACCOUNT].[UpdateBio]", commandType: System.Data.CommandType.StoredProcedure, param: param);
+            var result = new QueryResult(row, row == 1);
+            return result;
         }
     }
     

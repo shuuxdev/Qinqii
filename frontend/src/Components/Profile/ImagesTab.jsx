@@ -15,7 +15,6 @@ export const ImagesTab = () => {
 
     const dispatch = useDispatch();
     const { images, isSuccess, isLoading } = useSelector(state => state.profile);
-    console.log(images);
     const variant = {
         hidden: {
             opacity: 0,

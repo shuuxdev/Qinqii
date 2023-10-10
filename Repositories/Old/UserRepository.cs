@@ -1,4 +1,5 @@
 using Dapper;
+using Qinqii.Entities;
 using Qinqii.Models;
 using Qinqii.Models.Interfaces;
 using Qinqii.Models.Paging;

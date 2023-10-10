@@ -75,7 +75,8 @@ const getCascadeComments = (comment) => {
 
 export const undoReactThunk =
     ({entity, entity_type, reaction_id}, updateEntity) => async (dispatch, getState) => {
-        const [statusCode, err] = await UNDO_REACT(reaction_id);
+
+        const [statusCode, err] = await UNDO_REACT({id: reaction_id, entity_type} );
         if (!err && statusCode === 200) {
             if (entity_type === ENTITY.POST) {
                 const post = {...entity, reactions: entity.reactions.filter(reaction => reaction.id !== reaction_id)}
@@ -88,6 +89,14 @@ export const undoReactThunk =
                         (reaction) => reaction.id !== reaction_id
                     );
                     dispatch(updateEntity(comment));
+            }
+            if(entity_type === ENTITY.MESSAGE){
+
+                const message = {...entity};
+                message.reactions = message.reactions.filter(
+                    (reaction) => reaction.id !== reaction_id
+                );
+                dispatch(updateEntity(message));
             }
         }
     };
@@ -131,7 +140,6 @@ export const deletePostThunk = (post_id, removePost) => async (dispatch) => {
 };
 export const uploadAttachmentsThunk = (files) => async (dispatch) => {
     let [attachments, err] = await UPLOAD_Attachments(files);
-    debugger
     if (err)
         dispatch(
             ShowNotification({
@@ -144,7 +152,6 @@ export const uploadAttachmentsThunk = (files) => async (dispatch) => {
 };
 export const commentThunk = (comment, addComment) => async (dispatch) => {
     let response = await CREATE_Comment(comment);
-    console.log(response.data)
     let _comment = response.data;
     //for finding which post to udpate in reducer
     _comment.post_id = comment.post_id;
@@ -169,7 +176,6 @@ export const deleteCommentThunk = (comment, post,removeComment) => async (dispat
                 severity: Severity.ERROR,
             })
         );
-        return;
     } else {
         dispatch(
             ShowNotification({
@@ -192,7 +198,6 @@ export const editCommentThunk = (comment, updateComment) => async (dispatch) => 
                 severity: Severity.ERROR,
             })
         );
-        return;
     } else {
         dispatch(updateComment(newComment));
         dispatch(

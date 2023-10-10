@@ -6,6 +6,7 @@ import { useDispatch } from 'react-redux';
 import { editCommentThunk, uploadAttachmentsThunk } from '../../Thunks/Posts.js';
 import { PostActionContext } from '../Post/Post';
 import { UploadImage } from '../Common/UploadImage';
+import { useValidateMedia } from '../../Hooks/useValidateMedia';
 
 export const EditComment = ({
                                 comment = {}, initValue, initAttachments, onCancel = () => {
@@ -22,6 +23,7 @@ export const EditComment = ({
     const [newAttachments, setNewAttachments] = useState([]);
     const fileRef = useRef();
     const contentRef = useRef();
+    const [validateMedia] = useValidateMedia();
     const removeList = useRef([]);
     const { updateComment } = useContext(PostActionContext);
     const RemoveNewAttachments = (index) => {
@@ -49,7 +51,11 @@ export const EditComment = ({
         fileRef.current.click();
     };
     const HandleUpload = () => {
+
         const _files = fileRef.current.files;
+        let ok = true;
+        ok = validateMedia([..._files]);
+        if(!ok) return;
         setNewAttachments([..._files]);
     };
     const Reset = () => {

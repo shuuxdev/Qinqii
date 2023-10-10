@@ -33,7 +33,6 @@ export const NotificationDropdown = () => {
 
     const variants = {
         visible: {
-            height: "auto",
             y: 0,
             opacity: 1,
             transition: {
@@ -42,9 +41,8 @@ export const NotificationDropdown = () => {
         },
         hidden: {
 
-            opacity: 0.5,
+            opacity: 0,
             y: -30,
-            height: 0,
             transition: {
                 duration: 0.3
             }
@@ -74,7 +72,7 @@ export const NotificationDropdown = () => {
             case NotificationType.LIKE_COMMENT:
                 return <LikeCommentNotificationItem index={index} key={notification.id} data={notification}></LikeCommentNotificationItem>
             case NotificationType.LIKE_POST:
-                return <LikePostNotificationItem index={index} key={notification.id} data={notification}></LikePostNotificationItem>
+                return <LikePostNotificationItem  index={index} key={notification.id} data={notification}></LikePostNotificationItem>
             case NotificationType.FRIEND_ACCEPT:
                 return <FriendRequestAcceptedNotificationItem index={index} key={notification.id} data={notification} />
             default:
@@ -91,7 +89,7 @@ export const NotificationDropdown = () => {
         setupDropdownPosition();
     }, [notification])
 
-    let className = twMerge("absolute  w-[350px] top-full z-[100] rounded-[10px]");
+    let className = twMerge("absolute  w-[350px] top-full z-[100] rounded-[20px]");
     return (
         <NotificationDropdownContext.Provider value={ctxValue}>
             <AnimatePresence>

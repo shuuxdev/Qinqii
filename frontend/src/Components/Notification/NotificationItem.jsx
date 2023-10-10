@@ -26,7 +26,7 @@ const data = {
   "actor_avatar": "shuu.jpg",
   "read": false
 }
-export function NotificationItem({ children, data, index }) {
+export function NotificationItem({ children, data, index, additionalIconForAvatar }) {
   const TriggerSize = 18;
   const navigate = useNavigate();
   const { CCIDOfNotification, setCCIDOfNotification } = useContext(NotificationDropdownContext);
@@ -50,13 +50,16 @@ export function NotificationItem({ children, data, index }) {
   }
   return (
     <div className="notification_item">
-      <div className="shrink-0">
-        <Avatar sz={36} src={data.actor_avatar} user_id={data.actor_id}/>
+      <div className="shrink-0 relative">
+        <Avatar sz={36} src={data.actor_avatar} user_id={data.actor_id} />
+        <div className="absolute right-[-10%] bottom-[-20%]">
+          {additionalIconForAvatar}
+
+        </div>
       </div>
       <div className="grow flex gap-[10px]">
         <div onClick={handleClick} className="flex-grow relative">
           {children}
-
         </div>
         <div style={{zIndex}} className="shrink-0 relative">
           <DropdownMenu  isOpen={CCIDOfNotification === data.id} handleItemClick={CloseDropdown}  TriggerElement={Trigger}>
@@ -91,9 +94,11 @@ export const CommentNotificationItem = ({ data, index }) => {
   </NotificationItem>
 }
 export const LikePostNotificationItem = ({ data, index }) => {
-  return <NotificationItem index={index} data={data}>
+  const addtionIcon = <em-emoji native={data.params.emoji} set="facebook" size={`${18}px`}></em-emoji>
+  return <NotificationItem additionalIconForAvatar={addtionIcon} index={index} data={data}>
     <span className="text-sm font-semibold">{data.actor_name} đã thả cảm xúc về bài viết của bạn</span>
-    <div className="text-xs text-gray-500">{data.timestamp}</div>
+    <div className="text-xs text-gray-500">{data.timestamp}
+    </div>
   </NotificationItem>
 }
 export const FriendRequestAcceptedNotificationItem = ({ data, index }) => {

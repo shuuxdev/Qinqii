@@ -44,7 +44,6 @@ export const getVideoFirstFrame = async (file, resultType) => {
             videoElement.currentTime = 0;
         };
     });
-    console.log(result)
     return result;
 
 }

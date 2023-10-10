@@ -30,6 +30,7 @@ export const TopReactions = ({ entity, reactions, action, entity_type }) => {
     const dispatch = useDispatch();
     // use for top reactions
     const UndoReaction = (reaction) => {
+        console.log(reaction)
         const payload = {entity,entity_type, reaction_id: reaction.id}
         dispatch(undoReactThunk(payload, action));
     }
@@ -70,7 +71,7 @@ export const TopReactions = ({ entity, reactions, action, entity_type }) => {
                         ))
                     }
                 </div>
-                <div className="flex flex-col gap-[15px] overflow-y-scroll my-[10px] max-h-[400px]">
+                <div className="flex flex-col gap-[15px] overflow-y-auto my-[10px] max-h-[400px]">
                     {
                         reactions.filter((reaction) => reaction.emoji == selectedEmoji).map((reaction) => (
                             <div className="flex items-center gap-[10px]">
@@ -86,14 +87,11 @@ export const TopReactions = ({ entity, reactions, action, entity_type }) => {
                                     <Text>{reaction.reactor_name}</Text>
                                 </div>
                                 {
-                                    user_id === reaction.reactor_id ?
+                                    user_id === reaction.reactor_id &&
                                         <div className="justify-end">
                                             <Button danger onClick={() => UndoReaction(reaction)}>Hủy</Button>
                                         </div>
-                                        :
-                                        <div className="justify-end">
-                                            <Button >Thêm bạn</Button>
-                                        </div>
+
                                 }
                             </div>
 

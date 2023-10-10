@@ -12,6 +12,7 @@ const connection = new HubConnectionBuilder()
         accessTokenFactory: () => {
             return new Cookies().get('Token');
         },
+
     })
     .withAutomaticReconnect()
     .configureLogging(LogLevel.None)

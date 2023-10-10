@@ -86,7 +86,7 @@ namespace Qinqii.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterRequest u)
         {
-             await authService.Register(u.password, u.email);
+             await authService.Register(u);
             return Ok();
         }
         [HttpGet("signin-google")]

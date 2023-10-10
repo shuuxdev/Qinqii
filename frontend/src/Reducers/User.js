@@ -1,7 +1,9 @@
 import jwtDecode from 'jwt-decode'
 import Cookies from 'react-cookie/cjs/Cookies.js'
-import { GET_UserProfile, POST_Login } from '../Helper/Axios.js';
+import { GET_UserProfile, POST_Login, POST_Register } from '../Helper/Axios.js';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { ShowNotification } from './UI';
+import { Severity } from '../Enums/FetchState';
 
 
 
@@ -35,6 +37,10 @@ export const asyncLogin = (loginInfo) => async (dispatch, getState) => {
       return id;
     }
      else throw new Error('Đăng nhập thất bại')
+}
+export const asyncRegister = (registerInfo) => async (dispatch, getState) => {
+    const [statusCode, error] = await POST_Register(registerInfo)
+    return [statusCode, error];
 }
 export const fetchUserThunk = createAsyncThunk(
     'user/fetchUser',

@@ -2,8 +2,10 @@ using System.Data;
 using Dapper;
 using Microsoft.AspNetCore.SignalR;
 using Qinqii.DTOs.Request.User;
+using Qinqii.Entities;
 using Qinqii.Models;
 using Qinqii.Models.Exceptions;
+using Qinqii.Models.QueryResult;
 using Qinqii.Utilities;
 
 namespace Qinqii.Service;
@@ -18,12 +20,31 @@ public class FriendRepository
         _ctx = ctx;
         _hubContext = hubContext;
     }
-    public async Task<IEnumerable<User>> GetPeopleYouMayKnow(GetPeopleYouMayKnowRequest request)
+    public async Task<QueryResult<GetPeopleYouMayKnowResponse>> GetPeopleYouMayKnow(GetPeopleYouMayKnowRequest request)
     {
-        using var connection = _ctx.CreateConnection();
-        var param = request.ToParameters();
-        var result = await connection.QueryAsync<User>("[ACCOUNT].[GetPeopleYouMayKnow]", commandType: CommandType.StoredProcedure, param: param);
-        return result;
+        try
+        {
+            using var connection = _ctx.CreateConnection();
+            var param = request.ToParameters();
+            var reader = await connection.QueryMultipleAsync("[ACCOUNT].[GetPeopleYouMayKnow]", commandType: CommandType.StoredProcedure, param: param);
+            var users = reader.Read<User>();
+            var total = reader.Read<int>().FirstOrDefault();
+            var queryResult = new QueryResult<GetPeopleYouMayKnowResponse>(new GetPeopleYouMayKnowResponse()
+            {
+              total  = total,
+              users = users
+            }, true);
+            return queryResult;
+        }
+        catch (Exception e)
+        {
+            var queryResult = new QueryResult<GetPeopleYouMayKnowResponse>(new GetPeopleYouMayKnowResponse()
+            {
+                total  = 0,
+                users = null,
+            }, false);
+            return queryResult;
+        }
     }
 
     public async Task<int> CreateFriendRequest(CreateFriendRequest request)

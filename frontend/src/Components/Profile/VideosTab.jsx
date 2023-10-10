@@ -25,7 +25,6 @@ export const VideosTab = () => {
     const {  isSuccess, isLoading } = useGetVideosQuery({ user_id: param.id, page: 1, pageSize: 20 });
 
     const videos = useSelector((state) => state.profile.videos);
-    console.log(videos);
     const OpenInMediaViewer = (index) => {
         const attachments = videos.filter((video) => videos[index].post_id === video.post_id)
             .map((video) => ({

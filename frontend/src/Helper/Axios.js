@@ -3,10 +3,7 @@ import Cookies from 'react-cookie/cjs/Cookies.js';
 import { SERVER_DOMAIN } from '../Enums/Server';
 const cookies = new Cookies();
 
-const api = axios.create({
-    baseURL: `${SERVER_DOMAIN}/`,
-    withCredentials: true,
-});
+
 const securedApi = axios.create({
     baseURL: `${SERVER_DOMAIN}/`,
     withCredentials: true,
@@ -20,7 +17,7 @@ const GetApiResponseAs = async (api, responseType)  => {
 
     try {
         const res = await api;
-        if(responseType == ResponseType.Data)
+        if(responseType === ResponseType.Data)
         {
             return [res.data, null]
         }
@@ -30,7 +27,9 @@ const GetApiResponseAs = async (api, responseType)  => {
     }
     catch (err)
     {
+        if(responseType === ResponseType.Data)
         return [null, err]
+        else return [err.response.status, err]
     }
 }
 
@@ -44,8 +43,11 @@ const onSuccessResponse = (response) => {
 };
 securedApi.interceptors.request.use(beforeSendingRequest);
 securedApi.interceptors.response.use(onSuccessResponse, (err) => {
-    // cookies.remove('Token');
-    // window.location.href = '/login';
+    if(err.response.status === 401)
+    {
+        cookies.remove('Token');
+        window.location.href = '/login';
+    }
     return Promise.reject(err);
 });
 export const GET_Posts = async () => await securedApi.get('/feed');
@@ -60,11 +62,16 @@ export const GET_Friends = async (user_id) =>
 export const GET_FriendRequests = async () =>
     await securedApi.get('/user/friend-requests');
 export const POST_Login = async ({ email, password }) =>
-    await api.post('/auth/login_jwt', {
+    await securedApi.post('/auth/login_jwt', {
         email,
         password,
     });
-
+export const POST_Register = async ({ email, password, name }) =>
+    await GetApiResponseAs(securedApi.post('/auth/register', {
+        email,
+        password,
+        name,
+    }), ResponseType.StatusCode);
 export const POST_SendMessage = async (message, images, videos, thumbnails) =>
 {
 
@@ -100,10 +107,11 @@ export const GET_Chat = async () => (await securedApi.get('/chat')).data;
 export const SEND_React = async (payload) =>
     await GetApiResponseAs(securedApi
         .patch('/react', payload), ResponseType.Data)
-        
-export const UNDO_REACT = async (id) =>
+export const DELETE_Message = async (message_id) =>
+    await GetApiResponseAs(securedApi.delete(`/chat/message?message_id=${message_id}`), ResponseType.StatusCode)
+export const UNDO_REACT = async ({id, entity_type}) =>
     await GetApiResponseAs(securedApi
-        .delete(`/undo-react?id=${id}`),ResponseType.StatusCode)
+        .delete(`/undo-react?id=${id}&entity_type=${entity_type}`),ResponseType.StatusCode)
 
 export const GET_UserPosts = async ({user_id, page, pageSize})=>  GetApiResponseAs(securedApi.get(`user/posts?user_id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
 export const     GET_UserImages  = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/images?user_id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);

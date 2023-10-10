@@ -1,16 +1,16 @@
-import { Button } from "antd";
-import { AnimatePresence, motion, useAnimation } from "framer-motion";
-import { useEffect, useRef, useState } from 'react';
+import { Button } from 'antd';
+import { motion, useAnimation } from 'framer-motion';
+import { useContext, useRef, useState } from 'react';
 import { BsCameraFill, BsEmojiLaughingFill } from 'react-icons/bs';
-import { useDispatch } from "react-redux";
-import { commentThunk } from "../../Thunks/Posts.js";
-import { useContext } from "react";
+import { useDispatch } from 'react-redux';
+import { commentThunk } from '../../Thunks/Posts.js';
 import { CommentContainerContext, PostActionContext } from '../Post/Post.jsx';
-import { useLayoutEffect } from "react";
 import { UploadImage } from '../Common/UploadImage';
+import { useValidateMedia } from '../../Hooks/useValidateMedia';
+
 export const ReplyComment = ({ onCancel, post, comment, initValue, initAttachments = [] }) => {
     const controls = useAnimation();
-
+    const [validateMedia] = useValidateMedia();
     const dispatch = useDispatch();
     const [files, setFiles] = useState(initAttachments)
     const fileRef = useRef();
@@ -32,6 +32,9 @@ export const ReplyComment = ({ onCancel, post, comment, initValue, initAttachmen
     }
     const HandleUpload = () => {
         const _files = fileRef.current.files;
+        let ok = true;
+        ok = validateMedia([..._files]);
+        if(!ok) return;
         setFiles([...files, ..._files]);
     }
     const Reply = () => {

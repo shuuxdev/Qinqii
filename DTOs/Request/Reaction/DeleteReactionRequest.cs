@@ -7,4 +7,6 @@ public class DeleteReactionRequest
     [ParameterName("reaction_id")]
     public int id { get; set; }
     public int user_id { get; set; }
+    [IgnoreDapperParameter]
+    public string entity_type { get; set; }
 }

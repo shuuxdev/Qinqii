@@ -105,7 +105,11 @@ const DefaultLayout = () => {
         connection.on("ReceiveFriendRequest", (friend, request_id) => {
             dispatch(addFriendRequest({...friend,id: request_id}))
         })
-    }, [])
+        return () => {
+            connection.off("ReceiveNotification");
+            connection.off("ReceiveFriendRequest");
+        }
+    },[])
 
     return (
         <>{allDataLoaded ?

@@ -5,12 +5,6 @@ using Qinqii.Extensions;
 using Qinqii.Utilities;
 
 namespace Qinqii.Models;
-public enum ResultType
-{
-    Single,
-    Multiple,
-    None
-}
 
 public class QueryHelper
 {

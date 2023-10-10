@@ -26,7 +26,7 @@ const Item = ({ icon, content, selected, onClick }) => {
 
     const { data, isSuccess } = useGetPeopleYouMayKnowQuery({ pageSize: 5, page: 1 });
 
-    return <div onClick={onClick} className={"min-w-[250px] flex p-[0px_40px] " + (selected ? ` text-[${Color.Primary}] bg-[${Color.Selected}] border-l-[2px] border-solid border-[${Color.Primary}]` : '')}>
+    return <div onClick={onClick} className={"cursor-pointer min-w-[250px] flex p-[0px_40px] " + (selected ? ` text-[${Color.Primary}] bg-[${Color.Selected}] border-l-[2px] border-solid border-[${Color.Primary}]` : '')}>
         <div className={`flex items-center w-full border-b-[1px] border-solid border-[${Color.BorderGray}] p-[20px_0px]`}>
             <div className="flex-[2.5]">
                 {icon}
@@ -71,6 +71,5 @@ export function Sidebar() {
             <Item onClick={() => RedirectTo(`/user/${userId}`, Tab.Profile)} selected={activeTab == Tab.Profile} icon={<CgProfile size={24} />} content="Profile"></Item>
             <Item onClick={() => RedirectTo(`/people`, Tab.People)} selected={activeTab == Tab.People} icon={<MdGroups size={24}></MdGroups>} content="People"></Item>
             <Item onClick={() => RedirectTo(`/user/${userId}/images`, Tab.Images)} selected={activeTab == Tab.Images} icon={<BsCardImage size={24} />} content="Photos"></Item>
-            <Item onClick={() => setActiveTab(Tab.Setting)} selected={activeTab == Tab.Setting} icon={<FiSettings size={24} />} content="Settings"></Item>
         </div>)
 }

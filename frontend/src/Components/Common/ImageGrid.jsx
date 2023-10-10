@@ -43,7 +43,7 @@ export const ImageGrid = ({ attachments }) => {
 };
 export const GridItem = ({ attachment, openMediaViewerModal, index }) => {
     return (
-        <div className='item'  onClick={() => openMediaViewerModal(index)}>
+        <div className='cursor-pointer item'  onClick={() => openMediaViewerModal(index)}>
             {
                 (
                     attachment.type === AttachmentType.IMAGE ?
@@ -57,7 +57,7 @@ export const GridItem = ({ attachment, openMediaViewerModal, index }) => {
 };
 const LastGridItem = ({ attachment, openMediaViewerModal, index, cnt }) => {
     return (
-        <div className='relative item'  onClick={() => openMediaViewerModal(index)}>
+        <div className='relative cursor-pointer item'  onClick={() => openMediaViewerModal(index)}>
             <div className='overlay rounded-[10px] absolute inset-0 bg-black text-white flex justify-center items-center opacity-[0.5]'>
                 {cnt}+ more
             </div>

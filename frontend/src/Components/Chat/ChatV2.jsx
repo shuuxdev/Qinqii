@@ -170,11 +170,12 @@ export function ChatV2({ contact: ci }) {
                 <div className='overflow-y-scroll p-[10px] grow'>
                     {
 
-                        ci.messages.slice(0).reverse().map(message => (
-                            <Message key={message.message_id} from={message.sender_id == me.user_id ? 'me' : 'you'}
+                        ci.messages.slice(0).reverse().map((message,index) => (
+                            <Message key={message.id} from={message.sender_id == me.user_id ? 'me' : 'you'}
                                      sender_avatar={message.sender_id == me.user_id ? me.avatar : ci.recipient_avatar}
                                      recipient_avatar={message.sender_id == me.user_id ? me.avatar : ci.recipient_avatar}
                                      messages={ci.messages}
+                                     index={ci.message.length - index}
                                      message={message} />
                         ))
                     }

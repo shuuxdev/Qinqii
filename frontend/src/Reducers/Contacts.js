@@ -1,4 +1,4 @@
-import { POST_MarkAsRead } from '../Helper/Axios';
+import { DELETE_Message, POST_MarkAsRead, SEND_React } from '../Helper/Axios';
 
 const { createSlice } = require('@reduxjs/toolkit');
 
@@ -31,6 +31,12 @@ const contactSlice = createSlice({
                 }
             });
         },
+        addContact: (state, action) => {
+            let exist = state.find((contact) => contact.conversation_id === action.payload.conversation_id);
+            if (!exist) {
+                state.push(action.payload);
+            }
+        },
         fetchContacts: (state, action) => {
             return action.payload;
         },
@@ -48,6 +54,22 @@ const contactSlice = createSlice({
                 return item;
             })];
         },
+        updateMessage: (state, action) => {
+            return [...state.map((item) => {
+                if (item.conversation_id === action.payload.conversation_id) {
+                    return {
+                        ...item,
+                        messages: item.messages.map((message) => {
+                            if (message.id === action.payload.id) {
+                                return action.payload;
+                            }
+                            return message;
+                        }),
+                    };
+                }
+                return item;
+            })];
+        },
         openChat: (state, action) => {
             return [...state.filter((chat) => chat.conversation_id !== action.payload.conversation_id), action.payload];
         },
@@ -60,8 +82,36 @@ const contactSlice = createSlice({
 export const markAsReadAsync = (conversation_id) => async (dispatch, getState) => {
     const [statusCode, error] = await POST_MarkAsRead(conversation_id);
 
-    if(statusCode !== 200) throw new Error('Không thể đánh dấu đã đọc');
+    if (statusCode !== 200) throw new Error('Không thể đánh dấu đã đọc');
     dispatch(updateUnreadMessageCount({ conversation_id, unread_message_count: 0 }));
+};
+export const reactToMessageAsync = (message, ra) => async (dispatch, getState) => {
+    let [reaction, err] = await SEND_React(ra);
+    if (!err) {
+        dispatch(updateMessage({
+            conversation_id: message.conversation_id,
+            ...message,
+            reactions: [...message.reactions, reaction],
+        }));
+    }
+};
+export const deleteMessageAsync = (message) => async (dispatch, getState) => {
+    const [statusCode, err] = await DELETE_Message(message.id);
+    if (statusCode === 200) {
+        dispatch(updateMessage({
+            conversation_id: message.conversation_id,
+            ...message,
+            deleted: true,
+        }));
+    }
 }
-export const { sendMessage, increaseUnreadMessageCount, updateUnreadMessageCount,updateOnlineStatus, fetchContacts } = contactSlice.actions;
+export const {
+    addContact,
+    updateMessage,
+    sendMessage,
+    increaseUnreadMessageCount,
+    updateUnreadMessageCount,
+    updateOnlineStatus,
+    fetchContacts,
+} = contactSlice.actions;
 export default contactSlice.reducer;

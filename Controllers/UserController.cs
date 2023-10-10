@@ -19,7 +19,6 @@ using Qinqii.Utilities;
 
 namespace Qinqii.Controllers
 {
-    [ApiController]
     [Route("user")]
     public class UserController : ControllerBase
     {
@@ -87,7 +86,7 @@ namespace Qinqii.Controllers
                 background = backgroundPath,
                 name = request.name
             });
-              if (result.isSucceed)
+              if (!result.isSucceed)
                   throw new HttpStatusCodeException(HttpStatusCode.BadRequest, "Cập nhật profile thất bại");
               return Ok();
         }
@@ -123,5 +122,37 @@ namespace Qinqii.Controllers
             return Ok(u);
         }
         
+        [HttpPatch("update-relationship/{relationship}")]
+        public async Task<IActionResult> UpdateRelationship( string relationship)
+        {
+            var result = await user.UpdateRelationship(relationship,HttpContext.GetUserId());
+            if (result.isSucceed) return Ok();
+            throw new HttpStatusCodeException(HttpStatusCode.BadRequest, "Cập nhật mối quan hệ thất bại");
+        }
+        [HttpPatch("update-gender/{gender}")]
+
+
+        public async Task<IActionResult> UpdateGender(string gender)
+        {
+            var queryResult = await user.UpdateGender(gender, HttpContext.GetUserId());
+            if (queryResult.isSucceed) return Ok();
+            throw new HttpStatusCodeException(HttpStatusCode.BadRequest, "Cập nhật giới tính thất bại");
+        }
+        [HttpPatch("update-birthday/{birthday:datetime}")]
+
+        public async Task<IActionResult> UpdateBirthday(DateTime birthday)
+        {
+            
+            var queryResult = await user.UpdateBirthday(birthday, HttpContext.GetUserId());
+            if (queryResult.isSucceed) return Ok();
+            throw new HttpStatusCodeException(HttpStatusCode.BadRequest, "Cập nhật ngày sinh thất bại");
+        }
+        [HttpPatch("update-bio/{bio}")]
+        public async Task<IActionResult> UpdateBio(string bio)
+        {
+            var queryResult = await user.UpdateBio(bio, HttpContext.GetUserId());
+            if (queryResult.isSucceed) return Ok();
+            throw new HttpStatusCodeException(HttpStatusCode.BadRequest, "Cập nhật tiểu sử thất bại");
+        }
     }
 }

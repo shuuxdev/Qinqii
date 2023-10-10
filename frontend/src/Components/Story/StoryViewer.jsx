@@ -131,7 +131,6 @@ const StoryList = ({stories}) => {
     const handleScroll = async () => {
         const scrollableDiv = document.querySelector('.scrollableDiv');
 
-        console.log(scrollableDiv.scrollHeight - scrollableDiv.scrollTop);
         if (scrollableDiv.scrollHeight - scrollableDiv.scrollTop === scrollableDiv.clientHeight) {
             currentPage.current++;
             const response = await axios.GET_Stories(currentPage.current, 10);
@@ -141,8 +140,6 @@ const StoryList = ({stories}) => {
                 if(response.data.length === 0)
                     reachEnd.current = true;
             }
-
-            console.log('Reached the bottom of the div!');
         }
     }
     useEffect(() => {

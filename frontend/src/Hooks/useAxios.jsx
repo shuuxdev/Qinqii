@@ -47,18 +47,31 @@ const onFailedResponse = (err) => {
     return err;
 };
 export const useAxios = () => {
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     securedApi.interceptors.request.use(beforeSendingRequest);
     securedApi.interceptors.response.use(
         onSuccessResponse,
         (failedResponse) => {
-            // cookies.remove('Token');
-            // navigate('/login');
+            if (failedResponse.response.status === 401) {
+                    cookies.remove('Token');
+                    window.location.href = '/login';
+            }
             return Promise.reject(failedResponse);
         }
     );
-
-    const GET_Feed = async () => await securedApi.get('/feed');
+    const PATCH_UpdateGender = async (gender) => {
+        return GetApiResponseAs(securedApi.patch(`/user/update-gender/${gender}`, ), ResponseType.StatusCode);
+    }
+    const PATCH_UpdateRelationship = async (relationship) => {
+        return GetApiResponseAs(securedApi.patch(`/user/update-relationship/${relationship}`), ResponseType.StatusCode);
+    }
+    const PATCH_UpdateBirthday = async (birthday) => {
+        return GetApiResponseAs(securedApi.patch(`/user/update-birthday/${birthday}`, ), ResponseType.StatusCode);
+    }
+    const PATCH_UpdateBio = async (bio) => {
+        return GetApiResponseAs(securedApi.patch(`/user/update-bio/${bio}`, ), ResponseType.StatusCode);
+    }
+        const GET_Feed = async () => await securedApi.get('/feed');
     const GET_Stories = async (page, page_size) => {
         if(page && page_size) return securedApi.get(`/stories?PageNumber=${page}&PageSize=${page_size}`)
         return securedApi.get(`/stories`)
@@ -122,6 +135,7 @@ export const useAxios = () => {
         }
         return GetApiResponseAs(securedApi.post('/story/create', formFile), ResponseType.StatusCode);
     }
+    const GET_ConversationWithUser = async (user_id) => await GetApiResponseAs(securedApi.get(`/chat/load-by-user-id?recipient_id=${user_id}`), ResponseType.Data);
 
     const GET_RelationshipWithUser = (user_id) => GetApiResponseAs(securedApi.get(`/user/relationship-with-user?id=${user_id}`), ResponseType.Data);
 
@@ -155,8 +169,13 @@ export const useAxios = () => {
         GET_UserFriends,
         GET_UserPeopleYouMayKnow,
         GET_RelationshipWithUser,
+        GET_ConversationWithUser,
         DELETE_CancelFriendRequest: POST_CancelFriendRequest,
         DELETE_Unfriend: POST_Unfriend,
+        PATCH_UpdateBio,
+        PATCH_UpdateRelationship,
+        PATCH_UpdateGender,
+        PATCH_UpdateBirthday
     };
     return api;
 };

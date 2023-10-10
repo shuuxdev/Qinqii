@@ -19,7 +19,6 @@ using Qinqii.Utilities;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Qinqii.Controllers;
-[ApiExplorerSettings(GroupName = "v2")]
 [ApiController]
 [Route("chat")]
 public class ChatController : ControllerBase
@@ -103,13 +102,13 @@ public class ChatController : ControllerBase
             contact.online_status = ConnectionManager.Connections.TryGetValue(contact.recipient_id, out _)
                 ? OnlineStatus.ONLINE
                 : OnlineStatus.OFFLINE;
-        });
+        }); 
         return Ok(contacts);
     }
 
     [Authorize]
-    [HttpGet]
-    public async Task<IActionResult> LoadConversation([FromQuery] GetMessagesRequest 
+    [HttpGet("load-by-conversation-id")]
+    public async Task<IActionResult> LoadConversationByConversationId([FromQuery] GetMessagesRequest 
     request)
     {
         var messages = await _messageRepository.GetMessages(request);
@@ -122,10 +121,29 @@ public class ChatController : ControllerBase
         };
     }
     
-    [HttpDelete]
+    [Authorize]
+    [HttpGet("load-by-user-id")]
+    public async Task<IActionResult> LoadConversationByUserId(int recipient_id)
+    {
+        int user_id = HttpContext.GetUserId();
+        var conversation_id = await _messageRepository.GetConversationIdWithUser(user_id, recipient_id);
+        var conversation = await _userRepository.GetContact(user_id, conversation_id);
+        var messages = await _messageRepository.GetMessages(new GetMessagesRequest(){id = conversation_id});
+        conversation.messages = messages;
+        var json = JsonConvert.SerializeObject(conversation);
+        return new ContentResult()
+        {
+            Content = json,
+            ContentType = "application/json",
+            StatusCode = (int)HttpStatusCode.OK
+        };
+    }
+    
+    [HttpDelete("message")]
     public async Task<IActionResult> DeleteMessage(int message_id)
     {
-        await _userRepository.DeleteMessage(message_id);
+        int user_id = HttpContext.GetUserId();
+        await _messageRepository.DeleteMessage(user_id, message_id);
         return Ok();
     }
     [HttpPost("mark-as-read")]
@@ -134,4 +152,5 @@ public class ChatController : ControllerBase
         await _messageRepository.MarkMessageAsRead(request);
         return Ok();
     }
+    
 }

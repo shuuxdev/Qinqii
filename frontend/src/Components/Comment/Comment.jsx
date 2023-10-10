@@ -15,20 +15,32 @@ import { QinqiiImage } from '../Common/QinqiiImage';
 import { Text } from '../Common/Text';
 import { Avatar } from '../Common/Avatar';
 import { DropdownMenu } from '../Common/DropdownMenu';
+import { notification } from 'antd';
+import { AntdNotificationContext } from '../../App';
 
 const LazyEmojiPicker = React.lazy(() => import('@emoji-mart/react'));
 
 const DeleteOption = ({ comment, post }) => {
     const dispatch = useDispatch();
     const {removeComment} = useContext(PostActionContext);
+    const notify = useContext(AntdNotificationContext);
     const DeleteComment = () => {
         dispatch(deleteCommentThunk(comment, post, removeComment));
+        notify.open({
+            message: 'Xóa bình luận thành công',
+            type: 'success',
+            placement: 'bottomLeft',
+            duration: 5
+        });
     };
     return (
-        <DropdownItem cb={DeleteComment}>
-            <Text className='w-fit group-hover:text-white'> Xóa bình luận</Text>
-            <AiOutlineDelete className='group-hover:text-white' />
-        </DropdownItem>
+        <>
+            <DropdownItem cb={DeleteComment}>
+                <Text className='w-fit group-hover:text-white'> Xóa bình luận</Text>
+                <AiOutlineDelete className='group-hover:text-white' />
+            </DropdownItem>
+        </>
+
     );
 };
 const EditOption = ({ EditComment }) => {
@@ -51,7 +63,6 @@ export const Comment = ({ comment, post, index }) => {
     const { CCIDOfOptionsMenu, setCCIDOfOptionsMenu, CCIDOfEditComment, setCCIDOfEditComment, CCIDOfReply, setCCIDOfReply } = useContext(
         CommentContainerContext
     );
-    const [showReply, setShowReply] = useState(false);
     const {updateComment, updatePost} = useContext(PostActionContext)
     const ShowReply = () => {
         setCCIDOfReply(comment.id);
@@ -87,11 +98,6 @@ export const Comment = ({ comment, post, index }) => {
             <BsThreeDots size={16}></BsThreeDots>
         </div>
     );
-    const UndoReaction = (reaction) => {
-        const payload = {entity: { post_id: post.id, id: comment.id, type: ENTITY.COMMENT }, reaction_id: reaction.id}
-        const action = {updatePost};
-        dispatch(undoReactThunk(payload, action))
-    }
 
     return (
         <div className=' w-full py-[10px]'>
@@ -138,7 +144,7 @@ export const Comment = ({ comment, post, index }) => {
 
                                     </div>
                                     <div className='absolute right-0 bottom-0 translate-x-[100%] '>
-                                        <TopReactions entity_type={ENTITY.COMMENT} action={updateComment} entity={comment} UndoReaction={UndoReaction} reactions={comment.reactions} />
+                                        <TopReactions entity_type={ENTITY.COMMENT} action={updateComment} entity={comment} reactions={comment.reactions} />
                                     </div>
 
                                 </div>

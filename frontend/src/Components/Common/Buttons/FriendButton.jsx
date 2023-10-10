@@ -74,7 +74,6 @@ export const FriendButton = ({initState, user_id }) => {
             })
         }
 
-        console.log('here');
     }, [initState]);
 
     const handleButtonClick = () => {
@@ -306,7 +305,7 @@ export const FriendButton = ({initState, user_id }) => {
                     <div className='loading-body'>
                         <div className='loading-icon'></div>
                         <Text bold  fontSize={15}>
-                            Processing
+                            Sending
                         </Text>
                     </div>
                     <motion.div animate={loadingBarControl} className="loading-bar  bg-blue-500">

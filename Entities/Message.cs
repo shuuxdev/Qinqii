@@ -1,9 +1,12 @@
+using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
 public class Message
 {
 
     public DateTime? read_at { get; set; }
+    [JsonProperty("id")]
+    [JsonPropertyName("id")]
     public int message_id { get; set; }
 
     public string message_text { get; set; }

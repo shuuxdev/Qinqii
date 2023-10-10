@@ -16,7 +16,6 @@ export const PostsTab = () => {
     const posts = useSelector(state => state.profile.posts);
     const param = useParams();
     const dispatch = useDispatch();
-    console.log(posts);
     useEffect(() => {
         dispatch(fetchPostsThunk({ user_id: param.id, page: 1, pageSize: 10 }));
     }, [param.id]);

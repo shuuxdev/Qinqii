@@ -225,8 +225,6 @@ const profileSlice = createSlice({
 })
 export const fetchPostsThunk = createAsyncThunk('profile/fetchPostsThunk', async (params, thunkAPI) => {
     const [data, error] = await GET_UserPosts(params);
-    console.log(data);
-    console.log(error);
     if (error) {
         return thunkAPI.rejectWithValue(error);
     }

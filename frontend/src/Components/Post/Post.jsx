@@ -306,15 +306,15 @@ const Toolbar = ({ post }) => {
                     </MediaQuery>
                 </motion.div>
             </div>
-            <div className="flex-1 cursor-pointer" onClick={() => dispatch(showModal({modalType: ModalType.SHARE}))}>
-                <div
-                    className="h-full w-full flex items-center gap-[6px] justify-center">
-                    <BiShareAlt size={22} />
-                    <MediaQuery minWidth={ScreenWidth.sm}>
-                    <Text>Send</Text>
-                    </MediaQuery>
-                </div>
-            </div>
+            {/*<div className="flex-1 cursor-pointer" onClick={() => dispatch(showModal({modalType: ModalType.SHARE}))}>*/}
+            {/*    <div*/}
+            {/*        className="h-full w-full flex items-center gap-[6px] justify-center">*/}
+            {/*        <BiShareAlt size={22} />*/}
+            {/*        <MediaQuery minWidth={ScreenWidth.sm}>*/}
+            {/*        <Text>Send</Text>*/}
+            {/*        </MediaQuery>*/}
+            {/*    </div>*/}
+            {/*</div>*/}
 
         </div>
     )

@@ -21,8 +21,3 @@ public class Contact
     
     public int? last_message_sender_id { get; set; }
 }
-public enum OnlineStatus
-{
-    ONLINE,
-    OFFLINE
-}

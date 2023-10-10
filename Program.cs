@@ -200,7 +200,6 @@ internal class Program
                         "Origin, X-Requested-With, Content-Type, Accept");
                 }
             });
-            //SPA PROXY
             app.UseCors(cors =>
             {
                 cors.WithOrigins("http://localhost:3000").WithOrigins("http://192.168.2.29:3000").AllowAnyHeader()
@@ -222,6 +221,7 @@ internal class Program
             "{*url}",
             new { controller = "Home", action = "Index" },
             new { swagger = new IgnoreRouteConstraint("/swagger") }
+
         );
 
         app.MapHub<QinqiiHub>("/chatHub");

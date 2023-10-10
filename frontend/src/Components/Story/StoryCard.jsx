@@ -79,7 +79,6 @@ export function Stories() {
     if (isSm) maxStory = 2;
     if (isXs) maxStory = 1;
 
-    console.log(maxStory);
     return (
         <div style={{gap: `clamp(2px, 0.5vw, 7px)`}} className={`flex p-[10px] bg-[${Color.White}] rounded-[10px] my-[10px]`}>
             <UploadStory/>

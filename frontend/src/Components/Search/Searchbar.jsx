@@ -38,13 +38,15 @@ export function Searchbar() {
     }, [debounce]);
     return (
         <div
-            className={`relative px-[10px] search search-bar flex bg-[${Color.Background}] rounded-[50px] items-center`}>
-            <BsSearch></BsSearch>
+            className={`relative search search-bar  `}>
+            <div className='absolute left-[15px] top-[50%] translate-y-[-50%]'>
+                <BsSearch></BsSearch>
+            </div>
             <input ref={inputRef} onChange={(e) => setKeyword(e.target.value)} type='text'
-                   className={` p-[10px]  focus:outline-none w-full bg-[${Color.Background}]`} placeholder='Search' />
+                   className={` py-[10px] pl-[40px] rounded-[50px] bg-[${Color.Background}]  focus:outline-none w-full bg-[${Color.Background}]`} placeholder='Search' />
             {
-                founded.length > 0 && <div className='absolute right-[15px] cursor-pointer' onClick={handleCancel}>
-                    <MdOutlineCancel size={18} className='text-red-400' />
+                founded.length > 0 && <div className='absolute right-[15px] top-[50%] translate-y-[-50%] cursor-pointer' onClick={handleCancel}>
+                <MdOutlineCancel size={18} className='text-red-400' />
                 </div>
 
             }

@@ -19,7 +19,7 @@ public class QueryResult<T> : QueryResult
 {
      public T? data { get; set; }
      
-     public QueryResult(T data, int rowCount, bool isSucceed, string? message = null, Exception? exception = null) : base(rowCount, isSucceed, message, exception)
+     public QueryResult(T data,  bool isSucceed, int rowCount = 0, string? message = null, Exception? exception = null) : base(rowCount, isSucceed, message, exception)
      {
           this.data = data;
      }

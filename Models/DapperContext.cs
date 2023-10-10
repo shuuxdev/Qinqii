@@ -25,7 +25,7 @@ namespace Qinqii.Models {
         }
         public IDbConnection CreateConnection()
         {
-            var connection = new SqlConnection(azure_cs);
+            var connection = new SqlConnection(cs);
             connection.Open();
             return connection;
         }

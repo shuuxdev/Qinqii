@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -24,12 +25,16 @@ public class FriendController : ControllerBase
         _user = user;
         _notificationService = notificationService;
     }
+
     [HttpGet("user/people-you-may-know")]
     public async Task<IActionResult> GetPeopleYouMayKnow(GetPeopleYouMayKnowRequest request)
     {
-        var list = await _friendRepository.GetPeopleYouMayKnow(request);
-        return Ok(list);
+        var queryResult = await _friendRepository.GetPeopleYouMayKnow(request);
+        if (queryResult.isSucceed) 
+            return Ok(queryResult.data);
+        throw new HttpStatusCodeException(HttpStatusCode.NotFound, "No user found");
     }
+
     [HttpGet("user/friend-requests")]
     public async Task<IActionResult> GetUserIncomingFriendRequests()
     {

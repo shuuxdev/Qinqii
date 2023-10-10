@@ -20,9 +20,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.5.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DTOs\Response\User\" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Update="wwwroot\assets\*.*" CopyToPublishDirectory="Never" />
   </ItemGroup>
 

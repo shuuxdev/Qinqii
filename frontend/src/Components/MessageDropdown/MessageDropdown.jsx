@@ -15,6 +15,9 @@ import { CallContext } from '../../Layouts/DefaultLayout';
 import { useWebRTC } from '../../Hooks/useWebRTC';
 import { useNavigate } from 'react-router-dom';
 import { ChatSearch } from '../Search/ChatSearch';
+import { useAxios } from '../../Hooks/useAxios';
+import { addContact } from '../../Reducers/Contacts';
+
 
 export const MessageDropdown = () => {
     // const isPhoneScreen = useMediaQuery(`(max-width: ${ScreenWidth.sm})px`);
@@ -32,10 +35,11 @@ export const MessageDropdown = () => {
 
     const [position, setPosition] = useState({ right: 0, top: 0, width: 0 });
     const isPhoneScreen = useMediaQuery({ query: `(max-width: ${ScreenWidth.sm}px)` });
-    const [selectedContactIndex, setSelectedContactIndex] = useState(0);
     const messageIcon = useRef(null);
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const [founded, setFounded] = useState([]);
+
     const setupDropdownPosition = () => {
             if (messageIcon.current) {
             if (!isPhoneScreen) {
@@ -57,12 +61,33 @@ export const MessageDropdown = () => {
             dispatch(openChat(selected.conversation_id));
         }
     }
+    const axios = useAxios();
+    const handleSearchItemClick = async (people_id) => {
+        Toggle();
+        setFounded([])
+        let selected = contacts.find(contact => contact.recipient_id === people_id);
+        if(!selected) {
+            let [data,error] = await  axios.GET_ConversationWithUser(people_id);
+            if(!error)
+                selected = data;
+        }
+        if(isPhoneScreen)
+            navigate(`/message/${selected.conversation_id}`)
+        else {
+            dispatch(addContact(selected));
+            dispatch(openChat(selected.conversation_id));
+        }
+    }
     useEffect(() => {
         window.onresize = setupDropdownPosition;
     }, []);
     useEffect(() => {
         setupDropdownPosition();
     }, [isOpen]);
+
+    const handleSearch =  (searchResults) => {
+        setFounded(searchResults);
+    }
 
     const contacts = useSelector(state => state.contacts);
     let unreadConversations = contacts.filter(contact => contact.unread_messages > 0).length;
@@ -92,10 +117,15 @@ export const MessageDropdown = () => {
                     }}>
                         <div className='message-dropdown p-[10px]'>
                             <div className="text-xl font-bold p-[10px]">Tin nhắn</div>
-                            <ChatSearch/>
+                            <ChatSearch onFinished={handleSearch}/>
+
                             {
-                                contacts.map((contact,index) => (
-                                    <MessageDropdownItem  onClick={() => handleItemClick(index)} contact={contact} key={contact.conversation_id}/>
+                                founded.length  > 0 ?
+                                founded.map((people) => (
+                                    <SearchItem  onClick={() =>  handleSearchItemClick(people.id)} people={people} key={people.id}/>
+                                )) :
+                                contacts.map((contact, index) => (
+                                    <MessageDropdownItem onClick={() => handleItemClick(index)} contact={contact} key={contact.conversation_id}/>
                                 ))
                             }
                         </div>
@@ -107,6 +137,23 @@ export const MessageDropdown = () => {
     );
 
 };
+
+const SearchItem = ({ people, onClick }) => {
+
+    return (
+        <div
+            className={`flex items-center p-[10px] gap-[10px] my-[3px] hover:border-r-2 hover:border-blue-500 hover:border-solid hover:bg-[${Color.Background}]`}
+            onClick={onClick}>
+            <div className='shrink-0'>
+                <Avatar sz={45} src={people.avatar} user_id={people.id} />
+
+            </div>
+            <div className='grow'>
+                <Text>{people.name}</Text>
+            </div>
+        </div>
+    )
+}
 
 const MessageDropdownItem = ({ contact, onClick}) => {
     const me = useUserID();

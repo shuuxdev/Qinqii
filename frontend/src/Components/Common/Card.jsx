@@ -10,7 +10,6 @@ import { isEmpty } from 'lodash';
 export function Card() {
 
     const user = useSelector(state => state.user)
-    console.log(user)
     return (
         <div className={`mt-2 mb-2 flex bg-[${Color.White}] justify-start items-center p-[20px] rounded-[10px]`}>
             {
