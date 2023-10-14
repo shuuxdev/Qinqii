@@ -1,5 +1,6 @@
 # Qinqii
 Social Network using ASP.NET Core, React, Dapper, SQL Server
+Live demo: https://qinqii.xyz.wf
 Main features:
 - Allow users to create, edit, delete, comment,
 - Users can be able to react and see people who react to posts, comments, messages
@@ -9,4 +10,4 @@ Main features:
 - Send and accept friend requests, discover people you may know
 - User can also update their profile, avatar and background picture
 - Chat and make calls to others
-Live demo: https://qinqii.xyz.wf
+
