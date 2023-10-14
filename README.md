@@ -1,7 +1,7 @@
 # Qinqii
-Social Network using ASP.NET Core, React, Dapper, SQL Server
-Live demo: https://qinqii.xyz.wf
-Main features:
+Social Network using ASP.NET Core, React, TailwindCSS, Dapper, SQL Server
+- Live demo: https://qinqii.xyz.wf
+# Main features:
 - Allow users to create, edit, delete, comment,
 - Users can be able to react and see people who react to posts, comments, messages
 - Media viewer for previewing images and videos sent along with posts, comments, messages
