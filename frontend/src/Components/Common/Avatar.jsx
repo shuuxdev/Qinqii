@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 
 export function Avatar({ sz, src, border, user_id }) {
     const navigate = useNavigate();
-
+    if (!src) src = 'https://i.imgur.com/HeIi0wU.png';
     return (
         <div className={`overflow-hidden rounded-[50%] hover:border-red-500 hover:border-2 box-border hover:border-solid cursor-pointer`} style={{
             height: sz ? sz : 43, width: sz ? sz : 43, border: border,

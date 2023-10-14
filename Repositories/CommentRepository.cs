@@ -2,6 +2,7 @@ using System.Data;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Qinqii.DTOs.Request.Comment;
+using Qinqii.Extensions;
 using Qinqii.Models;
 using Qinqii.Utilities;
 
@@ -90,5 +91,27 @@ public class CommentRepository
         var param = comment.ToParameters();
         await connection.ExecuteAsync("[COMMENT].[Delete]",
             commandType: CommandType.StoredProcedure, param: param);
+    }
+
+    public async Task<int> GetPostIdByCommentId(int comment_id)
+    { 
+        using var connection = _ctx.CreateConnection();
+        var param = new DynamicParameters();
+        param.Add("@comment_id", comment_id);
+        var post_id = await connection.QuerySingleAsync<int>(
+            "[COMMENT].[GetPostIdByCommentId]",
+            commandType: CommandType.StoredProcedure, param: param);
+        return post_id;
+    }
+    public async Task<IEnumerable<Comment>> GetCommentsByPostId(GetCommentsOfPostRequest request)
+    {
+        using var connection = _ctx.CreateConnection();
+        var param = request.ToParameters();
+        
+        var reader = await connection.QueryMultipleAsync(
+            "[COMMENT].[GetByPostId]",
+            commandType: CommandType.StoredProcedure, param: param);
+        var comments = await reader.ToComments();
+        return comments;
     }
 }

@@ -1,20 +1,18 @@
-import React, { useRef, useState } from 'react';
-import { Form, Input, Modal } from 'antd';
+import React, { useContext, useRef, useState } from 'react';
+import { Input, Modal } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
-import { hideModal, showModal } from '../../Reducers/Modals';
+import { hideModal } from '../../Reducers/Modals';
 import { motion } from 'framer-motion';
 import { AiOutlineCamera } from 'react-icons/ai';
-import { faker } from '@faker-js/faker';
-import { ModalType } from '../../Enums/Modal';
 import { ShowNotification } from '../../Reducers/UI';
 import { Severity } from '../../Enums/FetchState';
 import { useAxios } from '../../Hooks/useAxios';
 import { QinqiiCustomImage } from '../Common/QinqiiCustomImage';
-import { LoginForm } from '../Forms/LoginForm';
 import { UserOutlined } from '@ant-design/icons';
 import { MdCancel } from 'react-icons/md';
 import { isEmpty } from 'lodash';
 import { fetchProfile } from '../../Reducers/Profile';
+import { AntdNotificationContext } from '../../App';
 
 export function UploadAvatarModal() {
     const dispatch = useDispatch();
@@ -33,13 +31,21 @@ export function UploadAvatarModal() {
     const handleAvatarClick = () => {
         avatarInputRef.current.click();
     };
+    const notify = useContext(AntdNotificationContext)
     const handleAvatarUpload = (e) => {
         const file = e.target.files[0];
         if (file.type.startsWith('image/')) {
             const src = URL.createObjectURL(file);
             setAvatar(src);
             URL.revokeObjectURL(file);
-        } else dispatch(ShowNotification({ content: 'File không hợp lệ', severity: Severity.ERROR }));
+        } else {
+            notify.open({
+                message: 'File không hợp lệ',
+                type: 'error',
+                duration: 5,
+                placement: 'bottomLeft'
+            })
+        }
     };
     const handleBackgroundClick = () => {
         backgroundInputRef.current.click();
@@ -64,11 +70,21 @@ export function UploadAvatarModal() {
             name: isEmpty(_name) ? me.name : _name,
         });
         if (statusCode !== 200) {
-            dispatch(ShowNotification({ content: 'Khong thể cập nhật avatar: ' + error, severity: Severity.ERROR }));
+            notify.open({
+                message: 'Cập nhật avatar thất bại',
+                type: 'error',
+                duration: 5,
+                placement: 'bottomLeft'
+            })
         }
         else {
             dispatch(fetchProfile({...me, avatar, background, name: _name}))
-            dispatch(ShowNotification({ content: 'Cập nhật avatar thành công', severity: Severity.SUCCESS }));
+            notify.open({
+                message: 'Cập nhật avatar thành công',
+                type: 'success',
+                duration: 5,
+                placement: 'bottomLeft'
+            })
         }
         dispatch(hideModal());
     };

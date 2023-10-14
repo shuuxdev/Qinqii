@@ -1,12 +1,13 @@
-import { TextareaAutosize } from '@mui/material';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { BsCameraFill, BsEmojiLaughingFill } from 'react-icons/bs';
 import { IoMdSend } from 'react-icons/io';
 import { useDispatch } from 'react-redux';
-import { editCommentThunk, uploadAttachmentsThunk } from '../../Thunks/Posts.js';
+import { editCommentThunk } from '../../Thunks/Posts.js';
 import { PostActionContext } from '../Post/Post';
 import { UploadImage } from '../Common/UploadImage';
 import { useValidateMedia } from '../../Hooks/useValidateMedia';
+import { AntdNotificationContext } from '../../App';
+import TextArea from 'antd/es/input/TextArea';
 
 export const EditComment = ({
                                 comment = {}, initValue, initAttachments, onCancel = () => {
@@ -64,6 +65,7 @@ export const EditComment = ({
         fileRef.current.value = '';
         contentRef.current.value = '';
     };
+    const notify = useContext(AntdNotificationContext)
     const Comment = async () => {
         let _removeList = removeList.current.map((att) => att.id);
         const _comment = {
@@ -72,17 +74,14 @@ export const EditComment = ({
             deleted_attachments: _removeList,
             new_attachments: newAttachments,
         };
-        dispatch(editCommentThunk(_comment, updateComment));
+        dispatch(editCommentThunk(_comment, updateComment,notify));
         Reset();
         Cancel();
     };
     return (
         <div className='rounded-[15px] bg-[#F0F2F5]   w-full overflow-hidden   grow '>
-            <TextareaAutosize
+            <textarea
                 ref={contentRef}
-
-                maxRows={3}
-                minRows={1}
                 className='resize-none  p-[12px] outline-none border-none  bg-[#F0F2F5]  w-full text-[14px] font-light'
                 placeholder='Bình Luận'
             />

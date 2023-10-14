@@ -1,10 +1,8 @@
-import React, { createContext, forwardRef, Suspense, useContext, useEffect, useRef } from 'react';
+import React, { createContext, Suspense, useContext, useEffect, useRef, useState } from 'react';
 import { BsFillCameraVideoFill, BsFillEmojiExpressionlessFill, BsImage } from 'react-icons/bs';
-import { IoMdCall, IoMdSend } from 'react-icons/io';
+import { IoMdSend } from 'react-icons/io';
 import { MdCancelPresentation } from 'react-icons/md';
-import { RiArrowDownSLine } from 'react-icons/ri';
 import Color from '../../Enums/Color';
-
 import { useDispatch, useSelector } from 'react-redux';
 import { Message } from './Message.jsx';
 import { closeChat, sendMessageAsync } from '../../Reducers/Chats.js';
@@ -21,28 +19,35 @@ import { ActiveDot } from '../Common/ActiveDot';
 import { Text } from '../Common/Text';
 import { Avatar } from '../Common/Avatar';
 import { UploadImage } from '../Common/UploadImage';
-import { useUserID } from '../../Hooks/useUserID';
 import { useMediaQuery } from 'react-responsive';
 import { ScreenWidth } from '../../Enums/ScreenWidth';
 import { twMerge } from 'tailwind-merge';
+import { markAsReadAsync, updateMessage } from '../../Reducers/Contacts';
+import connection from '../../Helper/SignalR';
+import { AntdNotificationContext } from '../../App';
+import { isEmpty } from 'lodash';
 import { MessagePageContext } from '../../Pages/MessagePage';
 
 
 export const ChatContext = createContext();
 
 export function ChatV2({ contact: ci }) {
-    const [showEmoji, setShowEmoji] = React.useState(false);
     const defaultContextValue = { conversation: ci };
     const chatRef = useRef(null);
+    const chatContainerRef = useRef(null);
+    const sendButtonRef = useRef(null);
+    const uploadRef = useRef(null);
+    const [message, setMessage] = useState('');
+    const [showEmojiForInput, setShowEmojiForInput] = useState(false);
+    const emojiPickerForInputRef = useRef(null);
+    const emojiIconForInputRef = useRef(null);
+    const [attachments, setAttachments] = useState([]);
+    const [uploadedFiles, setUploadedFiles] = useState([]);
+    const [isRead, setIsRead] = useState(true);
+    const [currentSelectedMessageId, setCurrentSelectedMessageId] = useState(null);
+    const { MakeCall, setCallDetailImmediately } = useContext(CallContext);
     const dispatch = useDispatch();
     const me = useSelector(state => state.user);
-    const [attachments, setAttachments] = React.useState([]);
-    const [uploadedFiles, setUploadedFiles] = React.useState([]);
-    const uploadRef = useRef(null);
-
-
-    const {BackButton} = useContext(MessagePageContext);
-
     const HandleUpload = (e) => {
         const files = uploadRef.current.files;
         setUploadedFiles([...files]);
@@ -56,10 +61,23 @@ export function ChatV2({ contact: ci }) {
         );
     };
     const Close = () => dispatch(closeChat(ci.conversation_id));
+    const notify = useContext(AntdNotificationContext);
+    useEffect(() => {
+        if(showEmojiForInput){
+            const handleOutsideClick = (e) => {
+                if (!emojiPickerForInputRef.current.contains(e.target) && !emojiIconForInputRef.current.contains(e.target)) {
+                    setShowEmojiForInput(false);
+                }
+            }
+            document.addEventListener('click', handleOutsideClick);
+            return () => {
+                document.removeEventListener('click', handleOutsideClick);
+            }
+        }
+    });
 
-    const { MakeCall, setCallDetailImmediately } = useContext(CallContext);
     const SendMessage = async () => {
-
+        if (isEmpty(chatRef.current.value) && uploadedFiles.length === 0) return;
         const msg = {
             message_text: chatRef.current.value,
             conversation_id: ci.conversation_id,
@@ -69,31 +87,32 @@ export function ChatV2({ contact: ci }) {
         const images = uploadedFiles.filter(file => file.type.includes('image'));
         const videos = uploadedFiles.filter(file => file.type.includes('video'));
         const thumbnails = await Promise.all(videos.map(video => getVideoFirstFrame(video, 'blob')));
-        dispatch(sendMessageAsync(msg, images, videos, thumbnails));
-
+        if (msg || images || videos)
+            dispatch(sendMessageAsync(msg, images, videos, thumbnails, notify));
         chatRef.current.value = '';
         setUploadedFiles([]);
         setAttachments([]);
     };
 
+
     const OpenUpload = () => {
         uploadRef.current.click();
     };
     const ToggleEmoji = () => {
-        setShowEmoji(!showEmoji);
-    };
-    const ReactToMessage = (emoji) => {
-        ToggleEmoji(); // turn off all picker in the comment section
-
-        /*dispatch(
-            reactToCommentThunk({ ...comment }, {
-                entity_id: comment.id,
-                entity_type: ENTITY.COMMENT,
-                emoji: emoji.native,
-            },updateComment)
-        );*/
+        setShowEmojiForInput(!showEmojiForInput);
     };
 
+    useEffect(() => {
+        sendButtonRef.current.style.color = isEmpty(message) && uploadedFiles.length === 0 ? Color.Disable : Color.Primary;
+    });
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Enter') {
+                SendMessage();
+            }
+        };
+        chatRef.current.addEventListener('keydown', handleKeyDown);
+    }, []);
     useEffect(() => {
         const renderAttachments = async () => {
             const filesToRender = await Promise.all(Array.from(uploadedFiles).map(async (file, i) => {
@@ -124,31 +143,69 @@ export function ChatV2({ contact: ci }) {
         renderAttachments();
     }, [uploadedFiles]);
 
-    const isPhoneScreen = useMediaQuery({ query: `(max-width: ${ScreenWidth.sm}px)` });
-    let className = twMerge(`shadow-v1 rounded-[15px] relative flex flex-col  bottom-0   bg-[${Color.White}] w-full h-screen`);
 
+    useEffect(() => {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        chatContainerRef.current.scrollIntoView({ behavior: 'smooth' });
+        if (ci.unread_messages > 0) {
+            // newMessageSound();
+            setIsRead(false);
+        }
+    }, [ci.messages.length]);
+
+    const markAsRead = () => {
+        if (isRead === false) {
+            setIsRead(true);
+            dispatch(markAsReadAsync(ci.conversation_id));
+        }
+    };
+
+
+    useEffect(() => {
+        connection.on('ReceiveReaction', (reaction) => {
+            //workaround, too lazy to fix
+            let message = { ...ci.messages.find(m => m.id === reaction.message_id) };
+            console.log(message);
+            if (!message) return;
+            let reactionExisted = message.reactions.find(r => r.id === reaction.id);
+            if (reactionExisted) return;
+            message.reactions = [...message.reactions, reaction];
+            dispatch(updateMessage(message));
+        });
+        connection.on('ReceiveUndoReaction', (reaction) => {
+            //workaround, too lazy to fix
+            let message = { ...ci.messages.find(m => m.id === reaction.message_id) };
+            if (!message) return;
+            message.reactions = [...message.reactions.filter(r => r.id !== reaction.id)];
+            dispatch(updateMessage(message));
+        });
+        return () => {
+            connection.off('ReceiveReaction');
+            connection.off('ReceiveUndoReaction');
+        };
+    });
+    const {BackButton} = useContext(MessagePageContext)
+    const isPhoneScreen = useMediaQuery({ query: `(max-width: ${ScreenWidth.sm}px) ` });
+    let className = twMerge(` shadow-v1 rounded-[15px] relative flex flex-col  bottom-0  h-full   bg-[${Color.White}]`);
+    let chatHeaderClassname = twMerge(`flex items-center justify-between p-[10px] border-b-[1px] border-solid border-[${Color.BorderGray}]`, isRead ? 'bg-white' : 'bg-blue-500');
     return (
         <ChatContext.Provider value={defaultContextValue}>
             <input ref={uploadRef} type='file' accept='image/*,video/*' multiple={true} className='hidden' />
-            <div className={className}>
-                <div
-                    className={`flex items-center justify-between p-[10px] border-b-[1px] border-solid border-[${Color.BorderGray}] `}>
+            <div onClick={markAsRead} className={className}>
+                <div className={chatHeaderClassname}>
                     <div className='flex items-center gap-[7px] '>
                         <BackButton/>
                         <Avatar src={ci.recipient_avatar} user_id={ci.recipient_id}></Avatar>
                         <div className='flex flex-col'>
-                            <Text bold>{ci.recipient_name}</Text>
-                            <OnlineStatusIndicator status={ci.online_status} />
+                            <Text color={isRead ? 'black' : 'white'} bold>{ci.recipient_name}</Text>
+                            <div style={{ color: isRead ? 'black' : 'white' }}>
+                                <OnlineStatusIndicator status={ci.online_status} />
+                            </div>
+                        </div>
 
-                        </div>
-                        <div>
-                            <RiArrowDownSLine></RiArrowDownSLine>
-                        </div>
                     </div>
                     <div className='flex items-center gap-[7px]'>
-                        <div className='cursor-pointer'>
-                            <IoMdCall color={Color.Primary} size={20}></IoMdCall>
-                        </div>
+
                         <div className='cursor-pointer' onClick={
                             () => {
                                 setCallDetailImmediately({
@@ -164,34 +221,37 @@ export function ChatV2({ contact: ci }) {
                             }}>
                             <BsFillCameraVideoFill color={Color.Primary} size={20}></BsFillCameraVideoFill>
                         </div>
-
+                        <div className='cursor-pointer' onClick={Close}>
+                            <MdCancelPresentation color='red' size={20}></MdCancelPresentation>
+                        </div>
                     </div>
                 </div>
-                <div className='overflow-y-scroll p-[10px] grow'>
+                <div ref={chatContainerRef} className='overflow-y-auto overflow-x-hidden p-[10px] grow'>
                     {
 
-                        ci.messages.slice(0).reverse().map((message,index) => (
+                        ci.messages.slice(0).reverse().map(message => (
                             <Message key={message.id} from={message.sender_id == me.user_id ? 'me' : 'you'}
                                      sender_avatar={message.sender_id == me.user_id ? me.avatar : ci.recipient_avatar}
                                      recipient_avatar={message.sender_id == me.user_id ? me.avatar : ci.recipient_avatar}
                                      messages={ci.messages}
-                                     index={ci.message.length - index}
-                                     message={message} />
+                                     message={message}
+                                     currentSelectedMessageId={currentSelectedMessageId}
+                                     setCurrentSelectedMessageId={setCurrentSelectedMessageId}
+                            />
                         ))
                     }
                 </div>
                 <div className={`flex  p-[10px] items-end  border-t-[1px] border-solid border-[${Color.BorderGray}]`}>
                     <div className='flex  items-center'>
-                        <div onClick={ToggleEmoji} className='mx-[5px] mb-[10px] cursor-pointer'>
+                        <div ref={emojiIconForInputRef} onClick={ToggleEmoji} className='mx-[5px] mb-[10px] cursor-pointer'>
                             <BsFillEmojiExpressionlessFill color={Color.Primary}
                                                            size={20}></BsFillEmojiExpressionlessFill>
                         </div>
-
                         <div className='relative'>
                             <AnimatePresence>
                                 {
-                                    showEmoji &&
-                                    <div className='absolute z-[200] left-[100%] bottom-0'>
+                                    showEmojiForInput &&
+                                    <div ref={emojiPickerForInputRef} className='absolute z-[200] left-[100%] bottom-0'>
                                         <motion.div initial={{ y: '50px', opacity: 0 }}
                                                     animate={{ y: 0, opacity: 1 }}>
                                             <Suspense fallback={<div
@@ -206,6 +266,7 @@ export function ChatV2({ contact: ci }) {
                                 }
                             </AnimatePresence>
                         </div>
+
                         <div className='cursor-pointer mx-[5px] mb-[10px] '>
                             <BsImage onClick={OpenUpload} size={20} color={Color.Primary}></BsImage>
                         </div>
@@ -219,20 +280,18 @@ export function ChatV2({ contact: ci }) {
                             {attachments}
                         </div>
                         <div className='relative w-full'>
-                            <input ref={chatRef} type='text'
+                            <input ref={chatRef} onChange={(e) => setMessage(e.target.value)} type='text'
                                    className={` p-[7px]  focus:outline-none  w-full bg-[${Color.Background}]`}
                                    placeholder='Search' />
-                            <div
-                                className={` bg-[${Color.Background}] absolute top-[50%] translate-y-[-50%] right-[10px] `}>
-                                <IoMdSend onClick={SendMessage} color={Color.Primary} size={22}></IoMdSend>
+
+                            <div ref={sendButtonRef}
+                                 className={`cursor-pointer bg-[${Color.Background}] absolute top-[50%] translate-y-[-50%] right-[10px] `}>
+                                <IoMdSend onClick={SendMessage} size={22}></IoMdSend>
                             </div>
                         </div>
-
-
                     </div>
-
-
                 </div>
+
             </div>
         </ChatContext.Provider>
 
@@ -250,7 +309,7 @@ const OnlineStatusIndicator = ({ status }) => {
                         <Text fontSize={14}>Đang hoạt động</Text>
                     </div> :
                     <div className='flex items-center gap-[5px]'>
-                        <Text fontSize={14}>Hiện không hoạt động</Text>
+                        <div style={{ fontSize: 14 }}>Hiện không hoạt động</div>
                         <InActiveDot />
                     </div>
             }

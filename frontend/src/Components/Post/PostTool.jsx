@@ -89,7 +89,7 @@ const PostManager = () => {
     };
 
     const CreateNewPost = () => {
-        dispatch(createNewPostThunk({ content: textareaRef.current.value, attachments: uploadedFiles }));
+        dispatch(createNewPostThunk({ content: textareaRef.current.value, attachments: uploadedFiles }, notify));
     }
 
     useEffect(() => {
@@ -116,6 +116,31 @@ const PostManager = () => {
         }
         renderAttachments();
     }, [uploadedFiles])
+
+    const emojiIconRef = useRef();
+    const emojiPickerRef = useRef();
+
+    useEffect(() => {
+        if( showPicker){
+            const handleClickOutside = (e) => {
+                if ( !emojiIconRef.current.contains(e.target) && !emojiPickerRef.current.contains(e.target)) {
+                    setShowPicker(false);
+                }
+            };
+            if(emojiIconRef.current && emojiPickerRef.current)
+            {
+                const {top, left} = emojiIconRef.current.getBoundingClientRect();
+                emojiPickerRef.current.style.top = `${top}px`;
+                emojiPickerRef.current.style.left = `${left}px`;
+                emojiPickerRef.current.style.transform = `translate(-100%, -100%)`;
+                emojiPickerRef.current.style.zIndex = 1000;
+            }
+            document.addEventListener('click', handleClickOutside);
+            return () => {
+                document.removeEventListener('click', handleClickOutside);
+            };
+        }
+    },[showPicker])
     return (
         <Dialog
             open={shouldDialogOpen}
@@ -131,7 +156,6 @@ const PostManager = () => {
                 </div>
             </DialogTitle>
             <DialogBody>
-                <Suspense fallback={<div className='flex justify-center items-center w-full h-full'><Loading /></div>}>
 
                    <Header/>
                     <div className={focusBorder}>
@@ -142,10 +166,19 @@ const PostManager = () => {
                         <div className='relative flex justify-between '>
                             <div className='font-semibold'>Thêm vào post</div>
                             <div className='absolute right-0 flex gap-[15px]'>
+                                <Suspense fallback={<div className='flex justify-center items-center w-full h-full'><Loading /></div>}>
+
                                 {
                                     showPicker &&
+
+                                    <div ref={emojiPickerRef} className={'fixed '}>
                                     <QinqiiEmojiPicker ref={textareaRef}/>
+                                    </div>
+
                                 }
+                                </Suspense>
+
+                                <div ref={emojiIconRef}>
                                     <BsEmojiSunglassesFill
 
                                         className='cursor-pointer'
@@ -153,16 +186,16 @@ const PostManager = () => {
                                         color={`${Color.Primary}`}
                                         size={24}
                                     ></BsEmojiSunglassesFill>
+                                </div>
+
                                 <Uploader
                                     HandleUpload={HandleUpload}
                                     uploadButtonRef={uploadButtonRef}
                                     OpenUpload={OpenUpload}
                                 />
-                                <BsThreeDots size={24} />
                             </div>
                         </div>
                     </div>
-                </Suspense>
             </DialogBody>
             <DialogActions>
                 <Button onClick={CreateNewPost}>Đăng</Button>

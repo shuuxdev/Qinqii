@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -37,7 +38,20 @@ public class PostController : ControllerBase
         _hubContext = hubContext;
     }
 
-   
+    [HttpGet("post")]
+    public async Task<IActionResult> GetPost(GetPostRequest post)
+    {
+        try
+        {
+            var result = await _postRepository.GetPost(post);
+            return Ok(result);
+        }
+        catch (InvalidOperationException e)
+        {
+            _logger.LogError(e.StackTrace);
+            throw new HttpStatusCodeException(HttpStatusCode.NotFound, "Bài viết không tồn tại");
+        }
+    }
 
     [HttpPatch("post/edit")]
     public async Task<IActionResult> EditPost([FromBody] EditPostRequest post)
@@ -81,8 +95,14 @@ public class PostController : ControllerBase
     [HttpDelete("post/delete")]
     public async Task<IActionResult> DeletePost(DeletePostRequest post)
     {
-        await _postRepository.DeletePost(post);
-        return Ok();
+        var postAuthor = await _postRepository.GetPostAuthorId(post.id);
+        if (postAuthor != post.user_id) throw new HttpStatusCodeException(HttpStatusCode.Forbidden, "Bạn không có quyền xóa bài viết này");
+        var result = await _postRepository.DeletePost(post);
+        if (result.isSucceed)
+        {
+            return Ok();
+        }
+        throw new HttpStatusCodeException(HttpStatusCode.BadRequest, "Xóa bài viết thất bại");
     }
     
     

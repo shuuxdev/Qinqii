@@ -3,9 +3,11 @@ using Dapper;
 using Microsoft.AspNetCore.Components;
 using Qinqii.DTOs.Request.Comment;
 using Qinqii.DTOs.Request.Reaction;
+using Qinqii.Entities;
 using Qinqii.Enums;
 using Qinqii.Extensions;
 using Qinqii.Models;
+using Qinqii.Models.QueryResult;
 using Qinqii.Utilities;
 
 namespace Qinqii.Service;
@@ -39,12 +41,14 @@ public class PostRepository
             commandType: CommandType.StoredProcedure, param: param);
     }
 
-    public async Task DeletePost(DeletePostRequest post)
+    public async Task<QueryResult> DeletePost(DeletePostRequest post)
     {
         using var connection = _ctx.CreateConnection();
         var param = post.ToParameters();
-        await connection.ExecuteAsync("[POST].[Delete]",
+        int row= await connection.ExecuteAsync("[POST].[Delete]",
             commandType: CommandType.StoredProcedure, param: param);
+        var result = new QueryResult(row , row == 1);
+        return result;
     }
 
     /*public async Task<Attachment> GetPostAttachments(GetPostAttachmentsRequest post)
@@ -74,19 +78,17 @@ public class PostRepository
         
         var u = await connection.ExecuteAsync(cmd);
     }
-    public async Task<Post> GetPost(int post_id)
+    public async Task<Post> GetPost(GetPostRequest post)
     {
         using var connection = _ctx.CreateConnection();
-        var param = new DynamicParameters();
-        param.Add("@post_id", post_id);
+        var param = post.ToParameters();
         var reader = await connection.QueryMultipleAsync(
             "[POST].[Get]",
             commandType: CommandType.StoredProcedure, param: param);
         return await reader.ToPost();
     }
 
-   
-    
+
     public async Task<int> GetPostAuthorId(int post_id)
     {
         using var connection = _ctx.CreateConnection();

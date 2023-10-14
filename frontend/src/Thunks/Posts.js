@@ -6,11 +6,9 @@ import {
     POST_CreateNewPost,
     SEND_React,
     UNDO_REACT,
-    UPLOAD_Attachments,
 } from '../Helper/Axios';
 import { ENTITY } from '../Enums/Entity';
-import { CloseDialog, ShowNotification } from '../Reducers/UI';
-import { Severity } from '../Enums/FetchState';
+import { CloseDialog } from '../Reducers/UI';
 import { GetAttachmentType } from '../Helper/GetAttachmentType';
 import { getVideoFirstFrame } from '../Helper/GetVideoFirstFrame';
 import { fetchPosts, fetchPostsThunk } from '../Reducers/Posts';
@@ -115,101 +113,89 @@ export const reactToCommentThunk =
             dispatch(updateComment(comment));
         }
     };
-export const deletePostThunk = (post_id, removePost) => async (dispatch) => {
+export const deletePostThunk = (post_id, removePost, notify) => async (dispatch) => {
     const [statusCode, err] = await DELETE_Post(post_id);
 
     if (statusCode === 200)
     {
         dispatch(removePost(post_id));
-        dispatch(
-            ShowNotification({
-                content: 'Xóa bài viết thành công',
-                severity: Severity.SUCCESS,
-            })
-        );
+        notify.open({
+            message: 'Xóa bài viết thành công',
+            type: 'success',
+            placement: 'bottomLeft',
+            duration: 5
+        })
     }
 
     else {
-        dispatch(
-            ShowNotification({
-                content: 'Xóa bài viết không thành công',
-                severity: Severity.ERROR,
-            })
-        );
+        notify.open({
+            message: err.response.data.Message,
+            type: 'error',
+            placement: 'bottomLeft',
+            duration: 5
+        })
     }
 };
-export const uploadAttachmentsThunk = (files) => async (dispatch) => {
-    let [attachments, err] = await UPLOAD_Attachments(files);
-    if (err)
-        dispatch(
-            ShowNotification({
-                content:
-                    'Có lỗi xảy ra trong quá trình xử lí, vui lòng thử lại!',
-                severity: Severity.ERROR,
-            })
-        );
-    return [attachments, err];
-};
-export const commentThunk = (comment, addComment) => async (dispatch) => {
+
+export const commentThunk = (comment, addComment, notify) => async (dispatch) => {
     let response = await CREATE_Comment(comment);
     let _comment = response.data;
     //for finding which post to udpate in reducer
     _comment.post_id = comment.post_id;
     _comment.parent_id = comment.parent_id;
-    
+
     if (response.status === 200) dispatch(addComment(_comment));
     else
-        dispatch(
-            ShowNotification({
-                content:
-                    'Có lỗi xảy ra trong quá trình xử lí, vui lòng thử lại!',
-                severity: Severity.ERROR,
-            })
-        );
+        notify.open({
+            message: 'Bình luận không thành công',
+            type: 'error',
+            placement: 'bottomLeft',
+            duration: 5
+        })
 };
-export const deleteCommentThunk = (comment, post,removeComment) => async (dispatch) => {
+export const deleteCommentThunk = (comment, post,removeComment, notify) => async (dispatch) => {
     const [statusCode, err] = await DELETE_Comment(comment.id);
     if (err) {
-        dispatch(
-            ShowNotification({
-                content: 'Không thể xóa bình luận, vui lòng thử lại!',
-                severity: Severity.ERROR,
-            })
-        );
+        notify.open({
+            message: 'Xóa bình luận không thành công',
+            type: 'error',
+            placement: 'bottomLeft',
+            duration: 5
+        })
     } else {
-        dispatch(
-            ShowNotification({
-                content: 'Xóa bình luận thành công !',
-                severity: Severity.SUCCESS,
-            })
-        );
-        
+        notify.open({
+            message: 'Xóa bình luận thành công',
+            type: 'success',
+            placement: 'bottomLeft',
+            duration: 5
+        });
+
         [comment,...getCascadeComments(comment)].forEach((c) => {
             dispatch(removeComment({ comment_id: c.id,post_id:  post.id }));
         })
     }
 };
-export const editCommentThunk = (comment, updateComment) => async (dispatch) => {
+export const editCommentThunk = (comment, updateComment, notify) => async (dispatch) => {
     const [newComment, err] = await EDIT_Comment(comment);
     if (err) {
-        dispatch(
-            ShowNotification({
-                content: 'Không thể chỉnh sửa bình luận, vui lòng thử lại!',
-                severity: Severity.ERROR,
-            })
-        );
+        notify.open({
+            message: 'Chỉnh sửa bình luận không thành công',
+            type: 'error',
+            placement: 'bottomLeft',
+            duration: 5
+        })
     } else {
         dispatch(updateComment(newComment));
-        dispatch(
-            ShowNotification({
-                content: 'Chỉnh sửa bình luận thành công !',
-                severity: Severity.SUCCESS,
-            })
-        );
+        notify.open({
+            message: 'Chỉnh sửa bình luận thành công',
+            type: 'success',
+            placement: 'bottomLeft',
+            duration: 5
+        })
     }
 };
 
-export const createNewPostThunk = ({content, attachments}) => async (dispatch, getState) => {
+export const createNewPostThunk = ({content, attachments}, notify) => async (dispatch, getState) => {
     let _attachments = [...attachments];
     let videos = _attachments.filter((attachment) => GetAttachmentType(attachment) === "video");
     let images = _attachments.filter((attachment) => GetAttachmentType(attachment) === "image");
@@ -220,17 +206,17 @@ export const createNewPostThunk = ({content, attachments}) => async (dispatch, g
     dispatch(CloseDialog());
     dispatch(fetchPostsThunk(fetchPosts))
     if (statusCode === 200) {
-        dispatch(
-            ShowNotification({
-                content: 'Post đã tạo thành công',
-                severity: Severity.SUCCESS,
-            })
-        );
+        notify.open({
+            message: 'Tạo post thành công',
+            type: 'success',
+            placement: 'bottomLeft',
+            duration: 5
+        })
     } else
-        dispatch(
-            ShowNotification({
-                content: 'Tạo post không thành công, lỗi: ' + error,
-                severity: Severity.ERROR,
-            })
-        );
+        notify.open({
+            message: 'Tạo post không thành công',
+            type: 'error',
+            placement: 'bottomLeft',
+            duration: 5
+        })
 };

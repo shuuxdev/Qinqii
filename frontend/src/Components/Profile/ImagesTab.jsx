@@ -65,7 +65,7 @@ export const ImagesTab = () => {
                             </div>
                         ))
                     }
-                </div> : <EmptyResult/>
+                </div> : <EmptyResult type={'Image'}/>
         }
         {
             isLoading && <Loading/>

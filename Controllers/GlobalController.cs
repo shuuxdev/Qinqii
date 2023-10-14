@@ -55,6 +55,7 @@ public class GlobalController : ControllerBase
             },
             "COMMENT" => new List<INotificationParameter>()
             {
+                new PostIdParameter((await _commentRepository.GetPostIdByCommentId(request.entity_id)).ToString()),
                 new CommentIdParameter(request.entity_id.ToString()),
                 new EmojiParameter(request.emoji)
             },

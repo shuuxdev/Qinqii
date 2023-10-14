@@ -1,15 +1,13 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Modal } from 'antd';
 import { useDispatch } from 'react-redux';
 import { hideModal } from '../../Reducers/Modals';
 import { useAxios } from '../../Hooks/useAxios';
 import { getVideoFirstFrame } from '../../Helper/GetVideoFirstFrame';
-import { ShowNotification } from '../../Reducers/UI';
-import { Severity } from '../../Enums/FetchState';
 import { PreviewStory } from '../Story/Story';
-import { UploadImage } from '../Common/UploadImage';
 import { AntdNotificationContext } from '../../App';
 import { useValidateMedia } from '../../Hooks/useValidateMedia';
+import FileUploader from '../Upload/FileUploader';
 
 export function StoryUploadModal(props) {
     const dispatch = useDispatch();
@@ -20,20 +18,22 @@ export function StoryUploadModal(props) {
     const [files, setFiles] = useState([]);
     const [validateMedia] = useValidateMedia();
 
-    const handleFileChange = (e) => {
+    const handleFileChange = (files) => {
         let ok = true;
-        ok = validateMedia([...e.target.files]);
-        if(!ok) return;
-        setFiles([...e.target.files])
+        ok = validateMedia(files);
+        console.log(ok);
+        if (!ok) return;
+
+        setFiles(files)
     }
 
     const frames = files.map((file, index) => {
-          return ({
+        return ({
             id: index,
             frame_url: URL.createObjectURL(file),
             frame_type: file.type.includes('video') ? 'VIDEO' : 'IMAGE',
-              duration: 15
-          })
+            duration: 15
+        })
     })
     const notify = useContext(AntdNotificationContext);
     const handleUpload = async () => {
@@ -43,22 +43,32 @@ export function StoryUploadModal(props) {
         const thumbnails = await Promise.all(videos.map(async (video) => getVideoFirstFrame(video, "blob")))
         const [statusCode, error] = await axios.POST_CreateStory(videos, thumbnails, images);
         if (error) {
-            console.log(error);
+            notify.open({
+                message: error.response.data.Message,
+                type: 'error',
+                duration: 5,
+                placement: 'bottomLeft'
+            })
         }
         else {
-            dispatch(ShowNotification({content: 'Story uploaded successfully', severity: Severity.SUCCESS }));
-            dispatch(hideModal());
+            notify.open({
+                message: 'Upload story thành công',
+                type: 'success',
+                duration: 5,
+                placement: 'bottomLeft'
+            })
         }
+        dispatch(hideModal());
+
     }
     return (
-        <Modal open={true} className='story-upload-modal' onCancel={handleClose} onOk={handleUpload}>
+        <Modal open={true} className='story-upload-modal' onCancel={handleClose} onOk={handleUpload} okButtonProps={{className: 'bg-blue-500'}}>
             <div className='flex flex-col    w-full justify-center items-center'>
-
-                <input onChange={handleFileChange} multiple={true}  type='file' accept='video/*,image/*' />
+                <FileUploader handleFileChange={handleFileChange}/>
+                {/*<input onChange={handleFileChange} multiple={true} type='file' accept='video/*,image/*' />*/}
                 {
                     frames.length > 0 &&
-                    <PreviewStory frames={frames}/>
-
+                    <PreviewStory frames={frames} />
                 }
             </div>
         </Modal>

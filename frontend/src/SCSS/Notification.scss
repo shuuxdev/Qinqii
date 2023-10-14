@@ -1,12 +1,28 @@
 .notification {
     padding: 3px;
-
+    overflow-x: hidden;
     background: white;
-
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
+    &_header {
+        background: white;
+        border-top-right-radius: 10px;
+        border-top-left-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+    }
+    &_footer {
+        border-top: 1px solid #f5f5f5;
+        display :flex;
+        justify-content: center;
+        align-items:  center;
+        padding: 10px;
+        background: white;
+        border-bottom-right-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
     &_item {
-        padding: 15px;
+        padding: 15px 30px 15px 10px;
         border-top: 1px solid #f5f5f5;
         display: flex;
         align-items: start;
@@ -18,13 +34,5 @@
         }
     }
 }
-.notification_header {
-    background: white;
-    border-top-right-radius: 10px;
-    border-top-left-radius: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-}
+
 

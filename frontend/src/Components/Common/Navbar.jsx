@@ -8,30 +8,17 @@ import { WebFavicon } from './WebFavicon';
 import { Avatar } from './Avatar';
 import { MessageDropdown } from '../MessageDropdown/MessageDropdown';
 import { Searchbar } from '../Search/Searchbar';
+import { BiLogOut } from 'react-icons/bi';
+import Cookies from 'react-cookie/cjs/Cookies.js';
 
-export function CreateGroup() {
-    return (
-        <div>
-            <div className={`flex p-[10px] bg-[${Color.Primary}]  text-white rounded-[10px] gap-[10px] justify-center items-center`}>
-                Create
-                <BsPlusSquare size={20} ></BsPlusSquare>
-            </div>
-        </div>
-    )
-}
-
-
-export function Customization() {
-    const avatar = useSelector(state => state.profile.avatar)
-    return (
-        <div>
-            <Avatar src={avatar}></Avatar>
-        </div>
-    )
-}
 
 
 const Navbar = () => {
+    const Signout = () => {
+        let cookies = new Cookies();
+        cookies.remove('Token');
+        window.location.reload();
+    }
     return (
         <div className={`navbar relative bg-[${Color.White}] w-full`}>
             <div className="w-full container gap-[10px] p-[20px] m-[0_auto] flex items-center justify-between ">
@@ -40,6 +27,9 @@ const Navbar = () => {
                 <div className='flex gap-[20px]'>
                     <MessageDropdown/>
                     <NotificationDropdown />
+                    <div onClick={Signout}>
+                        <BiLogOut className='hover:text-red-500 cursor-pointer' size={22}/>
+                    </div>
                 </div>
 
             </div>

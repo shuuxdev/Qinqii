@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import React, { useContext, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { AiOutlineDelete } from 'react-icons/ai';
 import { BsThreeDots } from 'react-icons/bs';
 import { useDispatch, useSelector } from 'react-redux';
 import Color from '../../Enums/Color';
 import { ENTITY } from '../../Enums/Entity.js';
-import { deleteCommentThunk, reactToCommentThunk, undoReactThunk } from '../../Thunks/Posts.js';
+import { deleteCommentThunk, reactToCommentThunk } from '../../Thunks/Posts.js';
 import { DropdownItem } from '../Common/DropdownMenu.jsx';
 import { EditComment } from '../Forms/EditComment.jsx';
 import { CommentContainerContext, PostActionContext } from '../Post/Post.jsx';
@@ -15,8 +15,9 @@ import { QinqiiImage } from '../Common/QinqiiImage';
 import { Text } from '../Common/Text';
 import { Avatar } from '../Common/Avatar';
 import { DropdownMenu } from '../Common/DropdownMenu';
-import { notification } from 'antd';
 import { AntdNotificationContext } from '../../App';
+import { showModal } from '../../Reducers/Modals';
+import { ModalType } from '../../Enums/Modal';
 
 const LazyEmojiPicker = React.lazy(() => import('@emoji-mart/react'));
 
@@ -25,7 +26,7 @@ const DeleteOption = ({ comment, post }) => {
     const {removeComment} = useContext(PostActionContext);
     const notify = useContext(AntdNotificationContext);
     const DeleteComment = () => {
-        dispatch(deleteCommentThunk(comment, post, removeComment));
+        dispatch(deleteCommentThunk(comment, post, removeComment, notify));
         notify.open({
             message: 'Xóa bình luận thành công',
             type: 'success',
@@ -98,10 +99,18 @@ export const Comment = ({ comment, post, index }) => {
             <BsThreeDots size={16}></BsThreeDots>
         </div>
     );
+    const OpenInMediaViewer = (index) => {
 
+        let selectedIndex = 0;
+        comment.attachments.forEach((attachment, i) => {
+            if (attachment.id === comment.attachments[index].id) selectedIndex = i;
+        });
+
+        dispatch(showModal({ modalType: ModalType.MEDIA, modalProps: { attachments: comment.attachments, selected: selectedIndex } }));
+    };
     return (
-        <div className=' w-full py-[10px]'>
-            <div className='flex gap-[10px] relative'>
+        <div id={`comment-[${comment.id}]`} className={` w-full py-[10px]`}>
+            <div className='flex w-[calc(100%-100px)] gap-[10px] relative'>
                 <div className='flex-shrink-0'>
                     <Avatar sz={35} src={comment.author_avatar} user_id={comment.author_id}/>
                 </div>
@@ -149,8 +158,8 @@ export const Comment = ({ comment, post, index }) => {
 
                                 </div>
                                 <div className='flex gap-[10px] flex-wrap'>
-                                    {comment.attachments.map((att) => (
-                                        <div className='rounded-[10px]  overflow-hidden'>
+                                    {comment.attachments.map((att,i ) => (
+                                        <div onClick={() => OpenInMediaViewer(i)} className='rounded-[10px] cursor-pointer overflow-hidden'>
                                             <QinqiiImage
                                                 className={`max-h-[150px]`}
                                                 src={att.link}
@@ -167,8 +176,6 @@ export const Comment = ({ comment, post, index }) => {
                                     {
                                         CCIDOfReply == comment.id &&
                                         <motion.div initial={{ height: 0 }} transition={{ duration: 0.3 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden w-full">
-
-
                                             <ReplyComment onCancel={CloseReply} comment={comment} key={comment.id} post={post} ></ReplyComment>
                                         </motion.div>
                                     }
@@ -192,13 +199,14 @@ export const Comment = ({ comment, post, index }) => {
 
     return (
 
-        <div onClick={onClick}>
+        <div className='cursor-pointer ' onClick={onClick}>
             <Text>Reply</Text>
         </div>)
 }
 
  const Like = ({ comment, index }) => {
     const likeButtonRef = useRef();
+    const pickerRef = useRef()
     const dispatch = useDispatch();
     const { CCIDOfPicker, setCCIDOfPicker } = useContext(
         CommentContainerContext
@@ -213,6 +221,28 @@ export const Comment = ({ comment, post, index }) => {
     };
 
     const HandleMouseEnter = () => {
+        let h = 435;
+        let w = 352;
+
+        let client = likeButtonRef.current.getBoundingClientRect();
+        let emojiPicker = pickerRef.current;
+        if (emojiPicker) {
+
+            console.log(client);
+            emojiPicker.style.left = `${client.left}px`;
+            emojiPicker.style.top = `${client.top}px`;
+            let transY = '-100%', transX = '-100%';
+            if(client.top - h < 0) {
+                transY = '0%';
+            }
+            if(client.left - w < 0) {
+                transX = '0%';
+            }
+            emojiPicker.style.transform = `translate(${transX}, ${transY})`;
+
+            emojiPicker.style.height = '435px'; //hard code because fixed position doesnt adjust height base on content
+
+        }
         timer = setTimeout(() => {
             setCCIDOfPicker(comment.id);
         }, 700);
@@ -235,16 +265,21 @@ export const Comment = ({ comment, post, index }) => {
     const zIndex = 100 - index;
     const color = MarkAsLiked() ? 'red' : 'initial';
     const fontWeight = MarkAsLiked() ? 600 : 300;
+     useEffect(() => {
+
+
+     }, []);
+
     return (
         <div
             className='relative'
             onMouseLeave={HandleMouseLeave}
             onMouseEnter={HandleMouseEnter}
         >
-            <div ref={likeButtonRef}>
+            <div className='cursor-pointer' ref={likeButtonRef}>
                 <Text style={{ color, fontWeight }}>React</Text>
             </div>
-            <div style={{ zIndex }} className='absolute bottom-[100%]'>
+            <div ref={pickerRef} style={{ zIndex }} className='fixed bottom-[100%]'>
                 {CCIDOfPicker == comment.id && (
                     <motion.div initial={{ y: '20%', opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
                         <LazyEmojiPicker

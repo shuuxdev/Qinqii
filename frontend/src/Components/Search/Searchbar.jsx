@@ -17,6 +17,7 @@ export function Searchbar() {
     const [founded, setFounded] = useState([]);
     const navigate = useNavigate();
     const inputRef = useRef(null);
+    const resultRef = useRef(null);
     const findPeopleByName = async (name) => {
         if (isUndefined(name)) return;
         const [data, error] = await axios.GET_PeopleWithName(name);
@@ -33,6 +34,17 @@ export function Searchbar() {
         setKeyword('');
         inputRef.current.value = '';
     };
+    const handleClickOutside = (e) => {
+        if(inputRef.current && resultRef.current && !inputRef.current.contains(e.target) && !resultRef.current.contains(e.target)) {
+            handleCancel();
+        }
+    }
+    useEffect(() => {
+        document.addEventListener('click', handleClickOutside)
+        return () => {
+            document.removeEventListener('click', handleClickOutside)
+        }
+    });
     useEffect(() => {
         findPeopleByName(debounce);
     }, [debounce]);
@@ -53,7 +65,7 @@ export function Searchbar() {
             <AnimatePresence>
                 {
                     founded.length > 0 &&
-                    <motion.div initial={{ opacity: 0, y: '-50px' }} animate={{ opacity: 1, y: 0 }}
+                    <motion.div ref={resultRef} initial={{ opacity: 0, y: '-50px' }} animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0 }}
                                 className='absolute z-[200] left-0 top-[50px] flex flex-col cursor-pointer p-[15px] bg-white qinqii-thin-shadow w-full rounded-[10px]  '>
                         {

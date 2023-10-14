@@ -20,7 +20,7 @@ public class CommentController : ControllerBase
     private readonly ILogger<PostController> _logger;
     private readonly IWebHostEnvironment _env;
     private readonly NotificationService _notificationService;
-    private readonly IHubContext<QinqiiHub> _hubContext;
+    private readonly IHubContext<QinqiiHub> _hubContext;    
     public CommentController(PostRepository postRepository,
         ILogger<PostController> logger, IWebHostEnvironment env,
         NotificationService notificationService,
@@ -54,10 +54,16 @@ public class CommentController : ControllerBase
         {
             new PostIdParameter(c.post_id.ToString()),
             new CommentIdParameter(c.comment_id.ToString()),
-            new ContentParameter(comment.content)
+            
         };
-        
         await _notificationService.Notify(authorId, user_id,NotificationType.COMMENT, parameters);
+        if (comment.parent_id != null)
+        {
+            parameters.Add(new ParentIdParameter(comment.parent_id.ToString()));
+            int parentAuthorId = await _commentRepository.GetCommentAuthorId(comment.parent_id.Value);
+            await _notificationService.Notify(parentAuthorId, user_id, NotificationType.REPLY, parameters);
+        }
+        
         return Ok(c);
     }
 
@@ -96,4 +102,11 @@ public class CommentController : ControllerBase
         await _commentRepository.DeleteComment(comment);
         return Ok();
     }
-}
+    
+    [HttpGet("comment/get")]
+    public async Task<IActionResult> GetCommentsOfPost(GetCommentsOfPostRequest request)
+    {
+        var comments = await _commentRepository.GetCommentsByPostId(request);
+        return Ok(comments);
+    }
+}   

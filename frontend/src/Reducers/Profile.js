@@ -9,6 +9,7 @@ import {
     GET_UserVideos,
 } from '../Helper/Axios';
 import Cookies from 'react-cookie/cjs/Cookies';
+import { SERVER_DOMAIN } from '../Enums/Server';
 export const fetchProfileAction = (profile) => ({
     type: FETCH_PROFILE,
     payload: profile,
@@ -19,7 +20,7 @@ export const fetchProfileAction = (profile) => ({
 export const profileApiSlice = createApi({
     reducerPath: 'profileAPI',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:5000/',
+        baseUrl: SERVER_DOMAIN,
         credentials: 'include',
         headers: {
             'Authorization': 'Bearer ' + new Cookies().get('Token'),

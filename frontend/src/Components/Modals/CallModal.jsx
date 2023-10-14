@@ -3,9 +3,10 @@ import React, { useContext, useEffect, useState } from 'react';
 import { BsCameraVideoFill, BsCameraVideoOffFill, BsFillMicFill, BsFillMicMuteFill } from 'react-icons/bs';
 import { useDispatch, useSelector } from 'react-redux';
 import { CallContext } from '../../Layouts/DefaultLayout';
-import {CallModal as CModal} from '../../Enums/CallModal';
-import { ImPhoneHangUp} from 'react-icons/im';
+import { CallModal as CModal } from '../../Enums/CallModal';
+import { ImPhoneHangUp } from 'react-icons/im';
 import { CallState } from '../../Enums/CallState';
+import { QinqiiCustomImage } from '../Common/QinqiiCustomImage.jsx';
 
 const CallModal = () => {
     const dispatch = useDispatch();
@@ -16,19 +17,19 @@ const CallModal = () => {
                 call != null && call === CModal.ONGOING && <VideoCallModal param={param} />
             }
             {
-                call != null && call === CModal.INCOMING  && <IncomingCallModal param={param} />
+                call != null && call === CModal.INCOMING && <IncomingCallModal param={param} />
             }
 
         </div>
     )
 }
 const IncomingCallModal = ({ param }) => {
-    const { AcceptCall, DeclineCall, setCallDetailImmediately } = useContext(CallContext);
+    const { AcceptCall, DeclineCall} = useContext(CallContext);
     return (
         <Modal open={true} footer={null} onCancel={DeclineCall} >
             <div className="flex items-center flex-col">
                 <div className="rounded-full w-[40px] h-[40px] overflow-hidden">
-                    <img src={param.avatar} alt="" className="object-cover" />
+                    <QinqiiCustomImage src={param.avatar} alt="" className="object-cover" />
                 </div>
                 <p className=" text-lg font-semibold">{param.name} is calling you</p>
                 <div className="flex">
@@ -45,7 +46,7 @@ const IncomingCallModal = ({ param }) => {
 const VideoCallModal = ({ param }) => {
     const { videoRef, remoteRef, EndCall, callState } = useContext(CallContext);
     return (
-        <Modal open={true} footer={null} width={'100%'} className="max-w-[900px] call-modal"  onCancel={EndCall}>
+        <Modal open={true} footer={null} width={'100%'} className="max-w-[900px] call-modal" onCancel={EndCall}>
             <div className="relative h-[600px]">
                 <div className="absolute client top-[10px] left-[10px] z-[310]">
                     <div className=" aspect-video rounded-[10px] overflow-hidden">
@@ -83,7 +84,7 @@ const EndCallButton = () => {
 }
 const Microphone = () => {
     const [mute, setMute] = useState(false);
-    const {ToggleAudio} = useContext(CallContext);
+    const { ToggleAudio } = useContext(CallContext);
     const Toggle = () => {
         setMute(!mute)
         ToggleAudio();
@@ -102,7 +103,7 @@ const Microphone = () => {
 }
 const Camera = () => {
     const [mute, setMute] = useState(false);
-    const {ToggleCamera} = useContext(CallContext);
+    const { ToggleCamera } = useContext(CallContext);
     const Toggle = () => {
         setMute(!mute)
         ToggleCamera();

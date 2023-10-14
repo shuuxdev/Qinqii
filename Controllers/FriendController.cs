@@ -15,12 +15,14 @@ namespace Qinqii.Controllers;
 [Authorize]
 public class FriendController : ControllerBase
 {
+    private readonly MessageRepository _messageRepository;
     private readonly FriendRepository _friendRepository;
     private readonly UserRepository _user;
     private NotificationService _notificationService;
 
-    public FriendController(FriendRepository friendRepository, UserRepository user, NotificationService notificationService)
+    public FriendController(MessageRepository messageRepository, FriendRepository friendRepository, UserRepository user, NotificationService notificationService)
     {
+        _messageRepository = messageRepository;
         _friendRepository = friendRepository;
         _user = user;
         _notificationService = notificationService;
@@ -50,8 +52,9 @@ public class FriendController : ControllerBase
         if (request.status == FriendRequestStatusType.ACCEPTED)
         {
             var receiver = await _friendRepository.GetFriendRequestSenderId(request.id);
-
             var sender = await _friendRepository.GetFriendRequestReceiverId(request.id);
+            var conversation_id = await _messageRepository.GetConversationIdWithUser(receiver, sender);
+
             await _notificationService.Notify(receiver, sender, NotificationType.FRIEND_ACCEPT);
         }
         return Ok();

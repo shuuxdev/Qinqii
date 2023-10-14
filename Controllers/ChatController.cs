@@ -11,10 +11,12 @@ using Qinqii.Ultilities;
 using System.Net.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.VisualBasic;
 using Qinqii.DTOs.Request.Contact;
 using Qinqii.DTOs.Request.Message;
 using Qinqii.DTOs.Response.Message;
 using Qinqii.Models.Attachments;
+using Qinqii.Models.Validators;
 using Qinqii.Utilities;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -47,6 +49,10 @@ public class ChatController : ControllerBase
     [HttpPost("message")]
     public async Task<IActionResult> CreateMessage([FromForm] CreateMessageRequest message, [FromForm] List<VideoAttachment> videos,[FromForm]  List<ImageAttachment> images)
     {
+        var validator = new CreateMessageValidator(videos, images);
+        var result = await validator.ValidateAsync(message);
+        if (!result.IsValid)
+            throw new HttpStatusCodeException(HttpStatusCode.BadRequest, result.Errors.First().ErrorMessage);
         var videoAndThumbnailPathList =  await Task.WhenAll<VideoTVP>(videos.Select(async (video) =>
         {
             var videoPath = await Server.UploadAsync(video.video, _env.WebRootPath);
@@ -100,10 +106,16 @@ public class ChatController : ControllerBase
         contacts.ToList().ForEach( contact =>
         {
             contact.online_status = ConnectionManager.Connections.TryGetValue(contact.recipient_id, out _)
-                ? OnlineStatus.ONLINE
-                : OnlineStatus.OFFLINE;
+                ? "ONLINE"
+                : "OFFLINE";
         }); 
-        return Ok(contacts);
+        string json = JsonConvert.SerializeObject(contacts);
+        return new ContentResult()
+        {
+            Content = json,
+            ContentType = "application/json",
+            StatusCode = (int)HttpStatusCode.OK
+        };
     }
 
     [Authorize]

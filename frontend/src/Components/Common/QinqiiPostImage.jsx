@@ -1,5 +1,5 @@
 export function QinqiiPostImage({ src, onClick }) {
-
+    if (!src) src = 'https://via.placeholder.com/500x500.png?text=Image+Not+Available';
     return (
         <div onClick={onClick} className='overflow-hidden rounded-[10px] w-full h-full aspect-video'>
             {

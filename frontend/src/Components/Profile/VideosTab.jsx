@@ -69,7 +69,7 @@ export const VideosTab = () => {
                                                    alt='' />
                             </div>
                         ))}</div>
-                : <EmptyResult />
+                : <EmptyResult type={'Videos'} />
         }
         {
             isLoading  && <Loading />

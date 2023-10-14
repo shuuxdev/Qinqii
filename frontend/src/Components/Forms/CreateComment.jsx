@@ -7,6 +7,7 @@ import { Button } from 'antd';
 import { PostActionContext } from '../Post/Post';
 import { UploadImage } from '../Common/UploadImage';
 import { useValidateMedia } from '../../Hooks/useValidateMedia';
+import { AntdNotificationContext } from '../../App';
 
 export const CreateComment = ({ post, initValue, initAttachments = [], parent_id }) => {
     const controls = useAnimation();
@@ -36,17 +37,17 @@ export const CreateComment = ({ post, initValue, initAttachments = [], parent_id
     const HandleUpload = () => {
         const _files = fileRef.current.files;
 
+
         let ok = true;
         ok = validateMedia([..._files]);
         if (!ok) return;
-
-
         setFiles([...files, ..._files]);
     }
+    const notify = useContext(AntdNotificationContext)
     const Comment = () => {
 
         const data = { content: contentRef.current.value, post_id: post.id, attachments: files, parent_id }
-        dispatch(commentThunk(data, addComment));
+        dispatch(commentThunk(data, addComment, notify));
         setFiles([]);
         fileRef.current.value = "";
         contentRef.current.value = "";
@@ -112,7 +113,7 @@ export const CreateComment = ({ post, initValue, initAttachments = [], parent_id
                     </div>
                 </div>
 
-                <input onChange={HandleUpload} ref={fileRef} type="file" multiple className="hidden" />
+                <input onChange={HandleUpload} ref={fileRef} type="file"         accept=".jpg,.jpeg,.png" multiple className="hidden" />
 
             </div>
 

@@ -4,6 +4,7 @@ import { GET_UserProfile, POST_Login, POST_Register } from '../Helper/Axios.js';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { ShowNotification } from './UI';
 import { Severity } from '../Enums/FetchState';
+import axios from 'axios';
 
 
 
@@ -26,17 +27,35 @@ const userSlice = createSlice({
 })
 
 export const asyncLogin = (loginInfo) => async (dispatch, getState) => {
-    const res = await POST_Login(loginInfo)
-    if (res.status === 200) {
-      const cookies = new Cookies()
-      var jwt_payload = jwtDecode(cookies.get('Token'))
-      dispatch(userSlice.actions.authenticate(jwt_payload))
+    const GetApiResponseAs = async (api, responseType)  => {
+
+        try {
+            const res = await api;
+            if(responseType === "Data")
+            {
+                return [res.data, null]
+            }
+            else {
+                return [res.status, null]
+            }
+        }
+        catch (err)
+        {
+            if(responseType === "StatusCode")
+                return [null, err]
+            else return [err.response.status, err]
+        }
     }
-    let id = getState().user.user_id
-    if (id) {
-      return id;
-    }
-     else throw new Error('Đăng nhập thất bại')
+        const [statusCode, error] = await GetApiResponseAs(axios.post('/auth/login_jwt', loginInfo), "StatusCode");
+        if (statusCode === 200) {
+            const cookies = new Cookies()
+            var jwt_payload = jwtDecode(cookies.get('Token'))
+            dispatch(userSlice.actions.authenticate(jwt_payload))
+        }
+        if(error)
+        error.response.data.Message = 'Sai tên đăng nhập hoặc mật khẩu';
+        return [statusCode, error]
+
 }
 export const asyncRegister = (registerInfo) => async (dispatch, getState) => {
     const [statusCode, error] = await POST_Register(registerInfo)

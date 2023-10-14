@@ -15,6 +15,8 @@ public class Story
     public List<FrameViewer> viewers { get; set; } = new();
     
     public bool seen { get; set; }
+    
+    
     public DateTime created_at { get; set; }
     public int expire_after { get; set; }
 }

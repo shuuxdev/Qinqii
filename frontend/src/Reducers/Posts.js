@@ -77,6 +77,15 @@ const postSlice = createSlice({
                     })
                 
             },
+            addComments: (state, action) => {
+                state.map((post) => {
+                        if (post.id === action.payload.post_id) {
+                            post.comments = [...post.comments, ...action.payload.comments];
+                        }
+                        return post;
+                    })
+
+            },
             removePost: (state, action) => {
                 return state.filter(post => post.id !== action.payload);
             }
@@ -96,5 +105,5 @@ export const fetchPostsThunk = createAsyncThunk("posts/fetchPosts", async () => 
     }
     return [];
 })
-export const {removePost, fetchPosts, addComment, removeComment, updateComment, updatePost } = postSlice.actions;
+export const {removePost,addComments, fetchPosts, addComment, removeComment, updateComment, updatePost } = postSlice.actions;
 export default postSlice.reducer;

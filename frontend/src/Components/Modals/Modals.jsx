@@ -1,12 +1,12 @@
 import { MediaViewerModal } from "./MediaViewerModal.jsx";
 import { ModalType } from '../../Enums/Modal.js'
-import {  useSelector } from 'react-redux';
-import {StoryUploadModal} from './StoryUploadModal';
+import { useSelector } from 'react-redux';
+import { StoryUploadModal } from './StoryUploadModal';
 import { ShareModal } from './ShareModal';
 import { UploadAvatarModal } from './UploadAvatarModal';
 export const Modals = () => {
 
-    const { modalType, modalProps} = useSelector(state => state.modals);
+    const { modalType, modalProps } = useSelector(state => state.modals);
 
     return (
         <>
@@ -16,15 +16,15 @@ export const Modals = () => {
             }
             {
                 modalType === ModalType.STORY_UPLOAD &&
-                <StoryUploadModal/>
+                <StoryUploadModal />
             }
             {
                 modalType === ModalType.SHARE &&
-                <ShareModal/>
+                <ShareModal />
             }
             {
                 modalType === ModalType.UPLOAD_AVATAR &&
-                <UploadAvatarModal {...modalProps}/>
+                <UploadAvatarModal {...modalProps} />
             }
         </>
     )

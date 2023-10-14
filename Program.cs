@@ -35,13 +35,13 @@ internal class Program
         var builder = WebApplication.CreateBuilder(args);
         // Add services to the container.
         builder.Services.AddSignalR();
-        
-    
+
+
         builder.Services.AddControllersWithViews().AddJsonOptions((option) =>
         {
             option.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         });
-        
+
         builder.Services.PostConfigure<MvcOptions>(options =>
         {
             var inputFormatters = options.InputFormatters;
@@ -50,7 +50,7 @@ internal class Program
             var binderProvider = new UserIdModelBinderProvider(inputFormatters, readerFactory);
             options.ModelBinderProviders.Insert(0, binderProvider);
         });
-        
+
         builder.Services.AddScoped<DapperContext>();
         builder.Services.AddScoped<UserRepository>();
         builder.Services.AddScoped<MessageRepository>();
@@ -178,7 +178,7 @@ internal class Program
         {
             app.UseExceptionHandler("/Home/Error");
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-          //  app.UseHsts();
+            //  app.UseHsts();
         }
 
         // app.UseHttpLogging();

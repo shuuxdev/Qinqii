@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 const LazyEmojiPicker = React.lazy(() => import('@emoji-mart/react'))
 
 export const QinqiiEmojiPicker = React.forwardRef((props, textareaRef) => {

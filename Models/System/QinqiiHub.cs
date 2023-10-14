@@ -13,14 +13,13 @@ namespace Qinqii.Models
     public class QinqiiHub : Hub
     {
 
-        private readonly ConnectionManager _connectionManager;
         private readonly UserRepository _userRepository;
 
+        /*private readonly static ConnectionMapping<int> _connections = 
+            new ConnectionMapping<int>();*/
         
-        
-        public QinqiiHub( ConnectionManager connectionManager, UserRepository userRepository)
+        public QinqiiHub(UserRepository userRepository)
         {
-            _connectionManager = connectionManager;
             _userRepository = userRepository;
         }
         
@@ -50,20 +49,29 @@ namespace Qinqii.Models
 
         }
         
-      //  [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public override async Task OnConnectedAsync()
         {
             var user_id = Context.GetHttpContext().GetUserId();
             var contacts = await _userRepository.GetContacts(new GetContactsRequest(){user_id = user_id});
-            
-            bool ok  = ConnectionManager.Connections.TryAdd(user_id, Context.ConnectionId);
-            if (!ok) throw new ConnectionAbortedException("Connection already exists");
-            
-            contacts.ToList().ForEach(async contact =>
+            //_connections.Add(user_id, Context.ConnectionId);
+            bool isExist = ConnectionManager.Connections.TryGetValue(user_id, out _);
+            if (isExist)
             {
-                await Clients.User(contact.recipient_id.ToString()).SendAsync("updateOnlineStatus", user_id,
-                    "ONLINE");
-            });
+                bool success = ConnectionManager.Connections.TryUpdate(user_id, Context.ConnectionId, Context.ConnectionId);
+            }
+            else
+            {
+                bool success = ConnectionManager.Connections.TryAdd(user_id, Context.ConnectionId);                
+            }
+            try
+            {
+                contacts.ToList().ForEach(async contact =>
+                {
+                    await Clients.User(contact.recipient_id.ToString()).SendAsync("updateOnlineStatus", user_id,
+                        "ONLINE");
+                });
+            } catch {}
+          
             await base.OnConnectedAsync();
         }
         public override async Task OnDisconnectedAsync(Exception ex)
@@ -76,9 +84,12 @@ namespace Qinqii.Models
                 await Clients.User(contact.recipient_id.ToString()).SendAsync("updateOnlineStatus", user_id,
                     "OFFLINE");
             });
+         //   _connections.Remove(user_id, Context.ConnectionId);
+
             bool ok = ConnectionManager.Connections.TryRemove(user_id, out _);
-            if(!ok) throw new ConnectionAbortedException("Connection does not exist");
+           
             await base.OnDisconnectedAsync(ex);
         }
+      
     }
 }

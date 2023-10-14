@@ -7,10 +7,11 @@ import { commentThunk } from '../../Thunks/Posts.js';
 import { CommentContainerContext, PostActionContext } from '../Post/Post.jsx';
 import { UploadImage } from '../Common/UploadImage';
 import { useValidateMedia } from '../../Hooks/useValidateMedia';
+import { AntdNotificationContext } from '../../App';
 
 export const ReplyComment = ({ onCancel, post, comment, initValue, initAttachments = [] }) => {
     const controls = useAnimation();
-    const [validateMedia] = useValidateMedia();
+    const [validateMedia] = useValidateMedia({excludeVideo: true});
     const dispatch = useDispatch();
     const [files, setFiles] = useState(initAttachments)
     const fileRef = useRef();
@@ -37,6 +38,7 @@ export const ReplyComment = ({ onCancel, post, comment, initValue, initAttachmen
         if(!ok) return;
         setFiles([...files, ..._files]);
     }
+    const notify = useContext(AntdNotificationContext)
     const Reply = () => {
 
         const [parent, level] = findNestedLevelWrapper(comment);
@@ -47,8 +49,9 @@ export const ReplyComment = ({ onCancel, post, comment, initValue, initAttachmen
             content = '@' + comment.author_name + ' ' + contentRef.current.value;
         }
         const data = { content, post_id: post.id, attachments: files, parent_id }
-        dispatch(commentThunk(data, addComment));
+        dispatch(commentThunk(data, addComment,notify));
         setFiles([]);
+        onCancel();
         fileRef.current.value = "";
         contentRef.current.value = "";
     }

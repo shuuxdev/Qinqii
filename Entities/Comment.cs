@@ -14,6 +14,7 @@ public class Comment
     public string author_name { get; set; }
     public string author_avatar { get; set; }
     public int? parent_id { get; set; }
+    public int replies { get; set; }
     public string created_at { get; set; }
     public List<Attachment> attachments { get; set; } = new();
     public List<Reaction> reactions { get; set; } = new();

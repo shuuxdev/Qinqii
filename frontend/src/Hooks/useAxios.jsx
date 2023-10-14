@@ -2,6 +2,7 @@ import axios from 'axios';
 import Cookies from 'react-cookie/cjs/Cookies.js';
 import { useNavigate } from 'react-router-dom';
 import { SERVER_DOMAIN } from '../Enums/Server';
+
 const cookies = new Cookies();
 
 
@@ -15,25 +16,22 @@ const securedApi = axios.create({
 });
 const ResponseType = {
     StatusCode: 'StatusCode',
-    Data: 'Data'
-}
-const GetApiResponseAs = async (api, responseType)  => {
+    Data: 'Data',
+};
+
+const GetApiResponseAs = async (api, responseType) => {
 
     try {
         const res = await api;
-        if(responseType === ResponseType.Data)
-        {
-            return [res.data, null]
+        if (responseType === ResponseType.Data) {
+            return [res.data, null];
+        } else {
+            return [res.status, null];
         }
-        else {
-            return [res.status, null]
-        }
+    } catch (err) {
+        return [null, err];
     }
-    catch (err)
-    {
-        return [null, err]
-    }
-}
+};
 
 const beforeSendingRequest = (request) => {
     let token = cookies.get('Token');
@@ -46,6 +44,8 @@ const onSuccessResponse = (response) => {
 const onFailedResponse = (err) => {
     return err;
 };
+
+
 export const useAxios = () => {
     // const navigate = useNavigate();
     securedApi.interceptors.request.use(beforeSendingRequest);
@@ -53,51 +53,59 @@ export const useAxios = () => {
         onSuccessResponse,
         (failedResponse) => {
             if (failedResponse.response.status === 401) {
-                    cookies.remove('Token');
-                    window.location.href = '/login';
+                cookies.remove('Token');
+                window.location.href = '/login';
             }
             return Promise.reject(failedResponse);
-        }
+        },
     );
+
     const PATCH_UpdateGender = async (gender) => {
-        return GetApiResponseAs(securedApi.patch(`/user/update-gender/${gender}`, ), ResponseType.StatusCode);
-    }
+        return GetApiResponseAs(securedApi.patch(`/user/update-gender/${gender}`), ResponseType.StatusCode);
+    };
     const PATCH_UpdateRelationship = async (relationship) => {
         return GetApiResponseAs(securedApi.patch(`/user/update-relationship/${relationship}`), ResponseType.StatusCode);
-    }
+    };
     const PATCH_UpdateBirthday = async (birthday) => {
-        return GetApiResponseAs(securedApi.patch(`/user/update-birthday/${birthday}`, ), ResponseType.StatusCode);
-    }
+        return GetApiResponseAs(securedApi.patch(`/user/update-birthday/${birthday}`), ResponseType.StatusCode);
+    };
     const PATCH_UpdateBio = async (bio) => {
-        return GetApiResponseAs(securedApi.patch(`/user/update-bio/${bio}`, ), ResponseType.StatusCode);
-    }
-        const GET_Feed = async () => await securedApi.get('/feed');
+        return GetApiResponseAs(securedApi.patch(`/user/update-bio/${bio}`), ResponseType.StatusCode);
+    };
+    const GET_Feed = async () => await securedApi.get('/feed');
     const GET_Stories = async (page, page_size) => {
-        if(page && page_size) return securedApi.get(`/stories?PageNumber=${page}&PageSize=${page_size}`)
-        return securedApi.get(`/stories`)
-    }
-    const GET_Story = async (id) =>  await GetApiResponseAs(securedApi
-        .get(`/story?id=${id}`), ResponseType.Data)
+        if (page && page_size) return securedApi.get(`/stories?PageNumber=${page}&PageSize=${page_size}`);
+        return securedApi.get(`/stories`);
+    };
+    const GET_CommentsByPostId = async (post_id, page = 1, pageSize = 5) => await GetApiResponseAs(securedApi.get(`/comment/get?post_id=${post_id}&page=${page}&page_size=${pageSize}`), ResponseType.Data);
+    const GET_Story = async (id) => await GetApiResponseAs(securedApi
+        .get(`/story?id=${id}`), ResponseType.Data);
     const GET_MyProfile = async () => await securedApi.get(`/user/profile`);
     const GET_UserProfile = async (user_id) => await securedApi.get(`/user/profile?id=${user_id}`);
     const GET_Messages = async () => await securedApi.get('/chat/messages');
-    const GET_Notifications = async () => await securedApi.get('/notification/all');
+    const GET_Notifications = async (page = 1,page_size = 5) => await securedApi.get(`/notification/all?page=${page}&page_size=${page_size}`);
     const GET_FriendRequests = async () =>
         await securedApi.get('/user/friend-requests');
     const GET_Friends = async () => await securedApi.get('/user/friends');
-    const GET_FriendsWithName = async ( keyword) => await GetApiResponseAs(securedApi.get(`/user/friendsWithName?startWith=${keyword}`), ResponseType.Data);
-    const GET_PeopleWithName = async ( keyword) => await GetApiResponseAs(securedApi.get(`/user/findByName?startWith=${keyword}`), ResponseType.Data);
+    const GET_FriendsWithName = async (keyword) => await GetApiResponseAs(securedApi.get(`/user/friendsWithName?startWith=${keyword}`), ResponseType.Data);
+    const GET_PeopleWithName = async (keyword = '') => {
+        return GetApiResponseAs(securedApi.get(`/user/findByName?startWith=${keyword}`), ResponseType.Data);
+    };
     const POST_Login = async ({ username, password }) =>
         await api.post('/auth/login_jwt', {
             username,
             password,
         });
-    const GET_UserPosts = async ({user_id, page, pageSize})=> await GetApiResponseAs(securedApi.get(`user/posts?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+    const GET_UserPosts = async ({
+                                     user_id,
+                                     page,
+                                     pageSize,
+                                 }) => await GetApiResponseAs(securedApi.get(`user/posts?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
     const POST_SendMessage = async (message_info) =>
         await api.post('/chat/message', {
             message_info,
         });
-    const GET_AllChat = async () =>  securedApi.get(`/chat/all`);
+    const GET_AllChat = async () => securedApi.get(`/chat/all`);
     const GET_Chat = async () => (await securedApi.get('/chat')).data;
     const appendToFormData = (formData, object) => {
         for (let key in object) {
@@ -105,46 +113,62 @@ export const useAxios = () => {
                 formData.append(key, object[key]);
             }
         }
-    }
+    };
     const POST_UpdateProfile = async (profile) => {
         const formFile = new FormData();
         appendToFormData(formFile, profile);
 
         return GetApiResponseAs(securedApi.post('/user/update-profile', formFile), ResponseType.StatusCode);
-    }
+    };
 
 
-    const     GET_UserImages  = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/images?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
-    const     GET_UserVideos           = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/videos?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
-    const     GET_UserFriends          = async  ({user_id, page, pageSize}) => await GetApiResponseAs(securedApi.get(`user/friends?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
-    const     GET_UserPeopleYouMayKnow = async  ({pageSize, page}) => await GetApiResponseAs(securedApi.get(`user/people-you-may-know?&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+    const GET_UserImages = async ({
+                                      user_id,
+                                      page,
+                                      pageSize,
+                                  }) => await GetApiResponseAs(securedApi.get(`user/images?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+    const GET_UserVideos = async ({
+                                      user_id,
+                                      page,
+                                      pageSize,
+                                  }) => await GetApiResponseAs(securedApi.get(`user/videos?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+    const GET_UserFriends = async ({
+                                       user_id,
+                                       page,
+                                       pageSize,
+                                   }) => await GetApiResponseAs(securedApi.get(`user/friends?id=${user_id}&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
+    const GET_UserPeopleYouMayKnow = async ({
+                                                pageSize,
+                                                page,
+                                            }) => await GetApiResponseAs(securedApi.get(`user/people-you-may-know?&page=${page}&pageSize=${pageSize}`), ResponseType.Data);
 
-    const POST_CreateStory = async (videos, thumbnails, images ) => {
+    const POST_CreateStory = async (videos, thumbnails, images) => {
 
-        if(videos.length != thumbnails.length) throw new Error('videos and thumbnails must have the same length')
+        if (videos.length != thumbnails.length) throw new Error('videos and thumbnails must have the same length');
         const formFile = new FormData();
         formFile.append('expire_after', 24);
-        for(let i = 0; i < videos.length; i++)
-        {
+        for (let i = 0; i < videos.length; i++) {
             formFile.append(`videos[${i}].video`, videos[i]);
             formFile.append(`videos[${i}].thumbnail.image`, thumbnails[i]);
         }
-        for(let i = 0; i < images.length; i++)
-        {
+        for (let i = 0; i < images.length; i++) {
             formFile.append(`images[${i}].image`, images[i]);
         }
         return GetApiResponseAs(securedApi.post('/story/create', formFile), ResponseType.StatusCode);
-    }
+    };
+    const GET_POST = async (post_id) => {
+        return GetApiResponseAs(securedApi.get(`/post?id=${post_id}`), ResponseType.Data);
+    };
     const GET_ConversationWithUser = async (user_id) => await GetApiResponseAs(securedApi.get(`/chat/load-by-user-id?recipient_id=${user_id}`), ResponseType.Data);
 
     const GET_RelationshipWithUser = (user_id) => GetApiResponseAs(securedApi.get(`/user/relationship-with-user?id=${user_id}`), ResponseType.Data);
 
-     const POST_SendFriendRequest = async ({ friend_id }) =>
-         GetApiResponseAs(securedApi.post('/user/send-friend-request', {  friend_id}), ResponseType.StatusCode);
-     const POST_CancelFriendRequest = async ({ friend_id }) =>
-            GetApiResponseAs(securedApi.post('/user/cancel-friend-request', {  friend_id}), ResponseType.StatusCode);
-     const POST_Unfriend = async ({ friend_id }) =>
-            GetApiResponseAs(securedApi.post('/user/unfriend', {  friend_id}), ResponseType.StatusCode);
+    const POST_SendFriendRequest = async ({ friend_id }) =>
+        GetApiResponseAs(securedApi.post('/user/send-friend-request', { friend_id }), ResponseType.StatusCode);
+    const POST_CancelFriendRequest = async ({ friend_id }) =>
+        GetApiResponseAs(securedApi.post('/user/cancel-friend-request', { friend_id }), ResponseType.StatusCode);
+    const POST_Unfriend = async ({ friend_id }) =>
+        GetApiResponseAs(securedApi.post('/user/unfriend', { friend_id }), ResponseType.StatusCode);
     const api = {
         GET_FriendRequests,
         GET_Messages,
@@ -152,7 +176,7 @@ export const useAxios = () => {
         GET_Friends,
         POST_Login,
         POST_SendMessage,
-       POST_UpdateProfile,
+        POST_UpdateProfile,
         POST_CreateStory,
         POST_SendFriendRequest,
         GET_AllChat,
@@ -160,6 +184,7 @@ export const useAxios = () => {
         GET_Stories,
         GET_Story,
         GET_MyProfile,
+        GET_POST,
         GET_PeopleWithName,
         GET_Notifications,
         GET_FriendsWithName,
@@ -170,12 +195,13 @@ export const useAxios = () => {
         GET_UserPeopleYouMayKnow,
         GET_RelationshipWithUser,
         GET_ConversationWithUser,
+        GET_CommentsByPostId,
         DELETE_CancelFriendRequest: POST_CancelFriendRequest,
         DELETE_Unfriend: POST_Unfriend,
         PATCH_UpdateBio,
         PATCH_UpdateRelationship,
         PATCH_UpdateGender,
-        PATCH_UpdateBirthday
+        PATCH_UpdateBirthday,
     };
     return api;
 };

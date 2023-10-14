@@ -1,4 +1,5 @@
 using Dapper;
+using Qinqii.Entities;
 using Qinqii.Enums;
 using Qinqii.Models;
 using Qinqii.Models.Attachments;
@@ -148,6 +149,22 @@ namespace Qinqii.Extensions
                 story.viewers = viewers.Where(v => v.story_id == story.story_id).ToList();
             }
             return stories;
+        }
+
+        public static async Task<IEnumerable<Comment>> ToComments(this SqlMapper.GridReader reader)
+        {
+            var comments = await reader.ReadAsync<Comment>();
+            //assume that attachments are images only, no videos include
+            var attachments = await reader.ReadAsync<Attachment>();
+            var reactions = await reader.ReadAsync<Reaction>();
+
+            foreach (var comment in comments)
+            {
+                comment.attachments = attachments.Where(a => a.entity_id == comment
+                    .comment_id && a.entity_type == EntityType.COMMENT).ToList();
+                comment.reactions = reactions.Where(r => r.entity_id == comment.comment_id && r.entity_type == EntityType.COMMENT).ToList();
+            }
+            return comments;
         }
     }
     

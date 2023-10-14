@@ -76,7 +76,7 @@ export const HorizontalMediaViewerCarousel = ({ attachments }) => {
 const CarouselItem = ({payload, index}) => {
 
     const { activeCarousel, moveTo} = useContext(CarouselContext);
-    const c = twMerge('w-full h-full object-cover', index === activeCarousel ? "border-[3px] border-solid border-blue-500" : "");
+    const c = twMerge('w-full h-full  object-cover', index === activeCarousel ? "border-[3px] border-solid border-blue-500" : "");
 
     return (
         <div className='item' key={payload.id} onClick={() => moveTo(index)}>

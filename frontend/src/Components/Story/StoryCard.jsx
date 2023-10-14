@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BsPlusLg } from 'react-icons/bs';
 import Color from '../../Enums/Color';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { showModal } from '../../Reducers/Modals';
 import { ModalType } from '../../Enums/Modal';
-import { updateViewerThunk } from '../../Reducers/Stories';
+import { addStory, updateViewerThunk } from '../../Reducers/Stories';
 import { QinqiiCustomImage } from '../Common/QinqiiCustomImage';
 import { Text } from '../Common/Text';
 import { Avatar } from '../Common/Avatar';
 import { useMediaQuery } from 'react-responsive';
 import { ScreenWidth } from '../../Enums/ScreenWidth';
+import connection from '../../Helper/SignalR';
 
 export function StoryItem({ def, story }) {
     const dispatch = useDispatch();
@@ -35,7 +36,7 @@ export function StoryItem({ def, story }) {
                 </div>
             <QinqiiCustomImage src={story.thumbnail} alt="" className="object-cover w-full h-full z-10 relative" />
             <div className="z-30 absolute bottom-2 left-[50%] translate-x-[-50%]">
-                <Text color={Color.White} bold>Shuu</Text>
+                <Text color={Color.White} bold>{story.author_name}</Text>
             </div>
         </div>
     )
@@ -74,10 +75,21 @@ export function Stories() {
     const isSm = useMediaQuery({query: `(max-width: ${ScreenWidth.sm}px)`})
     const isXs = useMediaQuery({query: `(max-width: ${ScreenWidth.xs}px)`})
     const isMd = useMediaQuery({query: `(max-width: ${ScreenWidth.md}px)`})
-    let maxStory = 5;
+    let maxStory =4;
     if (isMd) maxStory = 3;
     if (isSm) maxStory = 2;
     if (isXs) maxStory = 1;
+
+    const dispatch = useDispatch();
+    useEffect(() => {
+        connection.on("ReceiveStory", (story) => {
+            console.log(story);
+            dispatch(addStory(story));
+        })
+        return () => {
+            connection.off("ReceiveStory");
+        }
+    }, []);
 
     return (
         <div style={{gap: `clamp(2px, 0.5vw, 7px)`}} className={`flex p-[10px] bg-[${Color.White}] rounded-[10px] my-[10px]`}>

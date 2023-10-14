@@ -17,6 +17,7 @@ import { QinqiiCustomImage } from '../Common/QinqiiCustomImage';
 import { Avatar } from '../Common/Avatar';
 import MediaQuery from 'react-responsive';
 import { ScreenWidth } from '../../Enums/ScreenWidth';
+import { BiLogOut } from 'react-icons/bi';
 
 const dateFormat = 'YYYY/MM/DD hh:mm:ss';
 
@@ -152,11 +153,16 @@ const StoryList = ({stories}) => {
 
         }
     });
+    const navigate = useNavigate()
     return (
         <div className="scrollableDiv flex flex-col px-[10px] py-[20px] w-[400px] overflow-y-auto     ">
-            <HeaderText sm>
-                Stories
-            </HeaderText>
+            <div className='flex px-[10px] justify-between'>
+                <div className='text-xl font-bold'>Stories</div>
+                <div onClick={() => navigate('/')}>
+                    <BiLogOut className='hover:text-red-500 cursor-pointer' size={22}/>
+                </div>
+            </div>
+
             <div className="grid grid-cols-2 p-[10px] gap-[10px] ">
                 {
                     stories.map(story => (

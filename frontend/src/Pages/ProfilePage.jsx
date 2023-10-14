@@ -1,4 +1,4 @@
-import { FaBirthdayCake, FaFemale, FaHeart, FaMale } from 'react-icons/fa';
+import { FaFemale, FaHeart, FaMale } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchFriendsThunk, fetchProfile, fetchProfileThunk } from '../Reducers/Profile.js';
 import { useParams } from 'react-router-dom';
@@ -70,7 +70,6 @@ const AboutMeItem = ({ Editor, Icon, text, itemType }) => {
     const { editItems, setEditItems, onSubmit } = useContext(AboutContext);
     const param = useParams();
     const me = useUserID();
-    const axios = useAxios();
 
     const Return = () => {
         setEditItems(editItems.filter((item) => item !== itemType));
@@ -298,6 +297,7 @@ const Profile = () => {
     const [relationship, setRelationship] = useState(null);
     const profile = useSelector(state => state.profile);
     const [activeTab, setActiveTab] = useState(Tab.Posts);
+    const [isLoaded, setIsLoaded] = useState(false);
     const me = useUserID();
     const checkFriend = async () => {
         const [data, error] = await axios.GET_RelationshipWithUser(param.id);
@@ -311,6 +311,12 @@ const Profile = () => {
             setRelationship(null);
         };
     }, [param.id]);
+
+    useEffect(() => {
+        if (profile.user_id == param.id) {
+            setIsLoaded(true);
+        }
+    }, [profile, param.id]);
     useEffect(() => {
         if (location.pathname === `/user/${param.id}`) {
             setActiveTab(Tab.Posts);
@@ -324,11 +330,14 @@ const Profile = () => {
         if (location.pathname === `/user/${param.id}/friends`) {
             setActiveTab(Tab.Friends);
         }
-
+        return () => {
+            setIsLoaded(false)
+        }
     }, [location.pathname]);
     return (
         <>
             {
+                !isLoaded ? <div className='h-screen'><Loading /></div> :
                 profile ?
                     <ProfileContext.Provider value={{ profile, activeTab, setActiveTab }}>
                         <BackgroundAndAvatar></BackgroundAndAvatar>
@@ -388,20 +397,20 @@ const Profile = () => {
 
 
 const Navbar = () => {
-    const { setActiveTab } = useContext(ProfileContext);
+    const { setActiveTab, activeTab } = useContext(ProfileContext);
     return (
         <div className='flex bg-white text-gray-700'>
-            <NavItem text={'Posts'} onClick={() => setActiveTab(Tab.Posts)} />
-            <NavItem text={'Ảnh'} onClick={() => setActiveTab(Tab.Images)} />
-            <NavItem text={'Videos'} onClick={() => setActiveTab(Tab.Videos)} />
-            <NavItem text={'Bạn bè'} onClick={() => setActiveTab(Tab.Friends)} />
+            <NavItem selected={activeTab === Tab.Posts} text={'Posts'} onClick={() => setActiveTab(Tab.Posts)} />
+            <NavItem selected={activeTab === Tab.Images}  text={'Ảnh'} onClick={() => setActiveTab(Tab.Images)} />
+            <NavItem selected={activeTab === Tab.Videos} text={'Videos'} onClick={() => setActiveTab(Tab.Videos)} />
+            <NavItem selected={activeTab === Tab.Friends}  text={'Bạn bè'} onClick={() => setActiveTab(Tab.Friends)} />
         </div>
     );
 };
-const NavItem = ({ onClick, text }) => {
+const NavItem = ({selected, onClick, text }) => {
     return (
-        <div onClick={onClick}
-             className='px-[20px] flex items-center justify-center py-[15px]  rounded-[5px]  hover:bg-slate-50 hover:border-b-[2px] grow-[1] hover:border-blue-500 hover:mb-[-2px]'>{text}</div>
+        <div style={{borderBottom: selected ? `2px solid ${Color.Primary}` : '2px solid transparent'}} onClick={onClick}
+             className='cursor-pointer h-[60px] px-[20px] flex items-center justify-center  py-[15px]  hover:bg-slate-50 hover:border-b-[2px] grow-[1] hover:border-blue-500 hover:mb-[-2px]'>{text}</div>
     );
 };
 export default Profile;

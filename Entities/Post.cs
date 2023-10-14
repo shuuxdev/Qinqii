@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
-
+namespace Qinqii.Entities;
 public class Post
 {
    
@@ -14,7 +14,9 @@ public class Post
     public string content { get; set; }
     public string created_at { get; set; }
 
+    public int total_comments { get; set; }
     public List<Reaction> reactions { get; set; } = new();
     public List<Comment> comments { get; set; } = new();
     public List<Attachment> attachments { get; set; } = new();
+    
 }

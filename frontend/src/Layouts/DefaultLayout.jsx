@@ -1,6 +1,6 @@
 import Navbar from '../Components/Common/Navbar.jsx';
 import Color from '../Enums/Color.js';
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Outlet } from 'react-router-dom';
 import { Card } from '../Components/Common/Card.jsx';
@@ -9,12 +9,18 @@ import { ContactList } from '../Components/Chat/Contacts.jsx';
 import { FriendRequest } from '../Components/Friend/FriendRequest.jsx';
 import { Sidebar } from '../Components/Common/Sidebar.jsx';
 import { GlobalProvider } from '../Contexts/GlobalStateContext.jsx';
-import connection from '../Helper/SignalR.js';
+import connection, { startSignalRConnection } from '../Helper/SignalR.js';
 
 
 import Loading from '../Components/Common/Loading.jsx';
 import { useAxios } from '../Hooks/useAxios.jsx';
-import { fetchContacts, sendMessage } from '../Reducers/Contacts.js';
+import {
+    addContact,
+    fetchContacts,
+    increaseUnreadMessageCount,
+    sendMessage,
+    updateOnlineStatus,
+} from '../Reducers/Contacts.js';
 import { addFriendRequest, fetchFriendRequests } from '../Reducers/FriendRequests.js';
 import { fetchProfile } from '../Reducers/Profile.js';
 import { fetchStories } from '../Reducers/Stories.js';
@@ -24,6 +30,10 @@ import CallModal from '../Components/Modals/CallModal';
 import MediaQuery from 'react-responsive';
 import { ScreenWidth } from '../Enums/ScreenWidth';
 import { fetchUser } from '../Reducers/User';
+import { AntdNotificationContext } from '../App';
+import { NotificationType } from '../Enums/NotificationType';
+import { openChat } from '../Reducers/Chats';
+import { useUserID } from '../Hooks/useUserID';
 
 export const CallContext = createContext();
 
@@ -46,14 +56,14 @@ const ChatContainer = () => {
     let chatList = openedChatList.map((id) => contacts.find((contact) => contact.conversation_id === id))
 
     return (
-        <CallContext.Provider value={useWebRTC()}>
+        <div >
             <CallModal/>
-            <div className='fixed flex gap-[10px] bottom-0 right-0  z-[100]'>
+            <div className='fixed flex gap-[10px] bottom-0 right-[30px]  z-[100]'>
             {chatList.length > 0 && chatList.map((chat) =>
                 <Chat key={chat.conversation_id} contact={chat} />)
             }
             </div>
-        </CallContext.Provider>
+        </div>
     )
 }
 const RightSection = () => {
@@ -97,13 +107,61 @@ const DefaultLayout = () => {
     const pageReady = async () => {
         setAllDataLoaded(await initApiCall(axios, dispatch))
     }
+    const me = useUserID();
+    const notify = useContext(AntdNotificationContext);
+    useEffect(() => {
+        startSignalRConnection(connection);
+    }, []);
+    useEffect(() => {
+
+
+        connection.on('RecieveMessage', (json) => {
+            let message = JSON.parse(json);
+            dispatch(sendMessage(message));
+            if (message.sender_id !== me)
+                dispatch(increaseUnreadMessageCount(message.conversation_id));
+            dispatch(addContact({
+                conversation_id: message.conversation_id,
+                ...message,
+            }));
+            dispatch(openChat(message.conversation_id));
+        });
+        connection.on('updateOnlineStatus', (user_id, status) => {
+            console.log(user_id, status);
+            dispatch(updateOnlineStatus({ user_id, status }));
+
+        });//
+
+        return () => {
+            connection.off('RecieveMessage');
+            connection.off('updateOnlineStatus');
+            connection.off('ReceiveReaction');
+        };
+    });
     useEffect(() => {
         pageReady();
+
         connection.on("ReceiveNotification", (notification) => {
+            console.log(notification)
+
+            if(notification.type === NotificationType.FRIEND_ACCEPT) {
+                notify.open({
+                    message: `${notification.actor_name} đã chấp nhận lời mời kết bạn của bạn`,
+                    type: 'info',
+                    duration: 5,
+                    placement: 'bottomLeft'
+                })
+            }
             dispatch(addNotification(notification))
         })
         connection.on("ReceiveFriendRequest", (friend, request_id) => {
-            dispatch(addFriendRequest({...friend,id: request_id}))
+            dispatch(addFriendRequest({...friend,id: request_id}));
+            notify.open({
+                message: `${friend.name} đã gửi cho bạn một lời mời kết bạn`,
+                type: 'info',
+                duration: 5,
+                placement: 'bottomLeft'
+            })
         })
         return () => {
             connection.off("ReceiveNotification");
@@ -131,7 +189,6 @@ const DefaultLayout = () => {
                 </div>
             </div> : <div className='flex justify-center  h-[100vh] gap-[20px] flex-col items-center'>
                 <Loading></Loading>
-                <p>Đang tải trang, vui lòng chờ</p>
             </div>
         }
         </>

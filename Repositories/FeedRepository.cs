@@ -1,6 +1,7 @@
 using System.Data;
 using System.Dynamic;
 using Dapper;
+using Qinqii.Entities;
 using Qinqii.Enums;
 using Qinqii.Extensions;
 using Qinqii.Models;

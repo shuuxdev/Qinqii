@@ -9,6 +9,7 @@ import { StoryVideo } from '../Common/StoryVideo';
 import { QinqiiCustomVideo } from '../Common/QinqiiCustomVideo';
 import { QinqiiCustomImage } from '../Common/QinqiiCustomImage';
 import { Avatar } from '../Common/Avatar';
+import { timeSinceCreatedAt } from '../../Helper/GetTimeSince';
 export const FrameState = {
     OPEN: 'OPEN',
     PAUSE: 'PAUSE'
@@ -164,32 +165,41 @@ const StoryDetail = () => {
                     <motion.div className='absolute bottom z-[20] w-full h-[300px] bg-white  rounded-[10px]' initial={{opacity: 0, y: '-90%'}} animate={{ opacity: 1, y:'-100%'}} transition={{ damping: 0, duration: 0.2 }}>
 
 
-                        <div className='mx-[10px]  flex items-center justify-center  border-b-[2px] border-solid border-[#CED0D4] p-[5px]' >
-                            <HeaderText sm >Story's detail</HeaderText>
-                            <div onClick={() => { setShow(false) }} >
-                                <MdOutlineCancelPresentation size={20} />
+                        <div className='mx-[10px]  flex items-center justify-between  border-b-[2px] border-solid border-[#CED0D4] p-[10px]' >
+                            <div className='text-xl font-bold'>Chi tiết</div>
+                            <div className={'cursor-pointer'}  onClick={() => { setShow(false) }} >
+                                <MdOutlineCancelPresentation className='hover:text-red-500' size={20} />
                             </div>
                         </div>
                         <div className='p-[10px]'>
 
                             {
+                                story.viewers.length > 0 ?
                                 story.viewers.map(viewer => (
-                                    <div className="  items-center flex gap-[8px]">
+                                    <div className=" p-[10px] items-center flex gap-[8px]">
                                         <div className="shrink-0">
                                             <Avatar src={viewer.viewer_avatar} user_id={viewer.viewer_id}/>
                                         </div>
                                         <div className="flex flex-wrap flex-1">
                                             <Text color='black' className>{viewer.viewer_name}</Text>
                                         </div>
+                                        <div className="flex flex-wrap flex-1 justify-end">
+                                            <Text color='black' className>{timeSinceCreatedAt(viewer.viewed_at)} trước</Text>
+                                        </div>
                                     </div>
                                 ))
+                                    :
+                                    <div className=" p-[10px] items-center flex gap-[8px]">
+                                        <div className="flex flex-wrap flex-1">
+                                            <Text color='black' className>Không có ai xem</Text>
+                                        </div>
+                                    </div>
                             }
                         </div>
 
                     </motion.div> :
                     <div onClick={OpenStoryDetail}>
-
-                        <Text  >{story.viewers.length} người xem</Text>
+                        <p className={'font-bold cursor-pointer hover:text-gray-400 text-xl text-white'} >{story.viewers.length} người xem</p>
                     </div>
             }
         </AnimatePresence >

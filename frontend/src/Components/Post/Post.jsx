@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AiOutlineDelete } from 'react-icons/ai';
 import { BiHeart, BiMessage, BiShareAlt } from 'react-icons/bi';
 import { BsThreeDots } from 'react-icons/bs';
@@ -15,7 +15,7 @@ import { showModal } from '../../Reducers/Modals';
 import { ModalType } from '../../Enums/Modal';
 import { ImageGrid } from '../Common/ImageGrid';
 import { deletePostThunk, reactToPostThunk } from '../../Thunks/Posts.js';
-import { updatePost } from '../../Reducers/Posts.js';
+import { addComments, updateComment, updatePost } from '../../Reducers/Posts.js';
 import { Text } from '../Common/Text';
 import { Avatar } from '../Common/Avatar';
 import { DropdownMenu } from '../Common/DropdownMenu';
@@ -24,17 +24,21 @@ import MediaQuery from 'react-responsive';
 import { ScreenWidth } from '../../Enums/ScreenWidth';
 import { timeSinceCreatedAt } from '../../Helper/GetTimeSince';
 import { useNavigate } from 'react-router-dom';
+import { AntdNotificationContext } from '../../App';
+import { useAxios } from '../../Hooks/useAxios';
+import { twMerge } from 'tailwind-merge';
+import { useScroll } from '../../Helper/useScroll';
 
 
 const LazyEmojiPicker = React.lazy(() => import('@emoji-mart/react'))
 
 const DeleteOption = ({ post }) => {
 
+    const notify = useContext(AntdNotificationContext)
     const dispatch = useDispatch();
     const {removePost} = useContext(PostActionContext)
     const DeletePost = () => {
-        dispatch(deletePostThunk(post.id, removePost))
-
+        dispatch(deletePostThunk(post.id, removePost, notify))
     }
     return (
 
@@ -80,10 +84,11 @@ export const Post = ({ post, action }) => {
                                 <Text fontSize={13}> {timeSinceCreatedAt(post.created_at)} trước</Text>
                             </div>
                         </div>
-                        {
-                            user_id === post.author_id &&
-                            <PostOptionsMenu post={post} />
-                        }
+                        {/*{*/}
+                        {/*    user_id === post.author_id &&*/}
+                        {/*}*/}
+                        <PostOptionsMenu post={post} />
+
                     </div>
                     <div>
                         <Text color="black">
@@ -202,18 +207,58 @@ const CommentContainer = ({ post }) => {
         findParentComment
     }
 
+    const [loadMore, setLoadMore] = useState(false);
 
+    const axios = useAxios();
+    const notify = useContext(AntdNotificationContext);
+    const dispatch = useDispatch();
+    const fetchMoreComment = async (page)   => {
+        const [data, error] = await axios.GET_CommentsByPostId(post.id, page, 5);
+        if(error) {
+            console.log(error);
+            notify.open({
+                message: 'Lỗi',
+                description: 'Không thể tải thêm bình luận',
+                type: 'error',
+                duration: 3
+            })
+        }
+        else {
+            dispatch(addComments({
+                post_id: post.id,
+                comments: data
+            }))
+        }
+        return data;
+    }
 
+    let postName = 'post-' + post.id
+    const commentContainerRef = useRef();
+    const {page, isEnd, data} = useScroll(commentContainerRef, fetchMoreComment)
+
+  /*  useEffect(() => {
+        if(loadMore) {
+            fetchMoreComment(2);
+        }
+    }, [loadMore]);*/
+    let container = twMerge(postName, ` flex flex-col gap-[10px] max-h-[500px] `, loadMore ? 'overflow-y-auto' : 'overflow-y-hidden')
+    comments.sort((a, b) => b.id - a.id);
     return (
         <CommentContainerContext.Provider value={contextValue}>
 
-            <div className="flex flex-col gap-[10px]">
+            <div ref={commentContainerRef} className={container}>
                 {
                     comments.map((comment, i) => (
                         <Comment key={comment.id} comment={comment} index={i} post={post} />
                     ))
                 }
             </div>
+            {
+                !loadMore && post.total_comments > 5 &&
+                <div className="flex justify-center">
+                    <button onClick={() => setLoadMore(true)} className="text-[14px] text-[#65676B] hover:text-[#1877F2]">Xem thêm bình luận</button>
+                </div>
+            }
         </CommentContainerContext.Provider>
 
 

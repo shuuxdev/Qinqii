@@ -5,4 +5,5 @@ public class FrameViewer
     public int viewer_id { get; set; }
     public string viewer_name { get; set; }
     public string viewer_avatar { get; set; }
+    public DateTime viewed_at { get; set; }
 }

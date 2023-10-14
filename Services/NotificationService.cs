@@ -60,11 +60,13 @@ public class NotificationService
         var result = new QueryResult(row, row == 1);
         return result;
     }
-    public async Task DeleteNotification(DeleteNotificationRequest request)
+    public async Task<QueryResult> DeleteNotification(DeleteNotificationRequest request)
     {
         using var connection = _ctx.CreateConnection();
         var param = request.ToParameters();
-        await connection.ExecuteAsync("[NOTIFICATION].Delete", param, commandType: CommandType.StoredProcedure);
+        int row = await connection.ExecuteAsync("[NOTIFICATION].Delete", param, commandType: CommandType.StoredProcedure);
+        var result = new QueryResult(row, row == 1);
+        return result;
     }
     public async Task Notify(int receiver_id, int sender_id, string notification_type,  List<INotificationParameter> parameters = null)
     {
@@ -78,5 +80,13 @@ public class NotificationService
         var notification = await CreateNotification(notificationPayload);
         await _hubContext.SendNotificationToOneUser(notification);
     }    
+    public async Task<bool> IsNotificationExist(int notification_id)
+    {
+        using var connection = _ctx.CreateConnection();
+        var param = new DynamicParameters();
+        param.Add("@notification_id", notification_id);
+        var row = await connection.ExecuteScalarAsync<int>("[NOTIFICATION].IsNotificationExist", param, commandType: CommandType.StoredProcedure);
+        return row == 1;
+    }
 }
 

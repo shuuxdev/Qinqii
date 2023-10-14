@@ -20,8 +20,17 @@ const chatSlice = createSlice({
 
 
 
-export const sendMessageAsync = (message, images, videos, thumbnails) => async (dispatch, getState) => {
-  const response = (await POST_SendMessage(message, images, videos, thumbnails))
+export const sendMessageAsync = (message, images, videos, thumbnails, notify) => async (dispatch, getState) => {
+  const [statusCode, error] = (await POST_SendMessage(message, images, videos, thumbnails))
+  if(statusCode !== 200)
+  {
+    notify.open({
+        message: 'Lỗi: ' + error.response.data.Message,
+        type: 'error',
+        duration: 5,
+        placement: 'bottomLeft'
+    })
+  }
 }
 
 

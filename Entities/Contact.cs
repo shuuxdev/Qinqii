@@ -11,7 +11,7 @@ public class Contact
 
     public string recipient_avatar { get; set; }
 
-    public OnlineStatus? online_status { get; set; }
+    public string online_status { get; set; }
     
     public int unread_messages { get; set; }
     

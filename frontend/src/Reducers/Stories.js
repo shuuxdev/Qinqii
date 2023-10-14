@@ -18,8 +18,12 @@ const storiesSlice = createSlice({
             if (story) {
                 story.seen = true
             }
+        },
+        addStory: (state, action) => {
+            if(state.find(story => story.id === action.payload.id)) return;
+            state.push(action.payload);
         }
-        
+
     },
 })
 
@@ -33,5 +37,5 @@ export const updateViewerThunk = createAsyncThunk(
     }
 )
 
-export const {fetchStories,markStoryAsSeen,fetchMoreStories} = storiesSlice.actions
+export const {fetchStories, addStory,markStoryAsSeen,fetchMoreStories} = storiesSlice.actions
 export default storiesSlice.reducer;

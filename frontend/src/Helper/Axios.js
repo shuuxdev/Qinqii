@@ -86,7 +86,7 @@ export const POST_SendMessage = async (message, images, videos, thumbnails) =>
         formData.append(`videos[${i}].video`, videos[i]);
         formData.append(`videos[${i}].thumbnail.image`, thumbnails[i]);
     }
-    return securedApi.post('/chat/message', formData);
+    return GetApiResponseAs(securedApi.post('/chat/message', formData),ResponseType.StatusCode);
 }
 
 const appendToFormData = (formData, object) => {
@@ -172,6 +172,10 @@ export const POST_MarkAsRead = async (conversation_id) => {
 }
 export const POST_NotificationMarkAsRead = async (notification_id) => {
     return await GetApiResponseAs(securedApi.post('/notification/mark-as-read',  {notification_id} ), ResponseType.StatusCode);
+}
+export const DELETE_Notification = async(notification_id) =>
+{
+    return await GetApiResponseAs(securedApi.delete(`/notification/delete?id=${notification_id}`), ResponseType.StatusCode);
 }
 export const DELETE_Comment = async (comment_id) =>
     await securedApi

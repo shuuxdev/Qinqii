@@ -3,6 +3,7 @@ using Dapper;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Qinqii.DTOs.Request.Story;
 using Qinqii.Models;
+using Qinqii.Models.QueryResult;
 using Qinqii.Utilities;
 
 namespace Qinqii.Service;
@@ -48,14 +49,16 @@ public class StoryRepository
             "[STORY].[Update_Viewers]",
             commandType: CommandType.StoredProcedure, param: param);
     }
-    public async Task CreateStory(CreateStoryRequest request, IEnumerable<AttachmentIdsTVP> attachment_ids)
+    public async Task<QueryResult<int>> CreateStory(CreateStoryRequest request, IEnumerable<AttachmentIdsTVP> attachment_ids)
     {
         using var connection = _ctx.CreateConnection();
         var param = request.ToParameters();
         param.Add("@attachment_ids", attachment_ids.ToTableValuedParameters());
-        var dto = await connection.ExecuteAsync(
+        int story_id = await connection.ExecuteScalarAsync<int>(
             "[STORY].[Create]",
             commandType: CommandType.StoredProcedure, param: param);
+        var result = new QueryResult<int>(story_id, story_id != 0);
+        return result;
     }
     public async Task DeleteStory(DeleteStoryRequest request)
     {
