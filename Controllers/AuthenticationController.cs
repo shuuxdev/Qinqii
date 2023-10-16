@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Qinqii.DTOs.Request.User;
+using Qinqii.Models;
 using Qinqii.Service;
 using Qinqii.Ultilities;
 
@@ -35,6 +37,7 @@ namespace Qinqii.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginRequest u)
         {
+            throw new HttpStatusCodeException(HttpStatusCode.ServiceUnavailable, "Service is under maintenance");
             int user_id = await authService.Login(u.email, u.password);
             if (user_id == 0) return Unauthorized();
             List<Claim> claim = new List<Claim>
@@ -63,6 +66,8 @@ namespace Qinqii.Controllers
         [HttpPost("login_jwt")]
         public async Task<IActionResult> LoginJwt([FromBody] UserLoginRequest u)
         {
+            throw new HttpStatusCodeException(HttpStatusCode.ServiceUnavailable, "Service is under maintenance");
+    
             try
             {
                 int user_id = await authService.Login(u.email, u.password);
@@ -86,6 +91,8 @@ namespace Qinqii.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterRequest u)
         {
+            throw new HttpStatusCodeException(HttpStatusCode.ServiceUnavailable, "Service is under maintenance");
+
              await authService.Register(u);
             return Ok();
         }

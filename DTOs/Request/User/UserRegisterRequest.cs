@@ -18,8 +18,8 @@ public class UserRegisterRequest
 
     public string email { get; set; }
     
-    [MaxLength(30, ErrorMessage = ("Độ dài tên nhiều nhất là 30 :D"))]    
-    [MinLength(5, ErrorMessage = "Độ dài của tên hiển thị ít nhất phải là 5")]
+    [MaxLength(15, ErrorMessage = ("Độ dài tên nhiều nhất là 15 :D"))]    
+    [MinLength(3, ErrorMessage = "Độ dài của tên hiển thị ít nhất phải là 3")]
     [Required(ErrorMessage = "Tên hiển thị không được để trống")]
     public string name { get; set; }
         

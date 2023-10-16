@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Qinqii.DTOs.Request.Notification;
@@ -12,6 +13,7 @@ using Qinqii.Service;
 namespace Qinqii.Controllers;
 
 //this is the controller for all the fucking actions that you have no ideas where should you put it -.-
+[Authorize]
 public class GlobalController : ControllerBase
 {
     private readonly PostRepository _postRepository;

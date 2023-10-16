@@ -20,6 +20,8 @@ using Qinqii.Utilities;
 namespace Qinqii.Controllers
 {
     [Route("user")]
+    [Authorize]
+
     public class UserController : ControllerBase
     {
         private readonly UserRepository user;

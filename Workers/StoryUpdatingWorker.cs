@@ -28,17 +28,17 @@ public class StoryUpdatingWorker : BackgroundService
 
             //_logger.LogInformation("Worker running at: {time} ({counter})", DateTimeOffset.Now);
 
-            var stories = await storyService.GetAllStories(stoppingToken);
+            /*var stories = await storyService.GetAllStories(stoppingToken);
             stories.ToList().ForEach(async (story) =>
             {
                 var now = DateTime.Now;
-                if (story.created_at.Add(TimeSpan.FromHours(story.expire_after))
+                if (story.created_at.Add(TimeSpan.FromHours(story.expire_after)) 
                     <=
                     now)
                 {
                     await storyService.DeleteStory(new DeleteStoryRequest() { story_id = story.story_id });
                 }
-            });
+            });*/
             await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
             //GetRequiredService throw exception when no such service was registered
             //GetService returns null;

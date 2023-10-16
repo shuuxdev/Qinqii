@@ -1,5 +1,6 @@
 
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Qinqii.DTOs.Request.Story;
@@ -10,6 +11,7 @@ using Qinqii.Utilities;
 
 namespace Qinqii.Controllers;
 [Route("story")]
+[Authorize]
 public class StoryController : ControllerBase
 {
     private readonly IHubContext<QinqiiHub> _hubContext;

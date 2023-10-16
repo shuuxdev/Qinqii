@@ -23,6 +23,8 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 namespace Qinqii.Controllers;
 [ApiController]
 [Route("chat")]
+[Authorize]
+
 public class ChatController : ControllerBase
 {
     private readonly MessageRepository _messageRepository;

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Qinqii.DTOs.Request.Comment;
@@ -11,6 +12,7 @@ using Qinqii.Service;
 using Qinqii.Utilities;
 
 namespace Qinqii.Controllers;
+[Authorize]
 
 public class CommentController : ControllerBase
 {
