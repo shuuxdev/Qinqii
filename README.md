@@ -1,5 +1,5 @@
 # Qinqii
-a simple social network website using ASP.NET Core, React, TailwindCSS, Dapper, SQL Server
+a simple social network website using ASP.NET Core, React, SignalR, Dapper, SQL Server, WebRTC
 - Live demo: https://qinqii.xyz.wf
 # Main features:
 - Allow users to create, edit, delete, comment,
