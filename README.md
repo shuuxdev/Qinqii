@@ -11,3 +11,4 @@ a simple social network website using ASP.NET Core, React, SignalR, Dapper, SQL 
 - User can also update their profile, avatar and background picture
 - Chat and make calls to others
 - Signin, Signout using JWT Authentication
+![Screenshot 2023-03-06 at 20-43-41 Screenshot](https://github.com/shuuxdev/Qinqii/assets/72917643/d4ff5c96-f39b-48f9-bccb-f7d3fdf37d0b)
